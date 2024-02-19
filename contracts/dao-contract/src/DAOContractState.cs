@@ -16,9 +16,9 @@ namespace TomorrowDAO.Contracts.DAO
         public MappedState<Hash, Metadata> MetadataMap { get; set; }
 
         // high council
-        // public MappedState<Hash, bool> HighCouncilEnabledStatusMap { get; set; }
-        // public MappedState<Hash, bool> HighCouncilExecutionConfigMap { get; set; }
-        // public MappedState<Hash, Address> HighCouncilAddressMap { get; set; }
+        public MappedState<Hash, bool> HighCouncilEnabledStatusMap { get; set; }
+        public MappedState<Hash, bool> HighCouncilExecutionConfigMap { get; set; }
+        public MappedState<Hash, Address> HighCouncilAddressMap { get; set; }
 
         // file
         // DAO id -> FileInfoList

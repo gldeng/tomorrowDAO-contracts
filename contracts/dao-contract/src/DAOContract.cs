@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Text.RegularExpressions;
 using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -21,7 +20,6 @@ namespace TomorrowDAO.Contracts.DAO
                 "No permission.");
 
             InitializeContract(input);
-            
 
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
@@ -32,19 +30,19 @@ namespace TomorrowDAO.Contracts.DAO
 
         private void InitializeContract(InitializeInput input)
         {
-            Assert(IsAddressValid(input.GovernanceContractAddress), $"Invalid governance contract address.");
+            Assert(IsAddressValid(input.GovernanceContractAddress), "Invalid governance contract address.");
             State.GovernanceContract.Value = input.GovernanceContractAddress;
-            
-            Assert(IsAddressValid(input.ElectionContractAddress), $"Invalid election contract address.");
+
+            Assert(IsAddressValid(input.ElectionContractAddress), "Invalid election contract address.");
             State.ElectionContract.Value = input.ElectionContractAddress;
-            
-            Assert(IsAddressValid(input.TimelockContractAddress), $"Invalid timelock contract address.");
+
+            Assert(IsAddressValid(input.TimelockContractAddress), "Invalid timelock contract address.");
             State.TimelockContract.Value = input.TimelockContractAddress;
-            
-            Assert(IsAddressValid(input.TreasuryContractAddress), $"Invalid treasury contract address.");
+
+            Assert(IsAddressValid(input.TreasuryContractAddress), "Invalid treasury contract address.");
             State.TreasuryContract.Value = input.TreasuryContractAddress;
-            
-            Assert(IsAddressValid(input.VoteContractAddress), $"Invalid vote contract address.");
+
+            Assert(IsAddressValid(input.VoteContractAddress), "Invalid vote contract address.");
             State.VoteContract.Value = input.VoteContractAddress;
         }
 
@@ -99,9 +97,8 @@ namespace TomorrowDAO.Contracts.DAO
             Assert(State.DAONameMap[metadata.Name] == null, "DAO name already exists.");
             Assert(IsStringValid(metadata.LogoUrl) && metadata.LogoUrl.Length <= DAOContractConstants.MaxLogoUrlLength,
                 "Invalid metadata logo url.");
-            Assert(
-                IsStringValid(metadata.Description) &&
-                metadata.Description.Length <= DAOContractConstants.MaxDescriptionLength,
+            Assert(IsStringValid(metadata.Description)
+                   && metadata.Description.Length <= DAOContractConstants.MaxDescriptionLength,
                 "Invalid metadata description.");
 
             Assert(
@@ -115,8 +112,9 @@ namespace TomorrowDAO.Contracts.DAO
                     IsStringValid(socialMedia) && socialMedia.Length <= DAOContractConstants.MaxSocialMediaNameLength,
                     "Invalid social media name.");
                 Assert(
-                    IsStringValid(metadata.SocialMedia[socialMedia]) && metadata.SocialMedia[socialMedia].Length <=
-                    DAOContractConstants.MaxSocialMediaUrlLength, "Invalid social media url.");
+                    IsStringValid(metadata.SocialMedia[socialMedia])
+                    && metadata.SocialMedia[socialMedia].Length <= DAOContractConstants.MaxSocialMediaUrlLength,
+                    "Invalid social media url.");
             }
 
             State.MetadataMap[daoId] = metadata;
@@ -144,7 +142,7 @@ namespace TomorrowDAO.Contracts.DAO
         private void ProcessDAOComponents(Hash daoId, CreateDAOInput input)
         {
             ProcessGovernanceMechanism(daoId, input.GovernanceSchemeInput);
-            // ProcessHighCouncil(daoId, input.HighCouncilInput);
+            ProcessHighCouncil(daoId, input.HighCouncilInput);
             // ProcessVoteContract(daoId);
             // ProcessTreasuryContract(daoId, input.IsTreasuryContractNeeded);
             ProcessFileUploads(daoId, input.Files);
@@ -179,7 +177,6 @@ namespace TomorrowDAO.Contracts.DAO
                     Symbol = State.DAOInfoMap[daoId].GovernanceToken,
                     GovernanceSchemeId = input.GovernanceSchemeId,
                     SchemeThreshold = governanceSchemeThreshold,
-                    OrganizationName = State.MetadataMap[daoId].Name,
                     OrganizationMemberList = new OrganizationMemberList
                     {
                         OrganizationMembers = { Context.Sender }
@@ -194,32 +191,30 @@ namespace TomorrowDAO.Contracts.DAO
             //     {
             //         Symbol = State.DAOInfoMap[daoId].GovernanceToken,
             //         GovernanceSchemeId = schemeId,
-            //         OrganizationName = State.MetadataMap[daoId].Name
             //     });
             // }
         }
 
-        // private void ProcessHighCouncil(Hash daoId, HighCouncilInput input)
-        // {
-        //     var schemeId = State.GovernanceContract.GetParliamentSchemeId.Call(new Empty());
-        //     var createOrganizationInput = new CreateOrganizationInput
-        //     {
-        //         Symbol = State.DAOInfoMap[daoId].GovernanceToken,
-        //         GovernanceSchemeId = schemeId,
-        //         OrganizationName = State.MetadataMap[daoId].Name
-        //     };
-        //
-        //     State.GovernanceContract.CreateOrganization.Send(createOrganizationInput);
-        //
-        //     var address = State.GovernanceContract.CalculateOrganizationAddress.Call(createOrganizationInput);
-        //
-        //     State.HighCouncilAddressMap[daoId] = address;
-        //
-        //     if (input != null && IsStringValid(State.DAOInfoMap[daoId].GovernanceToken))
-        //     {
-        //         ProcessEnableHighCouncil(daoId, input.HighCouncilConfig, input.IsRequireHighCouncilForExecution);
-        //     }
-        // }
+        private void ProcessHighCouncil(Hash daoId, HighCouncilInput input)
+        {
+            var schemeId = State.GovernanceContract.GetParliamentSchemeId.Call(new Empty());
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                Symbol = State.DAOInfoMap[daoId].GovernanceToken,
+                GovernanceSchemeId = schemeId,
+            };
+        
+            State.GovernanceContract.CreateOrganization.Send(createOrganizationInput);
+        
+            var address = State.GovernanceContract.CalculateOrganizationAddress.Call(createOrganizationInput);
+        
+            State.HighCouncilAddressMap[daoId] = address;
+        
+            if (input != null && IsStringValid(State.DAOInfoMap[daoId].GovernanceToken))
+            {
+                // ProcessEnableHighCouncil(daoId, input.HighCouncilConfig, input.IsRequireHighCouncilForExecution);
+            }
+        }
 
         private void ProcessTreasuryContract(Hash daoId, bool isTreasuryNeeded)
         {

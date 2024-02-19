@@ -19,7 +19,7 @@ public partial class DAOContract
         
         AssertPermission(input.DaoId, nameof(SetPermissions));
         Assert(input.PermissionInfos != null && input.PermissionInfos.Count > 0, "Invalid input permission infos.");
-        
+
         ProcessPermissions(input.DaoId, input.PermissionInfos);
 
         return new Empty();
@@ -80,7 +80,7 @@ public partial class DAOContract
 
         permissionList.PermissionInfos.Add(permissionInfo);
     }
-    
+
     private void ValidatePermissionInfo(PermissionInfo permissionInfo)
     {
         Assert(IsAddressValid(permissionInfo.Where), "Invalid input permission info where.");
@@ -105,7 +105,7 @@ public partial class DAOContract
             _ => false
         };
     }
-    
+
     private bool CheckHighCouncilPermissionGranted(Hash daoId, Address who)
     {
         // TODO need high council member list

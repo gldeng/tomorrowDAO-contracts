@@ -20,7 +20,7 @@ public static class DAOContractConstants
     public const int MaxFileCidLength = 64;
     public const int MaxFileNameLength = 128;
     public const int MaxFileUrlLength = 256;
-    
+
     // permission
     public const int MaxWhatLength = 64;
 }

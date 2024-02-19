@@ -58,21 +58,21 @@ public partial class DAOContract
         };
     }
 
-    // public override BoolValue GetHighCouncilStatus(Hash input)
-    // {
-    //     return new BoolValue { Value = State.HighCouncilEnabledStatusMap[input] };
-    // }
-    //
-    // public override BoolValue GetHighCouncilExecutionConfig(Hash input)
-    // {
-    //     return new BoolValue
-    //     {
-    //         Value = State.HighCouncilEnabledStatusMap[input] && State.HighCouncilExecutionConfigMap[input]
-    //     };
-    // }
-    //
-    // public override Address GetHighCouncilAddress(Hash input)
-    // {
-    //     return !State.HighCouncilEnabledStatusMap[input] ? new Address() : State.HighCouncilAddressMap[input];
-    // }
+    public override BoolValue GetHighCouncilStatus(Hash input)
+    {
+        return new BoolValue { Value = State.HighCouncilEnabledStatusMap[input] };
+    }
+    
+    public override BoolValue GetHighCouncilExecutionConfig(Hash input)
+    {
+        return new BoolValue
+        {
+            Value = State.HighCouncilEnabledStatusMap[input] && State.HighCouncilExecutionConfigMap[input]
+        };
+    }
+    
+    public override Address GetHighCouncilAddress(Hash input)
+    {
+        return !State.HighCouncilEnabledStatusMap[input] ? new Address() : State.HighCouncilAddressMap[input];
+    }
 }

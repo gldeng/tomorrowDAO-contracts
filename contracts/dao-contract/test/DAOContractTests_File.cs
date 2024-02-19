@@ -145,6 +145,26 @@ public partial class DAOContractTests
             result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
         }
         {
+            var cid = "";
+            for (var i = 0; i < 65; i++)
+            {
+                cid += "a";
+            }
+
+            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
+            {
+                DaoId = daoId,
+                Files =
+                {
+                    new File
+                    {
+                        Cid = cid
+                    }
+                }
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
+        }
+        {
             var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
             {
                 DaoId = daoId,
@@ -166,8 +186,65 @@ public partial class DAOContractTests
                 {
                     new File
                     {
+                        Cid = "cid"
+                    }
+                }
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input file name.");
+        }
+        {
+            var name = "";
+            for (var i = 0; i < 129; i++)
+            {
+                name += "a";
+            }
+            
+            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
+            {
+                DaoId = daoId,
+                Files =
+                {
+                    new File
+                    {
+                        Cid = "cid",
+                        Name = name
+                    }
+                }
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input file name.");
+        }
+        {
+            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
+            {
+                DaoId = daoId,
+                Files =
+                {
+                    new File
+                    {
                         Cid = "cid",
                         Name = "name"
+                    }
+                }
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input file url.");
+        }
+        {
+            var url = "";
+            for (int i = 0; i < 257; i++)
+            {
+                url += "a";
+            }
+            
+            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
+            {
+                DaoId = daoId,
+                Files =
+                {
+                    new File
+                    {
+                        Cid = "cid",
+                        Name = "name",
+                        Url = url
                     }
                 }
             });
@@ -295,6 +372,37 @@ public partial class DAOContractTests
                 FileCids = { }
             });
             result.TransactionResult.Error.ShouldContain("Invalid input file cids.");
+        }
+        {
+            var cids = new List<string>();
+            for (int i = 0; i < 21; i++)
+            {
+                cids.Add(i.ToString());
+            }
+            
+            var result = await DAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
+            {
+                DaoId = daoId,
+                FileCids = { cids }
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input file cids.");
+        }
+        
+        {
+            var cids = new List<string>();
+            var cid = "";
+            for (int i = 0; i < 65; i++)
+            {
+                cid += "a";
+            }
+            cids.Add(cid);
+            
+            var result = await DAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
+            {
+                DaoId = daoId,
+                FileCids = { cids }
+            });
+            result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
         }
     }
 }

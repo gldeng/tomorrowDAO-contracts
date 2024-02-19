@@ -117,7 +117,7 @@ public partial class DAOContractTests : TestBase
             });
             result.TransactionResult.Error.ShouldContain("Invalid vote contract address.");
         }
-        
+
         await InitializeAsync();
 
         {
@@ -274,8 +274,6 @@ public partial class DAOContractTests : TestBase
             var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput());
             result.TransactionResult.Error.ShouldContain("Not initialized.");
         }
-
-        await InitializeAsync();
 
         {
             var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput());

@@ -29,9 +29,9 @@ public partial class DAOContract
         Assert(input != null, "Invalid input file.");
         Assert(IsStringValid(input.Cid) && input.Cid.Length <= DAOContractConstants.MaxFileCidLength,
             "Invalid input file cid.");
-        Assert(IsStringValid(input.Name) && input.Cid.Length <= DAOContractConstants.MaxFileNameLength,
+        Assert(IsStringValid(input.Name) && input.Name.Length <= DAOContractConstants.MaxFileNameLength,
             "Invalid input file name.");
-        Assert(IsStringValid(input.Url) && input.Cid.Length <= DAOContractConstants.MaxFileUrlLength,
+        Assert(IsStringValid(input.Url) && input.Url.Length <= DAOContractConstants.MaxFileUrlLength,
             "Invalid input file url.");
     }
 
@@ -94,9 +94,9 @@ public partial class DAOContract
         if (fileCids.Count == 0) return;
 
         var distinctFileCids = fileCids.Distinct();
-        
+
         var removedFiles = new FileInfoList();
-        
+
         var existingFiles = State.FilesMap[daoId] ??= new FileInfoList();
         if (existingFiles.Data.Count == 0) return;
 

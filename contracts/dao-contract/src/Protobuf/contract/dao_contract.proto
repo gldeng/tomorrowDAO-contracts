@@ -24,18 +24,18 @@ service DAOContract {
   rpc GetGovernanceToken (aelf.Hash) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
 
   // high council
-  //  rpc EnableHighCouncil (EnableHighCouncilInput) returns (google.protobuf.Empty) {}
-  //  rpc DisableHighCouncil (aelf.Hash) returns (google.protobuf.Empty) {}
-  //  rpc SetHighCouncilExecutionConfig (SetHighCouncilExecutionConfigInput) returns (google.protobuf.Empty) {}
-  //  rpc GetHighCouncilStatus (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
-  //  rpc GetHighCouncilExecutionConfig (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
-  //  rpc GetHighCouncilAddress (aelf.Hash) returns (aelf.Address) {option (aelf.is_view) = true;}
-  
+  rpc EnableHighCouncil (EnableHighCouncilInput) returns (google.protobuf.Empty) {}
+  rpc DisableHighCouncil (aelf.Hash) returns (google.protobuf.Empty) {}
+  rpc SetHighCouncilExecutionConfig (SetHighCouncilExecutionConfigInput) returns (google.protobuf.Empty) {}
+  rpc GetHighCouncilStatus (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
+  rpc GetHighCouncilExecutionConfig (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
+  rpc GetHighCouncilAddress (aelf.Hash) returns (aelf.Address) {option (aelf.is_view) = true;}
+
   // file
   rpc UploadFileInfos (UploadFileInfosInput) returns (google.protobuf.Empty) {}
   rpc RemoveFileInfos (RemoveFileInfosInput) returns (google.protobuf.Empty) {}
   rpc GetFileInfos (aelf.Hash) returns (FileInfoList) {option (aelf.is_view) = true;}
-  
+
   // permission
   rpc SetPermissions (SetPermissionsInput) returns (google.protobuf.Empty) {}
   rpc HasPermission (HasPermissionInput) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}

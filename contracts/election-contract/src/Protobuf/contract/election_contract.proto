@@ -2,29 +2,431 @@ syntax = "proto3";
 
 import "aelf/core.proto";
 import "aelf/options.proto";
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
-// The namespace of this class
 option csharp_namespace = "TomorrowDAO.Contracts.Election";
 
 service ElectionContract {
-  // The name of the state class the smart contract is going to use to access blockchain state
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Election.ElectionContractState";
 
-  // Actions (methods that modify contract state)
-  // Stores the value in contract state
-  rpc Update (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+
+  rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
   }
 
-  // Views (methods that don't modify contract state)
-  // Get the value stored from contract state
-  rpc Read (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+  rpc RegisterElectionVotingEvent (RegisterElectionVotingEventInput) returns (google.protobuf.Empty) {
+  }
+  
+  rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
+  }
+  
+  rpc AnnounceElection (AnnounceElectionInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc AnnounceElectionFor (AnnounceElectionForInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc QuitElection (QuitElectionInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc Vote (VoteHighCouncilInput) returns (aelf.Hash) {
+  }
+  
+  rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
+  }
+
+  rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc UpdateMultipleCandidateInformation (UpdateMultipleCandidateInformationInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc ReplaceCandidateAddress (ReplaceCandidatePubkeyInput) returns (google.protobuf.Empty) {
+  }
+  
+  rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc RemoveEvilNode (RemoveEvilNodeInput) returns (google.protobuf.Empty) {
+  }
+
+  rpc EnableElection (aelf.Hash) returns (google.protobuf.Empty) {
+  }
+  
+  rpc SetEmergency(SetEmergencyInput) returns (google.protobuf.Empty){
+  }
+  
+  rpc SetHighCouncilConfig (SetHighCouncilConfigInput) returns (google.protobuf.Empty) {}
+
+
+  // views
+  rpc GetVotedCandidates (aelf.Hash) returns (AddressList) {
     option (aelf.is_view) = true;
   }
+  
+  rpc GetVictories (aelf.Hash) returns (AddressList) {
+    option (aelf.is_view) = true;
+  }
+
+  rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
+    option (aelf.is_view) = true;
+  }
+
+  rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
+    option (aelf.is_view) = true;
+  }
+
+  rpc GetElectorVote (aelf.Address) returns (ElectorVote) {
+    option (aelf.is_view) = true;
+  }
+  
+  rpc GetCandidateVote (GetCandidateVoteInput) returns (CandidateVote) {
+    option (aelf.is_view) = true;
+  }
+  
+  rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
+    option (aelf.is_view) = true;
+  }
+  rpc GetDataCenterRankingList (aelf.Hash) returns (DataCenterRankingList) {
+    option (aelf.is_view) = true;
+  }
+  
+  rpc GetEmergency (aelf.Hash) returns (aelf.Address) {
+    option (aelf.is_view) = true;
+  }
+
+  rpc GetHighCouncilConfig (aelf.Hash) returns (HighCouncilConfig) { 
+    option (aelf.is_view) = true;
+  }
+  
 }
 
-// An event that will be emitted from contract method call
-message UpdatedMessage {
+message InitializeInput {
+  aelf.Address dao_contract_address = 1;
+}
+
+message RegisterElectionVotingEventInput {
+  aelf.Hash dao_id = 1;
+  // The number of seconds per term.
+  int64 time_each_term = 2;
+  int64 max_candidate_count = 3;
+  int64 max_high_council_member_count = 4;
+  string governance_token = 5;
+}
+
+message TakeElectionSnapshotInput {
+  aelf.Hash dao_id = 1;
+  int64 term_number = 2;
+}
+
+message AnnounceElectionInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+}
+
+message AnnounceElectionForInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+  // Can manage the current candidate of the address can be replaced
+  aelf.Address candidate_admin = 3; 
+}
+
+message QuitElectionInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+  // Can manage the current candidate of the address can be replaced
+  aelf.Address candidate_admin = 3; 
+}
+
+message VoteHighCouncilInput{
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate_address = 2;
+  int64 amount = 3;
+  // The end timestamp of this vote.
+  google.protobuf.Timestamp end_timestamp = 4;
+  // Used to generate vote id.
+  aelf.Hash token = 5;
+}
+
+message ChangeVotingOptionInput {
+  // The vote id to change.
+  aelf.Hash vote_id = 1;
+  // The new candidate address.
+  aelf.Address candidate_address = 2;
+  // Tokens will be locked another previous locking time if this is true.
+  bool is_reset_voting_time = 3;
+}
+
+message UpdateCandidateInformationInput {
+  aelf.Hash dao_id = 1;
+  // The candidate public key.
+  aelf.Address candidate_address = 2;
+  // Is it a evil node. If true will remove the candidate.
+  bool is_evil_node = 3;
+}
+
+message UpdateMultipleCandidateInformationInput {
+  repeated UpdateCandidateInformationInput value = 1;
+}
+
+message CandidateInfo {
+  // The candidate address.
+  aelf.Address candidate_address = 1;
+  // Is it a evil node. If true will remove the candidate.
+  bool is_evil_node = 2;
+}
+
+message CandidateInfoList {
+  repeated CandidateInfo value = 1;
+}
+
+message ReplaceCandidatePubkeyInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address old_address = 2;
+  aelf.Address new_address = 3;
+}
+
+message SetCandidateAdminInput {
+  aelf.Address new_admin = 1;
+}
+
+message RemoveEvilNodeInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address evil_node_address = 2;
+}
+
+message SetEmergencyInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address organization = 2;
+}
+
+message SetHighCouncilConfigInput {
+  aelf.Hash dao_id = 1;
+  int64 max_high_council_member_count = 2;
+  int64 max_high_council_candidate_count = 3;
+  int64 election_period = 4;
+}
+
+message GetCandidateInformationInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+}
+
+message GetTermSnapshotInput {
+  aelf.Hash dao_id = 1;
+  // The term number.
+  int64 term_number = 2;
+}
+
+message TermSnapshot {
+  // The end round number of this term.
+  int64 end_round_number = 1;
+  // The number of blocks mined in this term. 
+  int64 mined_blocks = 2;
+  // The election result, candidates’ public key -> number of votes.
+  map<string, int64> election_result = 3;
+}
+
+message GetElectionResultInput {
+  aelf.Hash dao_id = 1;
+  // The term number.
+  int64 term_number = 2;
+}
+
+message ElectionResult {
+  // The term number
+  int64 term_number = 1;
+  // The election result, candidates’ public key -> number of votes.
+  map<string, int64> results = 2;
+  // Whether an election is currently being held.
+  bool is_active = 3;
+}
+
+message ElectorVote {
+  // The active voting record ids.
+  repeated aelf.Hash active_voting_record_ids = 1;
+  // The voting record ids that were withdrawn.
+  repeated aelf.Hash withdrawn_voting_record_ids = 2;
+  // The total number of active votes.
+  int64 active_voted_votes_amount = 3;
+  // The total number of votes (including the number of votes withdrawn).
+  int64 all_voted_votes_amount = 4;
+  // The active voting records.
+  repeated ElectionVotingRecord active_voting_records = 5;
+  // The voting records that were withdrawn.
+  repeated ElectionVotingRecord withdrawn_votes_records = 6;
+  // Public key for voter.
+  bytes pubkey = 7;
+  // Address for voter
+  aelf.Address address = 8;
+}
+
+message ElectionVotingRecord {
+  // The address of voter.
+  aelf.Address voter = 1;
+  // The public key of candidate.
+  string candidate = 2;
+  // Amount of voting.
+  int64 amount = 3;
+  // The term number of voting.
+  int64 term_number = 4;
+  // The vote id.
+  aelf.Hash vote_id = 5;
+  // Vote lock time.
+  int64 lock_time = 6;
+  // The unlock timestamp.
+  google.protobuf.Timestamp unlock_timestamp = 7;
+  // The withdraw timestamp.
+  google.protobuf.Timestamp withdraw_timestamp = 8;
+  // The vote timestamp.
+  google.protobuf.Timestamp vote_timestamp = 9;
+  // Indicates if the vote has been withdrawn.
+  bool is_withdrawn = 10;
+  // Vote weight for sharing bonus.
+  int64 weight = 11;
+  // Whether vote others.
+  bool is_change_target = 12;
+}
+
+message GetCandidateVoteInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address voter = 2;
+}
+
+message CandidateVote {
+  // The active voting record ids obtained.
+  repeated aelf.Hash obtained_active_voting_record_ids = 1;
+  // The active voting record ids that were withdrawn.
+  repeated aelf.Hash obtained_withdrawn_voting_record_ids = 2;
+  // The total number of active votes obtained.
+  int64 obtained_active_voted_votes_amount = 3;
+  // The total number of votes obtained.
+  int64 all_obtained_voted_votes_amount = 4;
+  // The active voting records.
+  repeated ElectionVotingRecord obtained_active_voting_records = 5;
+  // The voting records that were withdrawn.
+  repeated ElectionVotingRecord obtained_withdrawn_votes_records = 6;
+  // Public key for candidate.
+  bytes pubkey = 7;
+}
+
+message PageInformation {
+  aelf.Hash dao_id = 1;
+  // The start index.
+  int32 start = 2;
+  // The number of records.
+  int32 length = 3;
+}
+
+message GetPageableCandidateInformationOutput {
+  repeated int64 obtained_votes_amount = 1;
+  repeated aelf.Address candidate_address_list = 2;
+}
+
+message DataCenterRankingList {
+  // The top n * 5 candidates with vote amount, candidate address -> vote amount.
+  map<string, int64> data_centers = 1;
+}
+
+message HighCouncilConfig {
+  int64 max_high_council_member_count = 1;
+  int64 max_high_council_candidate_count = 2;
+  int64 election_period = 3;
+  // Whether to limit High Council execution proposal
+  bool is_require_high_council_for_execution = 4;  
+}
+
+message AddressList {
+  repeated aelf.Address value = 1;
+}
+
+// events
+message ElectionVotingEventReigisted{
   option (aelf.is_event) = true;
-  string value = 1;
+  aelf.Hash dao_id = 1;
+  // The number of seconds per term.
+  int64 time_each_term = 2;
+  int64 candidate_count = 3;
+  int64 high_council_count = 4;
+  string governance_token = 5;
+}
+
+
+message NewTerm {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  int64 pre_term_number = 2;
+  int64 new_number = 3;
+}
+
+message CandidateAdded {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+  int64 amount = 3;
+}
+
+message CandidateRemoved {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+}
+
+message Voted {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate_address = 2;
+  int64 amount = 3;
+  // The end timestamp of this vote.
+  google.protobuf.Timestamp end_timestamp = 4;
+  aelf.Hash vote_id = 5;
+}
+
+message VoteChanged {
+  option (aelf.is_event) = true;
+  aelf.Hash vote_id = 1;
+  aelf.Address candidate_address = 2;
+}
+
+message CandidateInfoUpdated {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  // The candidate address.
+  aelf.Address candidate_address = 2;
+  // Is it a evil node. If true will remove the candidate.
+  bool is_evil_node = 3;
+}
+
+message MultipleCandidateInfoUpdated {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  CandidateInfoList list = 2;
+}
+
+message CandidateAddressReplaced {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address old_address = 2;
+  aelf.Address new_address = 3;
+}
+
+message EvilNodeRemoved {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address evil_node_address = 2;
+}
+
+
+message ElectionEnabled {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+}
+
+message HighCouncilConfigSet {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  HighCouncilConfig high_council_config = 2;
 }

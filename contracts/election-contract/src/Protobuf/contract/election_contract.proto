@@ -104,17 +104,38 @@ service ElectionContract {
   
 }
 
+message CandidateInformation {
+  aelf.Hash dao_id = 1;
+  // Candidate’s address.
+  aelf.Address address = 2;
+  // The number of terms that the candidate is elected.
+  repeated int64 terms = 3;
+  // The transaction id when the candidate announced.
+  aelf.Hash announcement_transaction_id = 4;
+  // Indicate whether the candidate can be elected in the current term.
+  bool is_current_candidate = 5;
+}
+
+message CandidateDetail {
+  // The candidate information.
+  CandidateInformation candidate_information = 1;
+  // The number of votes a candidate has obtained.
+  int64 obtained_votes_amount = 2;
+}
+
 message InitializeInput {
   aelf.Address dao_contract_address = 1;
+  aelf.Address vote_contract_address = 2;
 }
 
 message RegisterElectionVotingEventInput {
   aelf.Hash dao_id = 1;
   // The number of seconds per term.
-  int64 time_each_term = 2;
+  int64 election_period = 2;
   int64 max_candidate_count = 3;
   int64 max_high_council_member_count = 4;
   string governance_token = 5;
+  int64 lock_token_for_election = 6;
 }
 
 message TakeElectionSnapshotInput {
@@ -124,7 +145,7 @@ message TakeElectionSnapshotInput {
 
 message AnnounceElectionInput {
   aelf.Hash dao_id = 1;
-  aelf.Address candidate = 2;
+  aelf.Address candidate_admin = 2;
 }
 
 message AnnounceElectionForInput {
@@ -222,11 +243,10 @@ message GetTermSnapshotInput {
 }
 
 message TermSnapshot {
+  aelf.Hash dao_id = 1;
   // The end round number of this term.
-  int64 end_round_number = 1;
-  // The number of blocks mined in this term. 
-  int64 mined_blocks = 2;
-  // The election result, candidates’ public key -> number of votes.
+  int64 term_number = 2;
+  // The election result, candidates’ address -> number of votes.
   map<string, int64> election_result = 3;
 }
 
@@ -237,12 +257,13 @@ message GetElectionResultInput {
 }
 
 message ElectionResult {
+  aelf.Hash dao_id = 1;
   // The term number
-  int64 term_number = 1;
-  // The election result, candidates’ public key -> number of votes.
-  map<string, int64> results = 2;
+  int64 term_number = 2;
+  // The election result, candidates’ address -> number of votes.
+  map<string, int64> results = 3;
   // Whether an election is currently being held.
-  bool is_active = 3;
+  bool is_active = 4;
 }
 
 message ElectorVote {
@@ -255,45 +276,11 @@ message ElectorVote {
   // The total number of votes (including the number of votes withdrawn).
   int64 all_voted_votes_amount = 4;
   // The active voting records.
-  repeated ElectionVotingRecord active_voting_records = 5;
+  repeated VotingRecord active_voting_records = 5;
   // The voting records that were withdrawn.
-  repeated ElectionVotingRecord withdrawn_votes_records = 6;
-  // Public key for voter.
-  bytes pubkey = 7;
+  repeated VotingRecord withdrawn_votes_records = 6;
   // Address for voter
-  aelf.Address address = 8;
-}
-
-message ElectionVotingRecord {
-  // The address of voter.
-  aelf.Address voter = 1;
-  // The public key of candidate.
-  string candidate = 2;
-  // Amount of voting.
-  int64 amount = 3;
-  // The term number of voting.
-  int64 term_number = 4;
-  // The vote id.
-  aelf.Hash vote_id = 5;
-  // Vote lock time.
-  int64 lock_time = 6;
-  // The unlock timestamp.
-  google.protobuf.Timestamp unlock_timestamp = 7;
-  // The withdraw timestamp.
-  google.protobuf.Timestamp withdraw_timestamp = 8;
-  // The vote timestamp.
-  google.protobuf.Timestamp vote_timestamp = 9;
-  // Indicates if the vote has been withdrawn.
-  bool is_withdrawn = 10;
-  // Vote weight for sharing bonus.
-  int64 weight = 11;
-  // Whether vote others.
-  bool is_change_target = 12;
-}
-
-message GetCandidateVoteInput {
-  aelf.Hash dao_id = 1;
-  aelf.Address voter = 2;
+  aelf.Address address = 7;
 }
 
 message CandidateVote {
@@ -306,11 +293,37 @@ message CandidateVote {
   // The total number of votes obtained.
   int64 all_obtained_voted_votes_amount = 4;
   // The active voting records.
-  repeated ElectionVotingRecord obtained_active_voting_records = 5;
+  repeated VotingRecord obtained_active_voting_records = 5;
   // The voting records that were withdrawn.
-  repeated ElectionVotingRecord obtained_withdrawn_votes_records = 6;
-  // Public key for candidate.
-  bytes pubkey = 7;
+  repeated VotingRecord obtained_withdrawn_votes_records = 6;
+  // address for candidate.
+  aelf.Address address = 7;
+}
+
+message VotingRecord {
+  // The address of voter.
+  aelf.Address voter = 1;
+  // The address of candidate.
+  aelf.Address candidate = 2;
+  // Amount of voting.
+  int64 amount = 3;
+  // The term number of voting.
+  int64 term_number = 4;
+  // The vote id.
+  aelf.Hash vote_id = 5;
+  // The unlock timestamp.
+  google.protobuf.Timestamp unlock_timestamp = 6;
+  // The withdraw timestamp.
+  google.protobuf.Timestamp withdraw_timestamp = 7;
+  // The vote timestamp.
+  google.protobuf.Timestamp vote_timestamp = 8;
+  // Indicates if the vote has been withdrawn.
+  bool is_withdrawn = 9;
+}
+
+message GetCandidateVoteInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address voter = 2;
 }
 
 message PageInformation {
@@ -336,7 +349,9 @@ message HighCouncilConfig {
   int64 max_high_council_candidate_count = 2;
   int64 election_period = 3;
   // Whether to limit High Council execution proposal
-  bool is_require_high_council_for_execution = 4;  
+  bool is_require_high_council_for_execution = 4;
+  string governance_token = 5;
+  int64 lock_token_for_election = 6;
 }
 
 message AddressList {
@@ -344,14 +359,15 @@ message AddressList {
 }
 
 // events
-message ElectionVotingEventReigisted{
+message ElectionVotingEventRegistered{
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
   // The number of seconds per term.
-  int64 time_each_term = 2;
+  int64 election_period = 2;
   int64 candidate_count = 3;
-  int64 high_council_count = 4;
+  int64 high_council_member_count = 4;
   string governance_token = 5;
+  int64 lock_token_for_election = 6;
 }
 
 

@@ -1,45 +1,61 @@
-
+using System.Collections.Generic;
+using System.Linq;
+using AElf.CSharp.Core;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace TomorrowDAO.Contracts.Election;
 
-public class ElectionContract : ElectionContractContainer.ElectionContractBase
+public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
 {
     public override Empty Initialize(InitializeInput input)
     {
-        return base.Initialize(input);
-    }
-
-    public override Empty RegisterElectionVotingEvent(RegisterElectionVotingEventInput input)
-    {
-        return base.RegisterElectionVotingEvent(input);
+        Assert(!State.Initialized.Value, "Already initialized.");
+        Assert(input.DaoContractAddress.Value.Any(), "Empty dao contract address.");
+        Assert(input.VoteContractAddress.Value.Any(), "Empty dao contract address.");
+        State.Initialized.Value = true;
+        State.DaoContractAddress.Value = input.DaoContractAddress;
+        State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+        return new Empty();
     }
 
     public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
     {
+        AssertInitialized();
+        AssertSenderDaoContract();
+        Assert(input.TermNumber == State.CurrentTermNumber[input.DaoId], "Invalid term_number");
+        
+        SavePreviousTermInformation(input);
+        
+        State.CurrentTermNumber[input.DaoId] = input.TermNumber.Add(1);
+        
+        //TODO WIP
+        
         return base.TakeSnapshot(input);
     }
 
-    public override Empty AnnounceElection(AnnounceElectionInput input)
+    private void SavePreviousTermInformation(TakeElectionSnapshotInput input)
     {
-        return base.AnnounceElection(input);
+        var snapshot = new TermSnapshot
+        {
+            DaoId = input.DaoId,
+            TermNumber = input.TermNumber,
+        };
+        if (State.Candidates[input.DaoId] == null) return;
+
+        foreach (var candidate in State.Candidates[input.DaoId].Value)
+        {
+            var votes = State.CandidateVotes[input.DaoId][candidate];
+            var validObtainedVotesAmount = 0L;
+            if (votes != null) validObtainedVotesAmount = votes.ObtainedActiveVotedVotesAmount;
+            snapshot.ElectionResult.Add(candidate.ToBase58(), validObtainedVotesAmount);
+        }
+        State.Snapshots[input.DaoId][input.TermNumber] = snapshot;
+        
     }
 
-    public override Empty AnnounceElectionFor(AnnounceElectionForInput input)
-    {
-        return base.AnnounceElectionFor(input);
-    }
 
-    public override Empty QuitElection(QuitElectionInput input)
-    {
-        return base.QuitElection(input);
-    }
-
-    public override Hash Vote(VoteHighCouncilInput input)
-    {
-        return base.Vote(input);
-    }
 
     public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
     {

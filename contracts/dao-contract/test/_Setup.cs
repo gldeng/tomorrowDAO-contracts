@@ -26,13 +26,13 @@ namespace TomorrowDAO.Contracts.DAO
         internal ACS0Container.ACS0Stub GenesisContractStub;
         internal DAOContractContainer.DAOContractStub DAOContractStub;
         internal DAOContractContainer.DAOContractStub UserDAOContractStub;
-        
+
         internal ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
         internal Address DefaultAddress => Accounts[0].Address;
 
         internal ECKeyPair UserKeyPair => Accounts[1].KeyPair;
         internal Address UserAddress => Accounts[1].Address;
-
+        internal Address User2Address => Accounts[2].Address;
         internal Address DAOContractAddress;
 
         public TestBase()
@@ -60,7 +60,8 @@ namespace TomorrowDAO.Contracts.DAO
             DAOContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
 
             DAOContractStub = GetContractStub<DAOContractContainer.DAOContractStub>(DAOContractAddress, DefaultKeyPair);
-            UserDAOContractStub = GetContractStub<DAOContractContainer.DAOContractStub>(DAOContractAddress, UserKeyPair);
+            UserDAOContractStub =
+                GetContractStub<DAOContractContainer.DAOContractStub>(DAOContractAddress, UserKeyPair);
         }
 
         internal T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)

@@ -10,6 +10,18 @@ public partial class DAOContract
         return State.DAOInfoMap[input];
     }
 
+    public override ContractAddressList GetInitializedContracts(Empty input)
+    {
+        return new ContractAddressList
+        {
+            GovernanceContractAddress = State.GovernanceContract.Value,
+            ElectionContractAddress = State.ElectionContract.Value,
+            TreasuryContractAddress = State.TreasuryContract.Value,
+            VoteContractAddress = State.VoteContract.Value,
+            TimelockContractAddress = State.TimelockContract.Value
+        };
+    }
+
     public override StringValue GetGovernanceToken(Hash input)
     {
         return new StringValue
@@ -62,17 +74,14 @@ public partial class DAOContract
     {
         return new BoolValue { Value = State.HighCouncilEnabledStatusMap[input] };
     }
-    
-    public override BoolValue GetHighCouncilExecutionConfig(Hash input)
-    {
-        return new BoolValue
-        {
-            Value = State.HighCouncilEnabledStatusMap[input] && State.HighCouncilExecutionConfigMap[input]
-        };
-    }
-    
+
     public override Address GetHighCouncilAddress(Hash input)
     {
         return !State.HighCouncilEnabledStatusMap[input] ? new Address() : State.HighCouncilAddressMap[input];
+    }
+
+    public override Address GetReferendumAddress(Hash input)
+    {
+        return State.ReferendumContractMap[input];
     }
 }

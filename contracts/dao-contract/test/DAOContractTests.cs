@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -14,17 +14,22 @@ public partial class DAOContractTests : TestBase
     [Fact]
     public async Task InitializeTests()
     {
+        var result = await DAOContractStub.Initialize.SendAsync(new InitializeInput
         {
-            var result = await DAOContractStub.Initialize.SendAsync(new InitializeInput
-            {
-                GovernanceContractAddress = DefaultAddress,
-                ElectionContractAddress = DefaultAddress,
-                TreasuryContractAddress = DefaultAddress,
-                VoteContractAddress = DefaultAddress,
-                TimelockContractAddress = DefaultAddress
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
+            GovernanceContractAddress = DefaultAddress,
+            ElectionContractAddress = DefaultAddress,
+            TreasuryContractAddress = DefaultAddress,
+            VoteContractAddress = DefaultAddress,
+            TimelockContractAddress = DefaultAddress
+        });
+        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        
+        var output = await DAOContractStub.GetInitializedContracts.CallAsync(new Empty());
+        output.GovernanceContractAddress.ShouldBe(DefaultAddress);
+        output.ElectionContractAddress.ShouldBe(DefaultAddress);
+        output.TreasuryContractAddress.ShouldBe(DefaultAddress);
+        output.VoteContractAddress.ShouldBe(DefaultAddress);
+        output.TimelockContractAddress.ShouldBe(DefaultAddress);
     }
 
     [Fact]
@@ -129,47 +134,28 @@ public partial class DAOContractTests : TestBase
     [Fact]
     public async Task CreateDAOTests()
     {
+        var daoName = GenerateRandomString(50);
+        var daoLogoUrl = GenerateRandomString(256);
+        var daoDescription = GenerateRandomString(240);
+        var socialMedias = GenerateRandomMap(20, 16, 64);
+        var file = GenerateFile("cid", "name", "url");
+        var file2 = GenerateFile("cid2", "name2", "url2");
+
         await InitializeAsync();
 
         var result = await DAOContractStub.CreateDAO.SendAsync(new CreateDAOInput
         {
             Metadata = new Metadata
             {
-                Name = "TestDAO",
-                LogoUrl = "logo_url",
-                Description = "Description",
-                SocialMedia =
-                {
-                    new Dictionary<string, string>
-                    {
-                        { "X", "twitter" },
-                        { "Facebook", "facebook" },
-                        { "Telegram", "telegram" },
-                        { "Discord", "discord" },
-                        { "Reddit", "reddit" }
-                    }
-                }
+                Name = daoName,
+                LogoUrl = daoLogoUrl,
+                Description = daoDescription,
+                SocialMedia = { socialMedias }
             },
-            GovernanceToken = "ELF",
-            IsTreasuryContractNeeded = false,
+            GovernanceToken = "",
             Files =
             {
-                new File
-                {
-                    Cid = "cid",
-                    Name = "name",
-                    Url = "url"
-                }
-            },
-            PermissionInfos =
-            {
-                new PermissionInfo
-                {
-                    Where = DAOContractAddress,
-                    Who = DefaultAddress,
-                    What = "SetPermissions",
-                    PermissionType = PermissionType.Specificaddress
-                }
+                file, file2
             }
         });
 
@@ -178,70 +164,201 @@ public partial class DAOContractTests : TestBase
         {
             var log = GetLogEvent<DAOCreated>(result.TransactionResult);
             log.DaoId.ShouldNotBeNull();
-            log.Metadata.Name.ShouldBe("TestDAO");
-            log.Metadata.LogoUrl.ShouldBe("logo_url");
-            log.Metadata.Description.ShouldBe("Description");
-            log.Metadata.SocialMedia.Count.ShouldBe(5);
-            log.Metadata.SocialMedia["X"].ShouldBe("twitter");
-            log.Metadata.SocialMedia["Facebook"].ShouldBe("facebook");
-            log.Metadata.SocialMedia["Telegram"].ShouldBe("telegram");
-            log.Metadata.SocialMedia["Discord"].ShouldBe("discord");
-            log.Metadata.SocialMedia["Reddit"].ShouldBe("reddit");
-            log.GovernanceToken.ShouldBe("ELF");
+            log.Metadata.Name.ShouldBe(daoName);
+            log.Metadata.LogoUrl.ShouldBe(daoLogoUrl);
+            log.Metadata.Description.ShouldBe(daoDescription);
+            log.Metadata.SocialMedia.Count.ShouldBe(socialMedias.Count);
+            log.Metadata.SocialMedia.ShouldBe(socialMedias);
+            log.GovernanceToken.ShouldBe("");
             log.Creator.ShouldBe(DefaultAddress);
             log.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
 
             daoId = log.DaoId;
         }
         {
             var log = GetLogEvent<FileInfosUploaded>(result.TransactionResult);
             log.DaoId.ShouldBe(daoId);
-            log.UploadedFiles.Data.Count.ShouldBe(1);
-            log.UploadedFiles.Data["cid"].File.Cid.ShouldBe("cid");
-            log.UploadedFiles.Data["cid"].File.Name.ShouldBe("name");
-            log.UploadedFiles.Data["cid"].File.Url.ShouldBe("url");
-        }
-        {
-            var log = GetLogEvent<PermissionsSet>(result.TransactionResult);
-            log.DaoId.ShouldBe(daoId);
-            log.Here.ShouldBe(DefaultAddress);
-            log.PermissionInfoList.PermissionInfos.Count.ShouldBe(1);
-            log.PermissionInfoList.PermissionInfos[0].Where.ShouldBe(DAOContractAddress);
-            log.PermissionInfoList.PermissionInfos[0].Who.ShouldBe(DefaultAddress);
-            log.PermissionInfoList.PermissionInfos[0].What.ShouldBe("SetPermissions");
+            log.UploadedFiles.Data.Count.ShouldBe(2);
+            log.UploadedFiles.Data[file.Cid].File.ShouldBe(file);
+            log.UploadedFiles.Data[file2.Cid].File.ShouldBe(file2);
         }
         {
             var output = await DAOContractStub.GetDAOInfo.CallAsync(daoId);
             output.Creator.ShouldBe(DefaultAddress);
             output.SubsistStatus.ShouldBeTrue();
             output.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
             output.DaoId.ShouldBe(daoId);
         }
         {
             var output = await DAOContractStub.GetDAOIdByName.CallAsync(new StringValue
             {
-                Value = "TestDAO"
+                Value = daoName
             });
             output.Value.ShouldBe(daoId);
         }
         {
             var output = await DAOContractStub.GetFileInfos.CallAsync(daoId);
-            output.Data.Count.ShouldBe(1);
-            output.Data["cid"].File.Cid.ShouldBe("cid");
-            output.Data["cid"].File.Name.ShouldBe("name");
-            output.Data["cid"].File.Url.ShouldBe("url");
+            output.Data.Count.ShouldBe(2);
+            output.Data[file.Cid].File.ShouldBe(file);
+            output.Data[file.Cid].Uploader.ShouldBe(DefaultAddress);
+            output.Data[file.Cid].UploadTime.ShouldNotBeNull();
+            output.Data[file2.Cid].File.ShouldBe(file2);
+            output.Data[file2.Cid].Uploader.ShouldBe(DefaultAddress);
+            output.Data[file2.Cid].UploadTime.ShouldNotBeNull();
         }
         {
             var output = await DAOContractStub.GetMetadata.CallAsync(daoId);
-            output.Name.ShouldBe("TestDAO");
-            output.LogoUrl.ShouldBe("logo_url");
-            output.Description.ShouldBe("Description");
-            output.SocialMedia.Count.ShouldBe(5);
-            output.SocialMedia["X"].ShouldBe("twitter");
-            output.SocialMedia["Facebook"].ShouldBe("facebook");
-            output.SocialMedia["Telegram"].ShouldBe("telegram");
-            output.SocialMedia["Discord"].ShouldBe("discord");
-            output.SocialMedia["Reddit"].ShouldBe("reddit");
+            output.Name.ShouldBe(daoName);
+            output.LogoUrl.ShouldBe(daoLogoUrl);
+            output.Description.ShouldBe(daoDescription);
+            output.SocialMedia.Count.ShouldBe(socialMedias.Count);
+            output.SocialMedia.ShouldBe(socialMedias);
+        }
+        {
+            var output = await DAOContractStub.GetGovernanceToken.CallAsync(daoId);
+            output.Value.ShouldBeEmpty();
+        }
+        {
+            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
+            output.Value.ShouldBeTrue();
+        }
+        // {
+        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission.Where,
+        //         What = permission.What,
+        //         Who = DefaultAddress
+        //     });
+        //     output.Value.ShouldBeFalse();
+        // }
+        // {
+        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission2.Where,
+        //         What = permission2.What,
+        //         Who = UserAddress
+        //     });
+        //     output.Value.ShouldBeTrue();
+        //     output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission2.Where,
+        //         What = permission2.What,
+        //         Who = UserAddress
+        //     });
+        //     output.Value.ShouldBeTrue();
+        // }
+        // {
+        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission3.Where,
+        //         What = permission3.What,
+        //         Who = UserAddress
+        //     });
+        //     output.Value.ShouldBeFalse();
+        //     output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission3.Where,
+        //         What = permission3.What,
+        //         Who = DefaultAddress
+        //     });
+        //     output.Value.ShouldBeTrue();
+        // }
+        // {
+        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission4.Where,
+        //         What = permission4.What,
+        //         Who = User2Address
+        //     });
+        //     output.Value.ShouldBeTrue();
+        //     output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
+        //     {
+        //         DaoId = daoId,
+        //         Where = permission4.Where,
+        //         What = permission4.What,
+        //         Who = DefaultAddress
+        //     });
+        //     output.Value.ShouldBeFalse();
+        // }
+
+        daoName = GenerateRandomString(49);
+        daoLogoUrl = GenerateRandomString(255);
+        daoDescription = GenerateRandomString(239);
+        socialMedias = GenerateRandomMap(19, 15, 63);
+
+        result = await DAOContractStub.CreateDAO.SendAsync(new CreateDAOInput
+        {
+            Metadata = new Metadata
+            {
+                Name = daoName,
+                LogoUrl = daoLogoUrl,
+                Description = daoDescription,
+                SocialMedia = { socialMedias }
+            },
+            GovernanceToken = "ELF"
+        });
+
+        {
+            var log = GetLogEvent<DAOCreated>(result.TransactionResult);
+            log.DaoId.ShouldNotBeNull();
+            log.Metadata.Name.ShouldBe(daoName);
+            log.Metadata.LogoUrl.ShouldBe(daoLogoUrl);
+            log.Metadata.Description.ShouldBe(daoDescription);
+            log.Metadata.SocialMedia.Count.ShouldBe(socialMedias.Count);
+            log.Metadata.SocialMedia.ShouldBe(socialMedias);
+            log.GovernanceToken.ShouldBe("ELF");
+            log.Creator.ShouldBe(DefaultAddress);
+            log.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
+
+            daoId = log.DaoId;
+        }
+        {
+            var output = await DAOContractStub.GetDAOInfo.CallAsync(daoId);
+            output.Creator.ShouldBe(DefaultAddress);
+            output.SubsistStatus.ShouldBeTrue();
+            output.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
+            output.DaoId.ShouldBe(daoId);
+        }
+        {
+            var output = await DAOContractStub.GetDAOIdByName.CallAsync(new StringValue
+            {
+                Value = daoName
+            });
+            output.Value.ShouldBe(daoId);
+        }
+        {
+            var output = await DAOContractStub.GetFileInfos.CallAsync(daoId);
+            output.Data.ShouldBeEmpty();
+        }
+        {
+            var output = await DAOContractStub.GetMetadata.CallAsync(daoId);
+            output.Name.ShouldBe(daoName);
+            output.LogoUrl.ShouldBe(daoLogoUrl);
+            output.Description.ShouldBe(daoDescription);
+            output.SocialMedia.Count.ShouldBe(socialMedias.Count);
+            output.SocialMedia.ShouldBe(socialMedias);
         }
         {
             var output = await DAOContractStub.GetGovernanceToken.CallAsync(daoId);
@@ -255,16 +372,12 @@ public partial class DAOContractTests : TestBase
             var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
             {
                 DaoId = daoId,
-                Where = DAOContractAddress,
-                What = "SetPermissions",
+                Where = DefaultAddress,
+                What = "Function",
                 Who = DefaultAddress
             });
-            output.Value.ShouldBeTrue();
+            output.Value.ShouldBeFalse();
         }
-        // {
-        //     var output = await DAOContractStub.GetHighCouncilStatus.CallAsync(daoId);
-        //     output.Value.ShouldBeFalse();
-        // }
     }
 
     [Fact]
@@ -274,6 +387,8 @@ public partial class DAOContractTests : TestBase
             var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput());
             result.TransactionResult.Error.ShouldContain("Not initialized.");
         }
+
+        await InitializeAsync();
 
         {
             var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput());
@@ -285,129 +400,6 @@ public partial class DAOContractTests : TestBase
                 Metadata = new Metadata()
             });
             result.TransactionResult.Error.ShouldContain("Invalid metadata name.");
-        }
-        {
-            var name = "";
-            for (var i = 0; i < 51; i++)
-            {
-                name += "A";
-            }
-
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = name
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid metadata name.");
-        }
-        {
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO"
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid metadata logo url.");
-        }
-        {
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO",
-                    LogoUrl = "logo_url"
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid metadata description.");
-        }
-        {
-            var description = "";
-            for (var i = 0; i < 241; i++)
-            {
-                description += "A";
-            }
-
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO",
-                    LogoUrl = "logo_url",
-                    Description = description
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid metadata description.");
-        }
-        {
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO",
-                    LogoUrl = "logo_url",
-                    Description = "description"
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid metadata social media count.");
-        }
-        {
-            var socialMedia = new Dictionary<string, string>();
-            for (var i = 0; i < 21; i++)
-            {
-                socialMedia.Add(i.ToString(), "url");
-            }
-
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO",
-                    LogoUrl = "logo_url",
-                    Description = "description",
-                    SocialMedia = { socialMedia }
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid metadata social media count.");
-        }
-        {
-            var url = "";
-            for (var i = 0; i < 65; i++)
-            {
-                url += "A";
-            }
-
-            var socialMedia = new Dictionary<string, string> { { "x", url } };
-
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO",
-                    LogoUrl = "logo_url",
-                    Description = "description",
-                    SocialMedia = { socialMedia }
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid social media url.");
-        }
-        {
-            var socialMedia = new Dictionary<string, string> { { "x", "url" } };
-
-            var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
-            {
-                Metadata = new Metadata
-                {
-                    Name = "TestDAO",
-                    LogoUrl = "logo_url",
-                    Description = "description",
-                    SocialMedia = { socialMedia }
-                },
-                GovernanceToken = "TEST"
-            });
-            result.TransactionResult.Error.ShouldContain("Token not found.");
         }
 
         await CreateDAOAsync();
@@ -424,6 +416,77 @@ public partial class DAOContractTests : TestBase
         }
     }
 
+    [Theory]
+    [InlineData(0, 0, 0, "Invalid metadata name.")]
+    [InlineData(51, 0, 0, "Invalid metadata name.")]
+    [InlineData(5, 0, 0, "Invalid metadata logo url.")]
+    [InlineData(5, 257, 0, "Invalid metadata logo url.")]
+    [InlineData(5, 5, 0, "Invalid metadata description.")]
+    [InlineData(5, 5, 241, "Invalid metadata description.")]
+    public async Task CreateDAOTests_Metadata_Fail(int nameLength, int logoUrlLength, int descriptionLength,
+        string errorMessage)
+    {
+        await InitializeAsync();
+
+        var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
+        {
+            Metadata = new Metadata
+            {
+                Name = GenerateRandomString(nameLength),
+                LogoUrl = GenerateRandomString(logoUrlLength),
+                Description = GenerateRandomString(descriptionLength)
+            }
+        });
+        result.TransactionResult.Error.ShouldContain(errorMessage);
+    }
+
+    [Theory]
+    [InlineData(0, 1, 1, "Invalid metadata social media count.")]
+    [InlineData(21, 1, 1, "Invalid metadata social media count.")]
+    [InlineData(1, 0, 0, "Invalid metadata social media name.")]
+    [InlineData(1, 17, 0, "Invalid metadata social media name.")]
+    [InlineData(1, 5, 0, "Invalid metadata social media url.")]
+    [InlineData(1, 5, 241, "Invalid metadata social media url.")]
+    public async Task CreateDAOTests_SocialMedia_Fail(int count, int keyLength, int valueLength, string errorMessage)
+    {
+        await InitializeAsync();
+
+        var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
+        {
+            Metadata = new Metadata
+            {
+                Name = "name",
+                LogoUrl = "logo",
+                Description = "des",
+                SocialMedia = { GenerateRandomMap(count, keyLength, valueLength) }
+            }
+        });
+        result.TransactionResult.Error.ShouldContain(errorMessage);
+    }
+
+    [Theory]
+    [InlineData("ABCdE", "Invalid token symbol.")]
+    [InlineData("ABCDEFGHIJK", "Invalid token symbol.")]
+    [InlineData("TEST", "Token not found.")]
+    [InlineData("ELF-1", "Invalid token symbol.")]
+    public async Task CreateDAOTests_GovernanceToken_Fail(string symbol, string errorMessage)
+    {
+        await InitializeAsync();
+
+        var result = await DAOContractStub.CreateDAO.SendWithExceptionAsync(new CreateDAOInput
+        {
+            Metadata = new Metadata
+            {
+                Name = "name",
+                LogoUrl = "logo",
+                Description = "des",
+                SocialMedia = { GenerateRandomMap(1, 1, 1) }
+            },
+            GovernanceToken = symbol
+        });
+        result.TransactionResult.Error.ShouldContain(errorMessage);
+    }
+
     [Fact]
     public async Task SetSubsistStatusTests()
     {
@@ -435,9 +498,21 @@ public partial class DAOContractTests : TestBase
             output.Value.ShouldBeTrue();
         }
 
-        await SetPermissionAsync(daoId, DAOContractAddress, DefaultAddress, "SetSubsistStatus",
-            PermissionType.Specificaddress);
-
+        // already subsist
+        {
+            var result = await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
+            {
+                DaoId = daoId,
+                Status = true
+            });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var log = result.TransactionResult.Logs.FirstOrDefault(l => l.Name.Contains("SubsistStatusSet"));
+            log.ShouldBeNull();
+            
+            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
+            output.Value.ShouldBeTrue();
+        }
         {
             var result = await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
             {
@@ -453,6 +528,7 @@ public partial class DAOContractTests : TestBase
             var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
             output.Value.ShouldBeFalse();
         }
+
         {
             var result = await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
             {
@@ -463,6 +539,39 @@ public partial class DAOContractTests : TestBase
 
             var log = result.TransactionResult.Logs.FirstOrDefault(l => l.Name.Contains("SubsistStatusSet"));
             log.ShouldBeNull();
+            
+            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
+            output.Value.ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task SetSubsistStatusTests_Fail()
+    {
+        await InitializeAsync();
+
+        {
+            var result = await DAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput());
+            result.TransactionResult.Error.ShouldContain("Invalid input dao id.");
+        }
+        {
+            var result = await DAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput
+            {
+                DaoId = HashHelper.ComputeFrom("test"),
+                Status = false
+            });
+            result.TransactionResult.Error.ShouldContain("DAO not existed.");
+        }
+
+        var daoId = await CreateDAOAsync();
+
+        {
+            var result = await DAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput
+            {
+                DaoId = daoId,
+                Status = false
+            });
+            result.TransactionResult.Error.ShouldContain("Permission of SetSubsistStatus is not granted");
         }
     }
 }

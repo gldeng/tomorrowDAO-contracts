@@ -13,8 +13,7 @@ public partial class DAOContract
         Assert(input != null, "Invalid input.");
         Assert(IsHashValid(input.DaoId), "Invalid input dao id.");
 
-        CheckDAOExists(input.DaoId);
-        CheckDaoSubsistStatus(input.DaoId);
+        CheckDAOExistsAndSubsist(input.DaoId);
 
         AssertPermission(input.DaoId, nameof(UploadFileInfos));
         Assert(input.Files != null && input.Files.Count > 0, "Invalid input files.");
@@ -27,11 +26,11 @@ public partial class DAOContract
     private void ValidateInputFile(File input)
     {
         Assert(input != null, "Invalid input file.");
-        Assert(IsStringValid(input.Cid) && input.Cid.Length <= DAOContractConstants.MaxFileCidLength,
+        Assert(IsStringValid(input.Cid) && input.Cid.Length <= DAOContractConstants.FileCidMaxLength,
             "Invalid input file cid.");
-        Assert(IsStringValid(input.Name) && input.Name.Length <= DAOContractConstants.MaxFileNameLength,
+        Assert(IsStringValid(input.Name) && input.Name.Length <= DAOContractConstants.FileNameMaxLength,
             "Invalid input file name.");
-        Assert(IsStringValid(input.Url) && input.Url.Length <= DAOContractConstants.MaxFileUrlLength,
+        Assert(IsStringValid(input.Url) && input.Url.Length <= DAOContractConstants.FileUrlMaxLength,
             "Invalid input file url.");
     }
 
@@ -39,17 +38,20 @@ public partial class DAOContract
     {
         if (files.Count == 0) return;
 
-        Assert(files.Count <= DAOContractConstants.MaxFileCount, "Too many files.");
+        Assert(files.Count <= DAOContractConstants.FileMaxCount, "Too many files.");
 
         var distinctFiles = files.Distinct();
         var newFiles = new FileInfoList();
         var existingFiles = State.FilesMap[daoId] ?? new FileInfoList();
 
-        Assert(files.Count + existingFiles.Data.Count <= DAOContractConstants.MaxFileCount, "Too many files.");
+        Assert(files.Count + existingFiles.Data.Count <= DAOContractConstants.FileMaxCount, "Too many files.");
 
         foreach (var file in distinctFiles)
         {
             ValidateInputFile(file);
+
+            existingFiles.Data.TryGetValue(file.Cid, out var existFile);
+            Assert(existFile == null, "File already exists.");
 
             var fileInfo = new FileInfo
             {
@@ -64,11 +66,14 @@ public partial class DAOContract
 
         State.FilesMap[daoId] = existingFiles;
 
-        Context.Fire(new FileInfosUploaded
+        if (newFiles.Data.Any())
         {
-            DaoId = daoId,
-            UploadedFiles = newFiles
-        });
+            Context.Fire(new FileInfosUploaded
+            {
+                DaoId = daoId,
+                UploadedFiles = newFiles
+            });
+        }
     }
 
     public override Empty RemoveFileInfos(RemoveFileInfosInput input)
@@ -76,13 +81,12 @@ public partial class DAOContract
         Assert(input != null, "Invalid input.");
         Assert(IsHashValid(input.DaoId), "Invalid input dao id.");
 
-        CheckDAOExists(input.DaoId);
-        CheckDaoSubsistStatus(input.DaoId);
+        CheckDAOExistsAndSubsist(input.DaoId);
 
         AssertPermission(input.DaoId, nameof(RemoveFileInfos));
         Assert(
             input.FileCids != null && input.FileCids.Count > 0 &&
-            input.FileCids.Count <= DAOContractConstants.MaxFileCount, "Invalid input file cids.");
+            input.FileCids.Count <= DAOContractConstants.FileMaxCount, "Invalid input file cids.");
 
         ProcessRemoveFileInfos(input.DaoId, input.FileCids);
 
@@ -102,7 +106,7 @@ public partial class DAOContract
 
         foreach (var fileCid in distinctFileCids)
         {
-            Assert(IsStringValid(fileCid) && fileCid.Length <= DAOContractConstants.MaxFileCidLength,
+            Assert(IsStringValid(fileCid) && fileCid.Length <= DAOContractConstants.FileCidMaxLength,
                 "Invalid input file cid.");
 
             if (!existingFiles.Data.ContainsKey(fileCid)) continue;
@@ -111,10 +115,13 @@ public partial class DAOContract
             existingFiles.Data.Remove(fileCid);
         }
 
-        Context.Fire(new FileInfosRemoved
+        if (removedFiles.Data.Any())
         {
-            DaoId = daoId,
-            RemovedFiles = removedFiles
-        });
+            Context.Fire(new FileInfosRemoved
+            {
+                DaoId = daoId,
+                RemovedFiles = removedFiles
+            });
+        }
     }
 }

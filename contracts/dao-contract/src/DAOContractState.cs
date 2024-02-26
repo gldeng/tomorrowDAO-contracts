@@ -10,6 +10,9 @@ namespace TomorrowDAO.Contracts.DAO
         // DAO id -> DAOInfo
         public MappedState<Hash, DAOInfo> DAOInfoMap { get; set; }
 
+        public MappedState<Hash, Address> ReferendumContractMap { get; set; }
+        public MappedState<Hash, Address> HighCouncilContractMap { get; set; }
+
         public MappedState<string, Hash> DAONameMap { get; set; }
 
         // DAO id -> Metadata
@@ -17,7 +20,6 @@ namespace TomorrowDAO.Contracts.DAO
 
         // high council
         public MappedState<Hash, bool> HighCouncilEnabledStatusMap { get; set; }
-        public MappedState<Hash, bool> HighCouncilExecutionConfigMap { get; set; }
         public MappedState<Hash, Address> HighCouncilAddressMap { get; set; }
 
         // file
@@ -27,8 +29,5 @@ namespace TomorrowDAO.Contracts.DAO
         // permission
         // DAO id -> PermissionHash -> PermissionType
         public MappedState<Hash, Hash, PermissionType> PermissionTypeMap { get; set; }
-
-        // DAO id -> PermissionHash -> Address
-        public MappedState<Hash, Hash, Address> PermissionSpecificAddressMap { get; set; }
     }
 }

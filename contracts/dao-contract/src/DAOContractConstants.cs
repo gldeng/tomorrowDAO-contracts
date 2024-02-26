@@ -3,24 +3,25 @@ namespace TomorrowDAO.Contracts.DAO;
 public static class DAOContractConstants
 {
     // metadata
-    public const int MaxNameLength = 50;
-    public const int MaxLogoUrlLength = 64;
-    public const int MaxDescriptionLength = 240;
+    public const int NameMaxLength = 50;
+    public const int LogoUrlMaxLength = 256;
+    public const int DescriptionMaxLength = 240;
 
     // social media
-    public const int MaxSocialMediaListCount = 20;
-    public const int MaxSocialMediaNameLength = 16;
-    public const int MaxSocialMediaUrlLength = 64;
+    public const int SocialMediaListMaxCount = 20;
+    public const int SocialMediaNameMaxLength = 16;
+    public const int SocialMediaUrlMaxLength = 64;
 
     // governance token
     public const int SymbolMaxLength = 10;
 
     // file
-    public const int MaxFileCount = 20;
-    public const int MaxFileCidLength = 64;
-    public const int MaxFileNameLength = 128;
-    public const int MaxFileUrlLength = 256;
+    public const int FileMaxCount = 20;
+    public const int FileCidMaxLength = 64;
+    public const int FileNameMaxLength = 128;
+    public const int FileUrlMaxLength = 256;
 
     // permission
-    public const int MaxWhatLength = 64;
+    public const string UploadFileInfos = "uploadfileinfos";
+    public const string RemoveFileInfos = "removefileinfos";
 }

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -56,27 +58,7 @@ public partial class DAOContractTests
                     }
                 }
             },
-            GovernanceToken = "ELF",
-            IsTreasuryContractNeeded = false,
-            Files =
-            {
-                new File
-                {
-                    Cid = "cid",
-                    Name = "name",
-                    Url = "url"
-                }
-            },
-            PermissionInfos =
-            {
-                new PermissionInfo
-                {
-                    Where = DAOContractAddress,
-                    Who = DefaultAddress,
-                    What = "SetPermissions",
-                    PermissionType = PermissionType.Specificaddress
-                }
-            }
+            GovernanceToken = "ELF"
         });
 
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -86,26 +68,6 @@ public partial class DAOContractTests
         return log.DaoId;
     }
 
-    private async Task SetPermissionAsync(Hash daoId, Address where, Address who, string what,
-        PermissionType permissionType)
-    {
-        var result = await DAOContractStub.SetPermissions.SendAsync(new SetPermissionsInput
-        {
-            DaoId = daoId,
-            PermissionInfos =
-            {
-                new PermissionInfo
-                {
-                    PermissionType = permissionType,
-                    Where = where,
-                    Who = who,
-                    What = what
-                }
-            }
-        });
-        result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-    }
-
     private async Task SetSubsistStatusAsync(Hash daoId, bool status)
     {
         await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
@@ -113,5 +75,52 @@ public partial class DAOContractTests
             DaoId = daoId,
             Status = status
         });
+    }
+
+    private string GenerateRandomString(int length)
+    {
+        if (length <= 0) return "";
+
+        const string chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-*/!@#$%^&*()_+{}|:<>?[];',./`~";
+
+        var random = new Random();
+
+        var stringBuilder = new StringBuilder(length);
+        for (int i = 0; i < length; i++)
+        {
+            stringBuilder.Append(chars[random.Next(chars.Length)]);
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    private Dictionary<string, string> GenerateRandomMap(int length, int keyLength, int valueLength)
+    {
+        var map = new Dictionary<string, string>();
+        for (var i = 0; i < length; i++)
+        {
+            var key = GenerateRandomString(keyLength);
+            if (map.ContainsKey(key))
+            {
+                i--;
+                continue;
+            }
+            var value = GenerateRandomString(valueLength);
+
+            map.Add(key, value);
+        }
+
+        return map;
+    }
+    
+    private File GenerateFile(string cid, string name, string url)
+    {
+        return new File
+        {
+            Cid = cid,
+            Name = name,
+            Url = url
+        };
     }
 }

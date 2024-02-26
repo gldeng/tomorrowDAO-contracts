@@ -19,32 +19,33 @@ service GovernanceContract {
   }
 
   // Governance scheme
-  rpc CreateGovernanceScheme (CreateGovernanceSchemeInput) returns (aelf.Hash){
+  rpc AddGovernanceScheme (AddGovernanceSchemeInput) returns (AddressList){
   }
-  rpc AddGovernanceSubScheme (AddGovernanceSubSchemeInput) returns (aelf.Hash){
+  rpc UpdateGovernanceSchemeThreshold (UpdateGovernanceSchemeThresholdInput) returns (google.protobuf.Empty){
   }
-  rpc RemoveGovernanceSubScheme (RemoveGovernanceSubSchemeInput) returns (google.protobuf.Empty){
+  rpc RemoveGovernanceScheme (RemoveGovernanceSchemeInput) returns (google.protobuf.Empty){
   }
-  rpc UpdateGovernanceSubScheme (UpdateGovernanceSubSchemeInput) returns (google.protobuf.Empty){
-  }
-  rpc UpdateGovernanceThreshold (UpdateGovernanceThresholdInput) returns (google.protobuf.Empty){
+  rpc SetGovernanceToken (SetGovernanceTokenInput) returns (google.protobuf.Empty){
   }
 
-  // Organization
-  rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
+  rpc GetDaoGovernanceSchemeAddressList (aelf.Hash) returns (AddressList){
+    option (aelf.is_view) = true;
   }
-  rpc AddMembers(AddressList) returns (google.protobuf.Empty){
+  rpc GetDaoGovernanceSchemeList (aelf.Hash) returns (GovernanceSchemeList){
+    option (aelf.is_view) = true;
   }
-  rpc RemoveMembers(AddressList) returns (google.protobuf.Empty){
+  rpc GetGovernanceScheme (aelf.Hash) returns (GovernanceScheme){
+    option (aelf.is_view) = true;
   }
-  rpc ChangeMember(ChangeMemberInput) returns (google.protobuf.Empty){
+  rpc CalculateGovernanceSchemeAddress(CalculateGovernanceSchemeAddressInput) returns (aelf.Address){
+    option (aelf.is_view) = true;
   }
-
   // Proposal
-  rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {
+  rpc CreateProposal (CreateProposalInput) returns (google.protobuf.Empty){
   }
-  // For organization proposal(AddMembers/RemoveMembers/ChangeMember/UpdateGovernanceThreshold)
-  rpc CreateOrganizationProposal (CreateOrganizationProposalInput) returns (aelf.Hash) {
+  rpc CreateVetoProposal (CreateVetoProposalInput) returns (google.protobuf.Empty){
+  }
+  rpc VetoProposal (aelf.Hash) returns (google.protobuf.Empty){
   }
   rpc ExecuteProposal (aelf.Hash) returns (google.protobuf.Empty) {
   }
@@ -52,149 +53,83 @@ service GovernanceContract {
   }
   rpc SetProposalTimePeriod (SetProposalTimePeriodInput) returns (google.protobuf.Empty) {
   }
-  rpc SetOrganizationProposalWhitelistTransaction (SetOrganizationProposalWhitelistTransactionInput) returns (google.protobuf.Empty){
-  }
 
-  // Views (methods that don't modify contract state)
-  // Governance scheme
-  rpc GetGovernanceSchemeInfo (aelf.Hash) returns (GovernanceScheme) {
+  rpc GetProposalInfo (aelf.Hash) returns (ProposalInfoOutput){
     option (aelf.is_view) = true;
   }
-  rpc GetGovernanceSubSchemeInfo (aelf.Hash) returns (GovernanceSubScheme) {
+  rpc GetDaoProposalTimePeriod (aelf.Hash) returns (DaoProposalTimePeriod){
     option (aelf.is_view) = true;
   }
-  rpc GetParliamentSchemeId (google.protobuf.Empty) returns (aelf.Hash) {
-    option (aelf.is_view) = true;
-  }
-  rpc GetAssociationSchemeId (google.protobuf.Empty) returns (aelf.Hash) {
-    option (aelf.is_view) = true;
-  }
-  rpc GetCustomizeSchemeId (google.protobuf.Empty) returns (aelf.Hash) {
-    option (aelf.is_view) = true;
-  }
-  rpc GetReferendumSchemeId (google.protobuf.Empty) returns (aelf.Hash) {
-    option (aelf.is_view) = true;
-  }
-
-  // Organization
-  rpc GetOrganization (aelf.Address) returns (Organization) {
-    option (aelf.is_view) = true;
-  }
-  rpc CalculateOrganizationAddress(CreateOrganizationInput) returns (aelf.Address){
-    option (aelf.is_view) = true;
-  }
-  rpc ValidateOrganizationExist(aelf.Address) returns (google.protobuf.BoolValue){
-    option (aelf.is_view) = true;
-  }
-
-  // Proposal
-  rpc GetProposalInfo (aelf.Hash) returns (ProposalInfo){
-    option (aelf.is_view) = true;
-  }
-  rpc GetProposalTimePeriod (aelf.Hash) returns (DaoProposalTimePeriod){
-    option (aelf.is_view) = true;
-  }
-  rpc GetOrganizationProposalWhitelistTransaction (google.protobuf.Empty) returns (WhitelistTransactionList){
-    option (aelf.is_view) = true;
-  }
-  rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceSubScheme){
+  rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceScheme){
     option (aelf.is_view) = true;
   }
 }
-
-// Data structure
+//Data structure
 message GovernanceScheme {
-  // The id of the scheme.
-  aelf.Hash scheme_id = 1;
-  // Parliament/Association/Customize/Referendum
-  GovernanceMechanism governance_mechanism = 2;
-  repeated aelf.Hash sub_scheme_id_list = 3;
-  aelf.Address creator = 4;
-  // Default threshold for proposal execute.
+  aelf.Hash dao_id = 1;
+  // referendum id/high council id
+  aelf.Hash scheme_id = 2;
+  // referendum address/high council address
+  aelf.Address scheme_address = 3;
+  // HighCouncil/Referendum
+  GovernanceMechanism governance_mechanism = 4;
   GovernanceSchemeThreshold scheme_threshold = 5;
+  string governance_token = 6;
 }
-
+message GovernanceSchemeList {
+  repeated GovernanceScheme value = 1;
+}
 enum GovernanceMechanism {
   UNSPECIFIED = 0;
-  PARLIAMENT = 1;
-  ASSOCIATION = 2;
-  CUSTOMIZE = 3;
-  REFERENDUM = 4;
+  REFERENDUM = 1;
+  HIGH_COUNCIL = 2;
 }
-
-message GovernanceSubScheme {
-  aelf.Hash parent_scheme_id = 1;
-  // The id of the sub scheme.
-  aelf.Hash scheme_id = 2;
-  GovernanceSchemeThreshold scheme_threshold = 3;
-  aelf.Address manager = 4;
-}
-
 message GovernanceSchemeThreshold {
-  int64 minimal_required_threshold = 1; //Parliament/Association/Customize -> percentage / referendum -> number
+  int64 minimal_required_threshold = 1; //HighCouncil -> percentage / referendum -> number
   int64 minimal_vote_threshold = 2;
   int64 minimal_approve_threshold = 3; // percentage
   int64 maximal_rejection_threshold = 4; // percentage
   int64 maximal_abstention_threshold = 5; // percentage
 }
-
-message Organization{
-  // The organization members.
-  OrganizationMemberList organization_member_list = 1;
-  // The id of the governance sub scheme.
-  aelf.Hash governance_scheme_id = 2;
-  // The address of organization.
-  aelf.Address organization_address = 3;
-  // The organizations id.
-  aelf.Hash organization_hash = 4;
-  // The creation token is for organization address generation.
-  aelf.Hash creation_salt = 5;
-  string organization_name = 6;
-  string symbol = 7;// for referendum
-}
-
-message OrganizationMemberList {
-  // The address of organization members.
-  repeated aelf.Address organization_members = 1;
+message AddressList {
+  repeated aelf.Address value = 1;
 }
 
 message ProposalInfo {
-  aelf.Hash dao_id = 1; // for organization proposal, is null
+  aelf.Hash dao_id = 1;
   aelf.Hash proposal_id = 2;
   string proposal_title = 3;
-  ProposalType proposal_type = 4;
-  // Proposal start time.
-  google.protobuf.Timestamp start_time = 5;
-  // start->end, voting period.
-  google.protobuf.Timestamp end_time = 6;
-  // end->expire, execute period.
-  google.protobuf.Timestamp expired_time = 7;
-  ProposalStatus proposal_status = 8;
-  aelf.Address proposer = 9;
-  aelf.Address organization_address = 10;
-  string proposal_description = 11;
-  ExecuteTransaction transaction = 12;
-  aelf.Hash governance_scheme_id = 13;
-  aelf.Hash vote_scheme_id = 14;
-  bool execute_by_high_council = 15; // for organization proposal, is false
+  string proposal_description = 4;
+  string forum_url = 5;
+  ProposalType proposal_type = 6;
+  google.protobuf.Timestamp active_start_time = 7;
+  google.protobuf.Timestamp active_end_time = 8;
+  google.protobuf.Timestamp execute_start_time = 9;
+  google.protobuf.Timestamp execute_end_time = 10;
+  ProposalStatus proposal_status = 11;
+  aelf.Address proposer = 12;
+  aelf.Address scheme_address = 13;
+  ExecuteTransaction transaction = 14;
+  aelf.Hash vote_scheme_id = 15;
+  bool is_executable = 16;
 }
 
 enum ProposalType {
-  EMPTY = 0;
+  UNUSED = 0;
   GOVERNANCE = 1;
   ADVISORY = 2;
+  VETO = 3;
 }
 
 enum ProposalStatus {
-  UNUSED = 0;
+  UNSPECIFIED3 = 0;
   ACTIVE = 1;
-  // After active
   APPROVED = 2;
   REJECTED = 3;
   ABSTAINED = 4;
-  // Execution
-  EXPIRED = 5;
-  EXECUTED = 6;
+  PENDING = 5;
+  EXPIRED = 6;
+  EXECUTED =7;
 }
 
 message ExecuteTransaction {
@@ -206,88 +141,65 @@ message ExecuteTransaction {
   bytes params = 3;
 }
 
-message WhitelistTransaction {
-  repeated string contract_method_name = 1;
-  // The address of the target contract.
-  aelf.Address to_address = 2;
-}
-message OrganizationHashAddressPair {
-  aelf.Hash organization_hash = 1;
-  aelf.Address organization_address = 2;
-}
-
 message DaoProposalTimePeriod {
-  int64 min_active_time_period = 1; //seconds
-  int64 max_active_time_period = 2; //seconds
-  int64 execute_time_period = 3; //seconds
+  int64 active_time_period = 1; //seconds
+  int64 veto_active_time_period = 2; //seconds
+  int64 pending_time_period = 3; //seconds
+  int64 execute_time_period = 4; //seconds
+  int64 veto_execute_time_period = 5; //seconds
 }
 
-//Inputs
+// Input
 message InitializeInput {
   aelf.Address dao_contract_address = 1;
-  aelf.Address admin_address = 2;
 }
-
-message CreateGovernanceSchemeInput {
-  // Use to generate scheme id.
-  aelf.Hash salt = 1;
+message AddGovernanceSchemeInput {
+  aelf.Hash dao_id = 1;
   GovernanceMechanism governance_mechanism = 2;
   GovernanceSchemeThreshold scheme_threshold = 3;
+  string governance_token = 4;
 }
-
-message AddGovernanceSubSchemeInput {
-  // The parent scheme id.
-  aelf.Hash scheme_id = 1;
-  // Calculate sub scheme id. daoId/organization_hash
-  aelf.Hash dao_id = 2;
+message UpdateGovernanceSchemeThresholdInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address scheme_address = 2;
   GovernanceSchemeThreshold scheme_threshold = 3;
 }
-
-message RemoveGovernanceSubSchemeInput {
-  // The parent scheme id.
-  aelf.Hash scheme_id = 1;
-  // The sub scheme id. daoId/organization_hash
-  aelf.Hash sub_scheme_id = 2;
+message RemoveGovernanceSchemeInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address scheme_address = 2;
+}
+message SetGovernanceTokenInput {
+  aelf.Hash dao_id = 1;
+  string governance_token = 2;
 }
 
 message CreateProposalInput {
   aelf.Hash dao_id = 1;
-  // Voting time period, 
-  google.protobuf.Timestamp vote_end_time = 2;
-  // Execution time period
-  google.protobuf.Timestamp execute_expired_time = 3;
-  // The address of the organization.
-  aelf.Address organization_address = 4;
-  // Url is used for proposal describing.
-  string proposal_description = 5;
-  // The salt is for proposal id generation and with this token, proposal id can be calculated before proposing.
-  aelf.Hash salt = 6;
-  // 1a1v / 1t1v
-  aelf.Hash vote_scheme_id = 7;
-  // Transactions executed during the proposal execution period. If it is a advisory proposal, this field will be empty.
-  ExecuteTransaction transaction = 8;
-  // The proposer, is also the executor of the proposal if dao does not specify high council to execute it.
-  // If this field is null, sender will be the proposer.
-  aelf.Address proposer = 9;
-  ProposalType proposal_type = 10;
-  string proposal_title = 11;
+  string proposal_title = 2;
+  string proposal_description = 3;
+  string forum_url = 4;
+  ProposalType proposal_type = 5;
+  google.protobuf.Timestamp active_start_time = 6;
+  google.protobuf.Timestamp active_end_time = 7;
+  google.protobuf.Timestamp execute_start_time = 8;
+  google.protobuf.Timestamp execute_end_time = 9;
+  aelf.Address scheme_address = 10;
+  ExecuteTransaction transaction = 11;
+  aelf.Hash vote_scheme_id = 12;
 }
 
-message CreateOrganizationProposalInput {
-  ExecuteTransaction transaction = 1;
-  // Voting time period, 
-  google.protobuf.Timestamp vote_end_time = 2;
-  // The timestamp at which this proposal will expire.
-  google.protobuf.Timestamp execute_expired_time = 3;
-  // The address of the organization.
-  aelf.Address organization_address = 4;
-  // Url is used for proposal describing.
-  string proposal_description = 5;
-  aelf.Hash salt = 6;
-  aelf.Address proposer = 7;
-  // 1a1v / 1t1v
-  aelf.Hash vote_scheme_id = 8;
-  string proposal_title = 9;
+message CreateVetoProposalInput {
+  aelf.Hash dao_id = 1;
+  string proposal_title = 2;
+  string proposal_description = 3;
+  string forum_url = 4;
+  aelf.Hash veto_proposal_id = 5;
+  google.protobuf.Timestamp active_start_time = 6;
+  google.protobuf.Timestamp active_end_time = 7;
+  google.protobuf.Timestamp execute_start_time = 8;
+  google.protobuf.Timestamp execute_end_time = 9;
+  aelf.Address referendum_scheme_address = 10;
+  aelf.Hash vote_scheme_id = 11;
 }
 
 message SetProposalTimePeriodInput {
@@ -295,167 +207,115 @@ message SetProposalTimePeriodInput {
   DaoProposalTimePeriod proposal_time_period = 2;
 }
 
-message SetOrganizationProposalWhitelistTransactionInput {
-  WhitelistTransactionList whitelist_transaction_list = 1;
+message ProposalInfoOutput {
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
+  string proposal_title = 3;
+  string proposal_description = 4;
+  string forum_url = 5;
+  ProposalType proposal_type = 6;
+  google.protobuf.Timestamp active_start_time = 7;
+  google.protobuf.Timestamp active_end_time = 8;
+  google.protobuf.Timestamp execute_start_time = 9;
+  google.protobuf.Timestamp execute_end_time = 10;
+  ProposalStatus proposal_status = 11;
+  aelf.Address proposer = 12;
+  aelf.Address scheme_address = 13;
+  ExecuteTransaction transaction = 14;
+  aelf.Hash vote_scheme_id = 15;
+  bool is_executable = 16;
+  aelf.Hash veto_proposal_id = 17;
+  int64 vote_count = 18;
+  int64 approval_count = 19;
+  int64 rejection_count = 20;
+  int64 abstention_count = 21;
 }
 
-message WhitelistTransactionList {
-  repeated WhitelistTransaction whitelist_transaction_list = 1;
-}
-
-message UpdateGovernanceThresholdInput {
-  // The parent scheme id.
-  aelf.Hash scheme_id = 1;
-  // The dao id / organization_hash.
-  aelf.Hash sub_scheme_id = 2;
-  GovernanceSchemeThreshold scheme_threshold = 3;
-}
-
-message UpdateGovernanceSubSchemeInput {
-  // The parent scheme id.
-  aelf.Hash scheme_id = 1;
-  // The sub scheme id. daoId/organization_hash
-  aelf.Hash sub_scheme_id = 2;
-  aelf.Hash update_scheme_id = 3;
-  GovernanceSchemeThreshold scheme_threshold = 4;
-}
-
-message CreateOrganizationInput {
-  // Initial organization members.(referendum is null)
-  OrganizationMemberList organization_member_list = 1;
-  // parent scheme id. Parliament/Association/Customize/Referendum
-  aelf.Hash governance_scheme_id = 2;
-  // The threshold for releasing the proposal.
-  GovernanceSchemeThreshold scheme_threshold = 3;
-  // The creation salt is for organization address generation.
-  aelf.Hash creation_salt = 4;
-  // The token used during proposal operations.(governance token, only for referendum)
-  string symbol = 5;
-  string organization_name = 6;
-}
-
-message AddressList {
-  repeated aelf.Address value = 1;
-}
-
-message ChangeMemberInput{
-  // The old member address.
-  aelf.Address old_member = 1;
-  // The new member address.
-  aelf.Address new_member = 2;
-}
-
-//Events
-message GovernanceSchemeCreated{
-  option (aelf.is_event) = true;
-  aelf.Hash governance_scheme_id = 1;
+message CalculateGovernanceSchemeAddressInput {
+  aelf.Hash dao_id = 1;
   GovernanceMechanism governance_mechanism = 2;
-  aelf.Address creator = 3;
-  GovernanceSchemeThreshold scheme_threshold = 4;
 }
 
-message GovernanceSubSchemeAdded{
+// Event
+message GovernanceSchemeAdded {
   option (aelf.is_event) = true;
-  aelf.Hash parent_scheme_id = 1;
-  // The id of the sub scheme.
-  aelf.Hash sub_scheme_id = 2;
-  GovernanceSchemeThreshold scheme_threshold = 3;
-  aelf.Address manager = 4;
+  aelf.Hash dao_id = 1;
+  aelf.Hash scheme_id = 2;
+  aelf.Address scheme_address = 3;
+  GovernanceMechanism governance_mechanism = 4;
+  GovernanceSchemeThreshold scheme_threshold = 5;
+  string governance_token = 6;
 }
-
-message GovernanceSubSchemeRemoved{
+message GovernanceSchemeThresholdUpdated {
   option (aelf.is_event) = true;
-  aelf.Hash parent_scheme_id = 1;
-  aelf.Hash sub_scheme_id = 2;
+  aelf.Hash dao_id = 1;
+  aelf.Address scheme_address = 2;
+  GovernanceSchemeThreshold update_scheme_threshold = 3;
 }
-
-message GovernanceThresholdUpdated{
+message GovernanceSchemeThresholdRemoved {
   option (aelf.is_event) = true;
-  // The id of the sub scheme.
-  aelf.Hash sub_scheme_id = 1;
-  GovernanceSchemeThreshold scheme_threshold_update = 2;
+  aelf.Hash dao_id = 1;
+  aelf.Address scheme_address = 2;
 }
-
-message GovernanceSubSchemeUpdated{
+message GovernanceTokenSet {
   option (aelf.is_event) = true;
-  // The parent scheme id.
-  aelf.Hash update_scheme_id = 1;
-  // The id of the sub scheme.
-  aelf.Hash sub_scheme_id = 2;
-  GovernanceSchemeThreshold scheme_threshold_update = 3;
+  aelf.Hash dao_id = 1;
+  string governance_token = 2;
 }
-
-message OrganizationCreated {
+message ProposalCreated {
   option (aelf.is_event) = true;
-  // The address of the created organization.
-  aelf.Address organization_address = 1;
-  // The id of the governance sub scheme.
-  aelf.Hash governance_scheme_id = 2;
-  // The organizations id.
-  aelf.Hash organization_hash = 3;
-  string symbol = 4;
-  string organization_name = 5;
-  OrganizationMemberList organization_member_list = 6;
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
+  string proposal_title = 3;
+  string proposal_description = 4;
+  string forum_url = 5;
+  ProposalType proposal_type = 6;
+  google.protobuf.Timestamp active_start_time = 7;
+  google.protobuf.Timestamp active_end_time = 8;
+  google.protobuf.Timestamp execute_start_time = 9;
+  google.protobuf.Timestamp execute_end_time = 10;
+  ProposalStatus proposal_status = 11;
+  aelf.Address proposer = 12;
+  aelf.Address scheme_address = 13;
+  ExecuteTransaction transaction = 14;
+  aelf.Hash vote_scheme_id = 15;
+  bool is_executable = 16;
 }
-
-message MemberAdded{
+message VetoProposalCreated {
   option (aelf.is_event) = true;
-  // The added member address list.
-  AddressList member_list = 1;
-  // The organization address.
-  aelf.Address organization_address = 2 [(aelf.is_indexed) = true];
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
+  string proposal_title = 3;
+  string proposal_description = 4;
+  string forum_url = 5;
+  ProposalType proposal_type = 6;
+  google.protobuf.Timestamp active_start_time = 7;
+  google.protobuf.Timestamp active_end_time = 8;
+  google.protobuf.Timestamp execute_start_time = 9;
+  google.protobuf.Timestamp execute_end_time = 10;
+  ProposalStatus proposal_status = 11;
+  aelf.Address proposer = 12;
+  aelf.Address scheme_address = 13;
+  aelf.Hash veto_proposal_id = 14;
+  aelf.Hash vote_scheme_id = 15;
 }
-
-message MemberRemoved{
+message ProposalVetoed {
   option (aelf.is_event) = true;
-  // The removed member address list.
-  AddressList member_list = 1;
-  // The organization address.
-  aelf.Address organization_address = 2 [(aelf.is_indexed) = true];
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
+  aelf.Hash veto_proposal_id = 3;
 }
-
-message MemberChanged{
+message ProposalExecuted {
   option (aelf.is_event) = true;
-  // The old member address.
-  aelf.Address old_member = 1;
-  // The new member address.
-  aelf.Address new_member = 2;
-  // The organization address.
-  aelf.Address organization_address = 3 [(aelf.is_indexed) = true];
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
 }
-
-message ProposalCreated{
+message DaoProposalTimePeriodSet {
   option (aelf.is_event) = true;
-  // The id of the created proposal.
-  aelf.Hash proposal_id = 1;
-  // The organization address of the created proposal.
-  aelf.Address organization_address = 2;
-  google.protobuf.Timestamp start_time = 3;
-  google.protobuf.Timestamp end_time = 4;
-  google.protobuf.Timestamp expired_time = 5;
-  ProposalStatus proposal_status = 6;
-  aelf.Hash governance_scheme_id = 7;
-  aelf.Hash vote_scheme_id = 8;
-  ExecuteTransaction transaction = 9;
-  bool execute_by_high_council = 10; // for organization proposal, is false
-  aelf.Address execute_address = 11;
-  ProposalType proposal_type = 12;
-  aelf.Hash dao_id = 13; // for organization proposal, is null
-  string proposal_title = 14;
-  string proposal_description = 15;
-}
-
-message ProposalExecuted{
-  option (aelf.is_event) = true;
-  // The id of the executed proposal.
-  aelf.Hash proposal_id = 1;
-  // The organization address of the executed proposal.
-  aelf.Address organization_address = 2;
-  google.protobuf.Timestamp execute_time = 3;
-}
-
-message ProposalCleared {
-  option (aelf.is_event) = true;
-  // The id of the proposal.
-  aelf.Hash proposal_id = 1;
+  aelf.Hash dao_id = 1;
+  int64 active_time_period = 2; //seconds
+  int64 veto_active_time_period = 3; //seconds
+  int64 pending_time_period = 4; //seconds
+  int64 execute_time_period = 5; //seconds
+  int64 veto_execute_time_period = 6; //seconds
 }

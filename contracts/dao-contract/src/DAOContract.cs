@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
@@ -70,7 +71,11 @@ namespace TomorrowDAO.Contracts.DAO
                 SubsistStatus = true,
                 ContractAddressList = new ContractAddressList
                 {
-                    GovernanceContractAddress = State.GovernanceContract.Value
+                    GovernanceContractAddress = State.GovernanceContract.Value,
+                    ElectionContractAddress = State.ElectionContract.Value,
+                    TimelockContractAddress = State.TimelockContract.Value,
+                    TreasuryContractAddress = State.TreasuryContract.Value,
+                    VoteContractAddress = State.VoteContract.Value
                 }
             };
 
@@ -92,29 +97,29 @@ namespace TomorrowDAO.Contracts.DAO
         private void ProcessMetadata(Hash daoId, Metadata metadata)
         {
             Assert(metadata != null, "Invalid metadata.");
-            Assert(IsStringValid(metadata.Name) && metadata.Name.Length <= DAOContractConstants.MaxNameLength,
+            Assert(IsStringValid(metadata.Name) && metadata.Name.Length <= DAOContractConstants.NameMaxLength,
                 "Invalid metadata name.");
             Assert(State.DAONameMap[metadata.Name] == null, "DAO name already exists.");
-            Assert(IsStringValid(metadata.LogoUrl) && metadata.LogoUrl.Length <= DAOContractConstants.MaxLogoUrlLength,
+            Assert(IsStringValid(metadata.LogoUrl) && metadata.LogoUrl.Length <= DAOContractConstants.LogoUrlMaxLength,
                 "Invalid metadata logo url.");
             Assert(IsStringValid(metadata.Description)
-                   && metadata.Description.Length <= DAOContractConstants.MaxDescriptionLength,
+                   && metadata.Description.Length <= DAOContractConstants.DescriptionMaxLength,
                 "Invalid metadata description.");
 
             Assert(
                 metadata.SocialMedia.Count > 0 &&
-                metadata.SocialMedia.Count <= DAOContractConstants.MaxSocialMediaListCount,
+                metadata.SocialMedia.Count <= DAOContractConstants.SocialMediaListMaxCount,
                 "Invalid metadata social media count.");
 
             foreach (var socialMedia in metadata.SocialMedia.Keys)
             {
                 Assert(
-                    IsStringValid(socialMedia) && socialMedia.Length <= DAOContractConstants.MaxSocialMediaNameLength,
-                    "Invalid social media name.");
+                    IsStringValid(socialMedia) && socialMedia.Length <= DAOContractConstants.SocialMediaNameMaxLength,
+                    "Invalid metadata social media name.");
                 Assert(
                     IsStringValid(metadata.SocialMedia[socialMedia])
-                    && metadata.SocialMedia[socialMedia].Length <= DAOContractConstants.MaxSocialMediaUrlLength,
-                    "Invalid social media url.");
+                    && metadata.SocialMedia[socialMedia].Length <= DAOContractConstants.SocialMediaUrlMaxLength,
+                    "Invalid metadata social media url.");
             }
 
             State.MetadataMap[daoId] = metadata;
@@ -123,110 +128,79 @@ namespace TomorrowDAO.Contracts.DAO
 
         private void ProcessGovernanceToken(Hash daoId, string governanceToken)
         {
-            if (IsStringValid(governanceToken))
+            if (!IsStringValid(governanceToken)) return;
+            Assert(governanceToken.Length <= DAOContractConstants.SymbolMaxLength &&
+                   governanceToken.All(IsValidTokenChar), "Invalid token symbol.");
+
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
-                Assert(governanceToken.Length <= DAOContractConstants.SymbolMaxLength &&
-                       governanceToken.All(IsValidTokenChar), "Invalid token symbol.");
+                Symbol = governanceToken
+            });
 
-                var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
-                {
-                    Symbol = governanceToken
-                });
+            Assert(!string.IsNullOrWhiteSpace(tokenInfo.Symbol), "Token not found.");
 
-                Assert(!string.IsNullOrWhiteSpace(tokenInfo.Symbol), "Token not found.");
-
-                State.DAOInfoMap[daoId].GovernanceToken = governanceToken;
-            }
+            State.DAOInfoMap[daoId].GovernanceToken = governanceToken;
         }
 
         private void ProcessDAOComponents(Hash daoId, CreateDAOInput input)
         {
-            ProcessGovernanceMechanism(daoId, input.GovernanceSchemeInput);
+            // ProcessReferendumGovernanceMechanism(daoId, input.GovernanceSchemeThreshold);
             ProcessHighCouncil(daoId, input.HighCouncilInput);
-            // ProcessVoteContract(daoId);
-            // ProcessTreasuryContract(daoId, input.IsTreasuryContractNeeded);
+            ProcessTreasuryContract(daoId, input.IsTreasuryContractNeeded);
             ProcessFileUploads(daoId, input.Files);
-            ProcessPermissions(daoId, input.PermissionInfos);
+            ProcessDefaultPermissions(daoId);
         }
 
-        private void ProcessGovernanceMechanism(Hash daoId, GovernanceSchemeInput input)
+        private void ProcessReferendumGovernanceMechanism(Hash daoId, GovernanceSchemeThreshold threshold)
         {
-            if (input != null)
+            Assert(threshold != null, "Invalid input governance scheme threshold.");
+
+            var governanceSchemeThreshold = ConvertToGovernanceSchemeThreshold(threshold);
+
+            State.GovernanceContract.AddGovernanceScheme.Send(new AddGovernanceSchemeInput
             {
-                Assert(IsHashValid(input.GovernanceSchemeId), "Invalid governance scheme id.");
-                Assert(input.GovernanceSchemeThreshold != null, "Invalid governance scheme threshold.");
+                DaoId = daoId,
+                GovernanceMechanism = GovernanceMechanism.Referendum,
+                SchemeThreshold = governanceSchemeThreshold,
+                GovernanceToken = State.DAOInfoMap[daoId].GovernanceToken
+            });
 
-                var governanceSchemeThreshold = new Governance.GovernanceSchemeThreshold
+            State.ReferendumContractMap[daoId] = State.GovernanceContract.CalculateGovernanceSchemeAddress.Call(
+                new CalculateGovernanceSchemeAddressInput
                 {
-                    MinimalVoteThreshold = input.GovernanceSchemeThreshold.MinimalVoteThreshold,
-                    MinimalRequiredThreshold = input.GovernanceSchemeThreshold.MinimalRequiredThreshold,
-                    MinimalApproveThreshold = input.GovernanceSchemeThreshold.MinimalApproveThreshold,
-                    MaximalAbstentionThreshold = input.GovernanceSchemeThreshold.MaximalAbstentionThreshold,
-                    MaximalRejectionThreshold = input.GovernanceSchemeThreshold.MaximalRejectionThreshold
-                };
-
-                State.GovernanceContract.AddGovernanceSubScheme.Send(new AddGovernanceSubSchemeInput
-                {
-                    SchemeThreshold = governanceSchemeThreshold,
-                    SchemeId = input.GovernanceSchemeId,
-                    DaoId = daoId
+                    DaoId = daoId,
+                    GovernanceMechanism = GovernanceMechanism.Referendum
                 });
-
-                State.GovernanceContract.CreateOrganization.Send(new CreateOrganizationInput
-                {
-                    Symbol = State.DAOInfoMap[daoId].GovernanceToken,
-                    GovernanceSchemeId = input.GovernanceSchemeId,
-                    SchemeThreshold = governanceSchemeThreshold,
-                    OrganizationMemberList = new OrganizationMemberList
-                    {
-                        OrganizationMembers = { Context.Sender }
-                    }
-                });
-            }
-            // TODO Need Governance Contract to support this
-            // else
-            // {
-            //     var schemeId = State.GovernanceContract.GetReferendumSchemeId.Call(new Empty());
-            //     State.GovernanceContract.CreateOrganization.Send(new CreateOrganizationInput
-            //     {
-            //         Symbol = State.DAOInfoMap[daoId].GovernanceToken,
-            //         GovernanceSchemeId = schemeId,
-            //     });
-            // }
         }
 
         private void ProcessHighCouncil(Hash daoId, HighCouncilInput input)
         {
-            var schemeId = State.GovernanceContract.GetParliamentSchemeId.Call(new Empty());
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                Symbol = State.DAOInfoMap[daoId].GovernanceToken,
-                GovernanceSchemeId = schemeId,
-            };
-        
-            State.GovernanceContract.CreateOrganization.Send(createOrganizationInput);
-        
-            var address = State.GovernanceContract.CalculateOrganizationAddress.Call(createOrganizationInput);
-        
-            State.HighCouncilAddressMap[daoId] = address;
-        
-            if (input != null && IsStringValid(State.DAOInfoMap[daoId].GovernanceToken))
-            {
-                // ProcessEnableHighCouncil(daoId, input.HighCouncilConfig, input.IsRequireHighCouncilForExecution);
-            }
+            if (input == null) return;
+
+            ProcessEnableHighCouncil(daoId, input.HighCouncilConfig, input.GovernanceSchemeThreshold);
         }
 
         private void ProcessTreasuryContract(Hash daoId, bool isTreasuryNeeded)
         {
-            if (isTreasuryNeeded)
-            {
-                // TODO
-            }
+            if (!isTreasuryNeeded) return;
+
+            // TODO
         }
 
-        private void ProcessVoteContract(Hash daoId)
+        private void ProcessDefaultPermissions(Hash daoId)
         {
-            // TODO
+            var defaultMethodNames = new List<string>
+                { DAOContractConstants.UploadFileInfos, DAOContractConstants.RemoveFileInfos };
+
+            foreach (var method in defaultMethodNames)
+            {
+                ProcessPermission(daoId, new PermissionInfo
+                {
+                    Where = Context.Self,
+                    Who = Context.Sender,
+                    What = method
+                }, PermissionType.Creator);
+            }
         }
 
         public override Empty SetSubsistStatus(SetSubsistStatusInput input)

@@ -27,7 +27,7 @@ public partial class DAOContractTests
     {
         var result = await DAOContractStub.Initialize.SendAsync(new InitializeInput
         {
-            GovernanceContractAddress = DefaultAddress,
+            GovernanceContractAddress = GovernanceContractAddress,
             ElectionContractAddress = DefaultAddress,
             TreasuryContractAddress = DefaultAddress,
             VoteContractAddress = DefaultAddress,
@@ -35,6 +35,12 @@ public partial class DAOContractTests
         });
 
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        await GovernanceContractStub.Initialize.SendAsync(new TestContracts.Governance.InitializeInput
+        {
+            Referendum = DefaultAddress,
+            HighCouncil = UserAddress
+        });
     }
 
     private async Task<Hash> CreateDAOAsync()
@@ -58,7 +64,13 @@ public partial class DAOContractTests
                     }
                 }
             },
-            GovernanceToken = "ELF"
+            GovernanceToken = "ELF",
+            GovernanceSchemeThreshold = new GovernanceSchemeThreshold(),
+            HighCouncilInput = new HighCouncilInput
+            {
+                GovernanceSchemeThreshold = new GovernanceSchemeThreshold(),
+                HighCouncilConfig = new HighCouncilConfig()
+            }
         });
 
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -106,6 +118,7 @@ public partial class DAOContractTests
                 i--;
                 continue;
             }
+
             var value = GenerateRandomString(valueLength);
 
             map.Add(key, value);
@@ -113,7 +126,7 @@ public partial class DAOContractTests
 
         return map;
     }
-    
+
     private File GenerateFile(string cid, string name, string url)
     {
         return new File

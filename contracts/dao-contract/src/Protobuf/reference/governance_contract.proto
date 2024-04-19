@@ -19,7 +19,7 @@ service GovernanceContract {
   }
 
   // Governance scheme
-  rpc AddGovernanceScheme (AddGovernanceSchemeInput) returns (AddressList){
+  rpc AddGovernanceScheme (AddGovernanceSchemeInput) returns (aelf.Address){
   }
   rpc UpdateGovernanceSchemeThreshold (UpdateGovernanceSchemeThresholdInput) returns (google.protobuf.Empty){
   }
@@ -34,16 +34,16 @@ service GovernanceContract {
   rpc GetDaoGovernanceSchemeList (aelf.Hash) returns (GovernanceSchemeList){
     option (aelf.is_view) = true;
   }
-  rpc GetGovernanceScheme (aelf.Hash) returns (GovernanceScheme){
+  rpc GetGovernanceScheme (aelf.Address) returns (GovernanceScheme){
     option (aelf.is_view) = true;
   }
   rpc CalculateGovernanceSchemeAddress(CalculateGovernanceSchemeAddressInput) returns (aelf.Address){
     option (aelf.is_view) = true;
   }
   // Proposal
-  rpc CreateProposal (CreateProposalInput) returns (google.protobuf.Empty){
+  rpc CreateProposal (CreateProposalInput) returns (aelf.Hash){
   }
-  rpc CreateVetoProposal (CreateVetoProposalInput) returns (google.protobuf.Empty){
+  rpc CreateVetoProposal (CreateVetoProposalInput) returns (aelf.Hash){
   }
   rpc VetoProposal (aelf.Hash) returns (google.protobuf.Empty){
   }
@@ -61,6 +61,9 @@ service GovernanceContract {
     option (aelf.is_view) = true;
   }
   rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceScheme){
+    option (aelf.is_view) = true;
+  }
+  rpc GetProposalStatus (aelf.Hash) returns (ProposalStatusOutput){
     option (aelf.is_view) = true;
   }
 }
@@ -94,24 +97,37 @@ message GovernanceSchemeThreshold {
 message AddressList {
   repeated aelf.Address value = 1;
 }
+message GovernanceSchemeHashAddressPair {
+  aelf.Hash scheme_id = 1;
+  aelf.Address scheme_address = 2;
+}
 
 message ProposalInfo {
+  aelf.Hash proposal_id = 1;
+  ProposalBasicInfo proposal_basic_info = 2;
+  ProposalType proposal_type = 3;
+  ProposalTime proposal_time = 4;
+  ProposalStatus proposal_status = 5;
+  ProposalStage proposal_stage = 6;
+  aelf.Address proposer = 7;
+  ExecuteTransaction transaction = 8;
+  aelf.Hash veto_proposal_id = 9;// for veto proposal
+}
+
+message ProposalBasicInfo {
   aelf.Hash dao_id = 1;
-  aelf.Hash proposal_id = 2;
-  string proposal_title = 3;
-  string proposal_description = 4;
-  string forum_url = 5;
-  ProposalType proposal_type = 6;
-  google.protobuf.Timestamp active_start_time = 7;
-  google.protobuf.Timestamp active_end_time = 8;
-  google.protobuf.Timestamp execute_start_time = 9;
-  google.protobuf.Timestamp execute_end_time = 10;
-  ProposalStatus proposal_status = 11;
-  aelf.Address proposer = 12;
-  aelf.Address scheme_address = 13;
-  ExecuteTransaction transaction = 14;
-  aelf.Hash vote_scheme_id = 15;
-  bool is_executable = 16;
+  string proposal_title = 2;
+  string proposal_description = 3;
+  string forum_url = 4;
+  aelf.Address scheme_address = 5;
+  aelf.Hash vote_scheme_id = 6;
+}
+
+message ProposalTime {
+  google.protobuf.Timestamp active_start_time = 1;
+  google.protobuf.Timestamp active_end_time = 2;
+  google.protobuf.Timestamp execute_start_time = 3;
+  google.protobuf.Timestamp execute_end_time = 4;
 }
 
 enum ProposalType {
@@ -122,14 +138,25 @@ enum ProposalType {
 }
 
 enum ProposalStatus {
-  UNSPECIFIED3 = 0;
-  ACTIVE = 1;
+  EMPTY = 0;
+  PENDING_VOTE = 1;
   APPROVED = 2;
   REJECTED = 3;
   ABSTAINED = 4;
-  PENDING = 5;
-  EXPIRED = 6;
-  EXECUTED =7;
+  // Insufficient participation in the proposal
+  BELOW_THRESHOLD = 5;
+  CHALLENGED = 6;
+  VETOED = 7;
+  EXPIRED = 8;
+  EXECUTED = 9;
+}
+
+enum ProposalStage {
+  DEFAULT = 0;
+  ACTIVE = 1;
+  PENDING = 2;
+  EXECUTE = 3;
+  FINISHED = 4;
 }
 
 message ExecuteTransaction {
@@ -174,32 +201,14 @@ message SetGovernanceTokenInput {
 }
 
 message CreateProposalInput {
-  aelf.Hash dao_id = 1;
-  string proposal_title = 2;
-  string proposal_description = 3;
-  string forum_url = 4;
-  ProposalType proposal_type = 5;
-  google.protobuf.Timestamp active_start_time = 6;
-  google.protobuf.Timestamp active_end_time = 7;
-  google.protobuf.Timestamp execute_start_time = 8;
-  google.protobuf.Timestamp execute_end_time = 9;
-  aelf.Address scheme_address = 10;
-  ExecuteTransaction transaction = 11;
-  aelf.Hash vote_scheme_id = 12;
+  ProposalBasicInfo proposal_basic_info = 1;
+  ProposalType proposal_type = 2;
+  ExecuteTransaction transaction = 3;
 }
 
 message CreateVetoProposalInput {
-  aelf.Hash dao_id = 1;
-  string proposal_title = 2;
-  string proposal_description = 3;
-  string forum_url = 4;
-  aelf.Hash veto_proposal_id = 5;
-  google.protobuf.Timestamp active_start_time = 6;
-  google.protobuf.Timestamp active_end_time = 7;
-  google.protobuf.Timestamp execute_start_time = 8;
-  google.protobuf.Timestamp execute_end_time = 9;
-  aelf.Address referendum_scheme_address = 10;
-  aelf.Hash vote_scheme_id = 11;
+  ProposalBasicInfo proposal_basic_info = 1;
+  aelf.Hash veto_proposal_id = 2;
 }
 
 message SetProposalTimePeriodInput {
@@ -219,16 +228,23 @@ message ProposalInfoOutput {
   google.protobuf.Timestamp execute_start_time = 9;
   google.protobuf.Timestamp execute_end_time = 10;
   ProposalStatus proposal_status = 11;
-  aelf.Address proposer = 12;
-  aelf.Address scheme_address = 13;
-  ExecuteTransaction transaction = 14;
-  aelf.Hash vote_scheme_id = 15;
-  bool is_executable = 16;
+  ProposalStage proposal_stage = 12;
+  aelf.Address proposer = 13;
+  aelf.Address scheme_address = 14;
+  ExecuteTransaction transaction = 15;
+  aelf.Hash vote_scheme_id = 16;
   aelf.Hash veto_proposal_id = 17;
-  int64 vote_count = 18;
-  int64 approval_count = 19;
-  int64 rejection_count = 20;
-  int64 abstention_count = 21;
+  // The number of participated voters.
+  int64 voters_count = 18;
+  int64 vote_count = 19;
+  int64 approval_count = 20;
+  int64 rejection_count = 21;
+  int64 abstention_count = 22;
+}
+
+message ProposalStatusOutput {
+  ProposalStatus proposal_status = 1;
+  ProposalStage proposal_stage = 2;
 }
 
 message CalculateGovernanceSchemeAddressInput {
@@ -275,40 +291,26 @@ message ProposalCreated {
   google.protobuf.Timestamp execute_start_time = 9;
   google.protobuf.Timestamp execute_end_time = 10;
   ProposalStatus proposal_status = 11;
-  aelf.Address proposer = 12;
-  aelf.Address scheme_address = 13;
-  ExecuteTransaction transaction = 14;
-  aelf.Hash vote_scheme_id = 15;
-  bool is_executable = 16;
+  ProposalStage proposal_stage = 12;
+  aelf.Address proposer = 13;
+  aelf.Address scheme_address = 14;
+  ExecuteTransaction transaction = 15;
+  aelf.Hash vote_scheme_id = 16;
+  aelf.Hash veto_proposal_id = 17;
 }
-message VetoProposalCreated {
-  option (aelf.is_event) = true;
-  aelf.Hash dao_id = 1;
-  aelf.Hash proposal_id = 2;
-  string proposal_title = 3;
-  string proposal_description = 4;
-  string forum_url = 5;
-  ProposalType proposal_type = 6;
-  google.protobuf.Timestamp active_start_time = 7;
-  google.protobuf.Timestamp active_end_time = 8;
-  google.protobuf.Timestamp execute_start_time = 9;
-  google.protobuf.Timestamp execute_end_time = 10;
-  ProposalStatus proposal_status = 11;
-  aelf.Address proposer = 12;
-  aelf.Address scheme_address = 13;
-  aelf.Hash veto_proposal_id = 14;
-  aelf.Hash vote_scheme_id = 15;
-}
+
 message ProposalVetoed {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
   aelf.Hash proposal_id = 2;
   aelf.Hash veto_proposal_id = 3;
+  google.protobuf.Timestamp veto_time = 4;
 }
 message ProposalExecuted {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
   aelf.Hash proposal_id = 2;
+  google.protobuf.Timestamp execute_time = 3;
 }
 message DaoProposalTimePeriodSet {
   option (aelf.is_event) = true;

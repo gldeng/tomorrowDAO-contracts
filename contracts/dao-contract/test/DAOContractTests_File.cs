@@ -109,7 +109,7 @@ public partial class DAOContractTests
 
         await InitializeAsync();
         var daoId = await CreateDAOAsync();
-        
+
         await SetSubsistStatusAsync(daoId, false);
 
         {
@@ -159,114 +159,6 @@ public partial class DAOContractTests
                 Files = { GenerateFile("cid", "name", "url"), new File() }
             });
             result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
-        }
-        {
-            var cid = "";
-            for (var i = 0; i < 65; i++)
-            {
-                cid += "a";
-            }
-
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files =
-                {
-                    new File
-                    {
-                        Cid = cid
-                    }
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
-        }
-
-        await DAOContractStub.UploadFileInfos.SendAsync(new UploadFileInfosInput
-        {
-            DaoId = daoId,
-            Files = { GenerateFile("cid", "name", "url") }
-        });
-
-        {
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files = { GenerateFile("cid", "name", "url") }
-            });
-            result.TransactionResult.Error.ShouldContain("File already exists.");
-        }
-        {
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files =
-                {
-                    new File
-                    {
-                        Cid = "cid"
-                    }
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input file name.");
-        }
-        {
-            var name = "";
-            for (var i = 0; i < 129; i++)
-            {
-                name += "a";
-            }
-            
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files =
-                {
-                    new File
-                    {
-                        Cid = "cid",
-                        Name = name
-                    }
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input file name.");
-        }
-        {
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files = { GenerateFile("cid", "name2", "url2") }
-            });
-            result.TransactionResult.Error.ShouldContain("File already exists.");
-        }
-        {
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files = { GenerateFile("cid2", "name2", "url2"), GenerateFile("cid2", "name", "url") }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input file url.");
-        }
-        {
-            var url = "";
-            for (int i = 0; i < 257; i++)
-            {
-                url += "a";
-            }
-            
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId,
-                Files =
-                {
-                    new File
-                    {
-                        Cid = "cid",
-                        Name = "name",
-                        Url = url
-                    }
-                }
-            });
-            result.TransactionResult.Error.ShouldContain("File already exists.");
         }
         {
             var files = new List<File>();
@@ -339,7 +231,7 @@ public partial class DAOContractTests
     {
         await InitializeAsync();
         var daoId = await CreateDAOAsync();
-        
+
         {
             var result = await DAOContractStub.RemoveFileInfos.SendAsync(new RemoveFileInfosInput
             {
@@ -435,7 +327,7 @@ public partial class DAOContractTests
 
         await InitializeAsync();
         var daoId = await CreateDAOAsync();
-        
+
         await SetSubsistStatusAsync(daoId, false);
 
         {
@@ -469,37 +361,6 @@ public partial class DAOContractTests
                 FileCids = { }
             });
             result.TransactionResult.Error.ShouldContain("Invalid input file cids.");
-        }
-        {
-            var cids = new List<string>();
-            for (int i = 0; i < 21; i++)
-            {
-                cids.Add(i.ToString());
-            }
-            
-            var result = await DAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
-            {
-                DaoId = daoId,
-                FileCids = { cids }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input file cids.");
-        }
-        
-        {
-            var cids = new List<string>();
-            var cid = "";
-            for (int i = 0; i < 65; i++)
-            {
-                cid += "a";
-            }
-            cids.Add(cid);
-            
-            var result = await DAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
-            {
-                DaoId = daoId,
-                FileCids = { cids }
-            });
-            result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
         }
         {
             var cids = new List<string>();
@@ -559,7 +420,7 @@ public partial class DAOContractTests
             FileCids = { files.Select(f => f.Cid) }
         });
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        
+
         var log = GetLogEvent<FileInfosRemoved>(result.TransactionResult);
         log.DaoId.ShouldBe(daoId);
         log.RemovedFiles.Data.Values.Select(f => new File

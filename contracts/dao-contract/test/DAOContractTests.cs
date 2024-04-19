@@ -23,7 +23,7 @@ public partial class DAOContractTests : TestBase
             TimelockContractAddress = DefaultAddress
         });
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        
+
         var output = await DAOContractStub.GetInitializedContracts.CallAsync(new Empty());
         output.GovernanceContractAddress.ShouldBe(DefaultAddress);
         output.ElectionContractAddress.ShouldBe(DefaultAddress);
@@ -156,7 +156,8 @@ public partial class DAOContractTests : TestBase
             Files =
             {
                 file, file2
-            }
+            },
+            GovernanceSchemeThreshold = new GovernanceSchemeThreshold()
         });
 
         Hash daoId;
@@ -171,7 +172,7 @@ public partial class DAOContractTests : TestBase
             log.Metadata.SocialMedia.ShouldBe(socialMedias);
             log.GovernanceToken.ShouldBe("");
             log.Creator.ShouldBe(DefaultAddress);
-            log.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             log.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
             log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
             log.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
@@ -190,7 +191,7 @@ public partial class DAOContractTests : TestBase
             var output = await DAOContractStub.GetDAOInfo.CallAsync(daoId);
             output.Creator.ShouldBe(DefaultAddress);
             output.SubsistStatus.ShouldBeTrue();
-            output.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             output.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
             output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
             output.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
@@ -230,70 +231,6 @@ public partial class DAOContractTests : TestBase
             var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
             output.Value.ShouldBeTrue();
         }
-        // {
-        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission.Where,
-        //         What = permission.What,
-        //         Who = DefaultAddress
-        //     });
-        //     output.Value.ShouldBeFalse();
-        // }
-        // {
-        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission2.Where,
-        //         What = permission2.What,
-        //         Who = UserAddress
-        //     });
-        //     output.Value.ShouldBeTrue();
-        //     output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission2.Where,
-        //         What = permission2.What,
-        //         Who = UserAddress
-        //     });
-        //     output.Value.ShouldBeTrue();
-        // }
-        // {
-        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission3.Where,
-        //         What = permission3.What,
-        //         Who = UserAddress
-        //     });
-        //     output.Value.ShouldBeFalse();
-        //     output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission3.Where,
-        //         What = permission3.What,
-        //         Who = DefaultAddress
-        //     });
-        //     output.Value.ShouldBeTrue();
-        // }
-        // {
-        //     var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission4.Where,
-        //         What = permission4.What,
-        //         Who = User2Address
-        //     });
-        //     output.Value.ShouldBeTrue();
-        //     output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-        //     {
-        //         DaoId = daoId,
-        //         Where = permission4.Where,
-        //         What = permission4.What,
-        //         Who = DefaultAddress
-        //     });
-        //     output.Value.ShouldBeFalse();
-        // }
 
         daoName = GenerateRandomString(49);
         daoLogoUrl = GenerateRandomString(255);
@@ -309,7 +246,8 @@ public partial class DAOContractTests : TestBase
                 Description = daoDescription,
                 SocialMedia = { socialMedias }
             },
-            GovernanceToken = "ELF"
+            GovernanceToken = "ELF",
+            GovernanceSchemeThreshold = new GovernanceSchemeThreshold()
         });
 
         {
@@ -322,7 +260,7 @@ public partial class DAOContractTests : TestBase
             log.Metadata.SocialMedia.ShouldBe(socialMedias);
             log.GovernanceToken.ShouldBe("ELF");
             log.Creator.ShouldBe(DefaultAddress);
-            log.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             log.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
             log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
             log.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
@@ -334,7 +272,7 @@ public partial class DAOContractTests : TestBase
             var output = await DAOContractStub.GetDAOInfo.CallAsync(daoId);
             output.Creator.ShouldBe(DefaultAddress);
             output.SubsistStatus.ShouldBeTrue();
-            output.ContractAddressList.GovernanceContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             output.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
             output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
             output.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
@@ -367,16 +305,6 @@ public partial class DAOContractTests : TestBase
         {
             var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
             output.Value.ShouldBeTrue();
-        }
-        {
-            var output = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
-            {
-                DaoId = daoId,
-                Where = DefaultAddress,
-                What = "Function",
-                Who = DefaultAddress
-            });
-            output.Value.ShouldBeFalse();
         }
     }
 
@@ -506,10 +434,10 @@ public partial class DAOContractTests : TestBase
                 Status = true
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var log = result.TransactionResult.Logs.FirstOrDefault(l => l.Name.Contains("SubsistStatusSet"));
             log.ShouldBeNull();
-            
+
             var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
             output.Value.ShouldBeTrue();
         }
@@ -539,7 +467,7 @@ public partial class DAOContractTests : TestBase
 
             var log = result.TransactionResult.Logs.FirstOrDefault(l => l.Name.Contains("SubsistStatusSet"));
             log.ShouldBeNull();
-            
+
             var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
             output.Value.ShouldBeFalse();
         }
@@ -566,7 +494,7 @@ public partial class DAOContractTests : TestBase
         var daoId = await CreateDAOAsync();
 
         {
-            var result = await DAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput
+            var result = await OtherDAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput
             {
                 DaoId = daoId,
                 Status = false

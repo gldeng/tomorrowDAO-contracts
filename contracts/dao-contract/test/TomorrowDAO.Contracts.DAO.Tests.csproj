@@ -46,6 +46,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../src/TomorrowDAO.Contracts.DAO.csproj" />
+        <ProjectReference Include="../../TomorrowDAO.TestContracts.Governance/TomorrowDAO.TestContracts.Governance.csproj" />
     </ItemGroup>
     
 </Project>

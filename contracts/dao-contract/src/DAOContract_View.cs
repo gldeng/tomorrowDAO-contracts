@@ -55,15 +55,6 @@ public partial class DAOContract
 
     public override BoolValue HasPermission(HasPermissionInput input)
     {
-        // if (State.HighCouncilEnabledStatusMap[input.DaoId] && State.HighCouncilExecutionConfigMap[input.DaoId])
-        // {
-        //     return new BoolValue
-        //     {
-        //         // TODO high council address
-        //         Value = State.DAOInfoMap[input.DaoId].Creator == input.Who
-        //     };
-        // }
-
         return new BoolValue
         {
             Value = IsGranted(input.DaoId, input.Where, input.What.ToLower(), input.Who)
@@ -82,6 +73,6 @@ public partial class DAOContract
 
     public override Address GetReferendumAddress(Hash input)
     {
-        return State.ReferendumContractMap[input];
+        return State.ReferendumAddressMap[input];
     }
 }

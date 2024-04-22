@@ -35,9 +35,9 @@ public partial class GovernanceContract
         var vetoProposal = State.Proposals[vetoProposalId];
         Assert(vetoProposal != null, "Veto proposal not found.");
 
-        // todo: proposal status/stage
         var status = GetProposalStatus(vetoProposal);
-        Assert(status == ProposalStatus.Pending, "Invalid veto proposal status.");
+        Assert(status.ProposalStage == ProposalStage.Pending, "Invalid veto proposal stage.");
+        Assert(status.ProposalStatus == ProposalStatus.Approved, "Invalid veto proposal status.");
         var transaction = new ExecuteTransaction
         {
             ToAddress = Context.Self,
@@ -109,6 +109,7 @@ public partial class GovernanceContract
     private bool ValidateExecuteTransaction(ExecuteTransaction transaction)
     {
         AssertParams(transaction, transaction.ToAddress, transaction.ContractMethodName);
+        // normal proposal can not call VetoProposal method
         return transaction.ContractMethodName == nameof(VetoProposal) && transaction.ToAddress == Context.Self;
     }
 
@@ -121,14 +122,15 @@ public partial class GovernanceContract
 
     private void RegisterVotingItem(ProposalInfo proposal, Address schemeAddress, string governanceToken)
     {
-        State.VoteContract.Register.Send(new VotingRegisterInput
-        {
-            SchemeAddress = schemeAddress,
-            VotingItemId = proposal.ProposalId,
-            StartTimestamp = proposal.ProposalTime.ActiveStartTime,
-            EndTimestamp = proposal.ProposalTime.ActiveEndTime,
-            AcceptedToken = governanceToken
-        });
+        //todo call VoteContract after it's development 
+        // State.VoteContract.Register.Send(new VotingRegisterInput
+        // {
+        //     SchemeAddress = schemeAddress,
+        //     VotingItemId = proposal.ProposalId,
+        //     StartTimestamp = proposal.ProposalTime.ActiveStartTime,
+        //     EndTimestamp = proposal.ProposalTime.ActiveEndTime,
+        //     AcceptedToken = governanceToken
+        // });
     }
 
     private void FireProposalCreatedEvent(ProposalInfo proposal)
@@ -193,20 +195,24 @@ public partial class GovernanceContract
     //
     private void ExecuteProposal(ProposalInfo proposal, bool isExecute = false)
     {
-        Assert(Context.CurrentBlockTime > proposal.EndTime && Context.CurrentBlockTime < proposal.ExpiredTime,
+        Assert(Context.CurrentBlockTime > proposal.ProposalTime.ExecuteStartTime 
+               && Context.CurrentBlockTime < proposal.ProposalTime.ExecuteEndTime,
             "The proposal is in active or expired.");
-        var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-        {
-            VotingItemId = proposal.ProposalId
-        });
-        proposal = CheckProposalStatus(proposal, voteResult);
+        //todo call VoteContract after it's development 
+        // var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
+        // {
+        //     VotingItemId = proposal.ProposalId
+        // });
+        // proposal = CheckProposalStatus(proposal, voteResult);
         Assert(proposal.ProposalStatus == ProposalStatus.Approved, "Proposal not approve.");
+        var governanceScheme = GetGovernanceScheme(proposal.ProposalBasicInfo.SchemeAddress);
+        Assert(governanceScheme != null, "GovernanceScheme not found.");
+        var schemeId = governanceScheme.SchemeId;
 
         if (isExecute)
         {
-            var organization = State.Organizations[proposal.OrganizationAddress];
             Context.SendVirtualInline(
-                CalculateVirtualHash(organization.OrganizationHash, organization.CreationSalt),
+                schemeId,
                 proposal.Transaction.ToAddress,
                 proposal.Transaction.ContractMethodName, proposal.Transaction.Params);
         }
@@ -214,8 +220,7 @@ public partial class GovernanceContract
         Context.Fire(new ProposalExecuted
         {
             ProposalId = proposal.ProposalId,
-            ExecuteTime = Context.CurrentBlockTime,
-            OrganizationAddress = proposal.OrganizationAddress
+            ExecuteTime = Context.CurrentBlockTime
         });
     }
 
@@ -234,7 +239,6 @@ public partial class GovernanceContract
             ProposalStatus = proposalInfo.ProposalStatus,
             ProposalStage = proposalInfo.ProposalStage
         };
-        
         if (proposalStage == ProposalStage.Active && Context.CurrentBlockTime < proposalTime.ActiveEndTime)
         {
             return result;
@@ -248,34 +252,43 @@ public partial class GovernanceContract
         var enoughVoter = totalVoter >= threshold.MinimalRequiredThreshold;
         if (!enoughVoter)
         {
-            proposalStatus = ProposalStatus.Expired;
             return new ProposalStatusOutput
             {
-                ProposalStatus = 
+                ProposalStatus = ProposalStatus.BelowThreshold,
+                ProposalStage = ProposalStage.Finished
             };
         }
 
         var enoughVote = rejectVote.Add(abstainVote).Add(approveVote) >= threshold.MinimalVoteThreshold;
         if (!enoughVote)
         {
-            proposalStatus = ProposalStatus.Expired;
-            return proposalStatus;
+            return new ProposalStatusOutput
+            {
+                ProposalStatus = ProposalStatus.BelowThreshold,
+                ProposalStage = ProposalStage.Finished
+            };
         }
 
         var isReject = (rejectVote / totalVote) * GovernanceContractConstants.AbstractVoteTotal >
                        threshold.MaximalRejectionThreshold;
         if (isReject)
         {
-            proposalStatus = ProposalStatus.Rejected;
-            return proposalStatus;
+            return new ProposalStatusOutput
+            {
+                ProposalStatus = ProposalStatus.Rejected,
+                ProposalStage = ProposalStage.Finished
+            };
         }
 
         var isAbstained = abstainVote / totalVote * GovernanceContractConstants.AbstractVoteTotal >
                           threshold.MaximalAbstentionThreshold;
         if (isAbstained)
         {
-            proposalStatus = ProposalStatus.Abstained;
-            return proposalStatus;
+            return new ProposalStatusOutput
+            {
+                ProposalStatus = ProposalStatus.Abstained,
+                ProposalStage = ProposalStage.Finished
+            };
         }
 
         var isApproved = approveVote / totalVote * GovernanceContractConstants.AbstractVoteTotal >
@@ -285,16 +298,25 @@ public partial class GovernanceContract
             proposalStatus = ProposalStatus.Approved;
             if (HasPendingStatus(proposalInfo.ProposalId))
             {
-                proposalStatus = ProposalStatus.Pending;
-                return proposalStatus;
+                return new ProposalStatusOutput
+                {
+                    ProposalStatus = proposalStatus,
+                    ProposalStage = ProposalStage.Pending
+                };
             }
 
-            return proposalStatus;
+            return new ProposalStatusOutput
+            {
+                ProposalStatus = proposalStatus,
+                ProposalStage = ProposalStage.Execute
+            };
         }
-
-
-        proposalStatus = ProposalStatus.Expired;
-        return proposalStatus;
+        
+        return new ProposalStatusOutput
+        {
+            ProposalStatus = ProposalStatus.Expired,
+            ProposalStage = ProposalStage.Finished
+        };
     }
 
     private bool HasPendingStatus(Hash proposalId)

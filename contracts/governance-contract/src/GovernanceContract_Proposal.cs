@@ -35,6 +35,7 @@ public partial class GovernanceContract
         var vetoProposal = State.Proposals[vetoProposalId];
         Assert(vetoProposal != null, "Veto proposal not found.");
 
+        // todo: proposal status/stage
         var status = GetProposalStatus(vetoProposal);
         Assert(status == ProposalStatus.Pending, "Invalid veto proposal status.");
         var transaction = new ExecuteTransaction
@@ -43,8 +44,8 @@ public partial class GovernanceContract
             ContractMethodName = nameof(VetoProposal),
             Params = input.VetoProposalId.ToByteString()
         };
-        var proposal = ValidateAndGetProposalInfo(proposalId, input.ProposalBasicInfo, input.ProposalTime,
-            ProposalType.Veto, transaction);
+        var proposal = ValidateAndGetProposalInfo(proposalId, input.ProposalBasicInfo,
+            ProposalType.Veto, transaction, vetoProposalId);
         State.Proposals[proposalId] = proposal;
         State.ProposalGovernanceSchemeSnapShot[proposalId] = scheme.SchemeThreshold;
         RegisterVotingItem(proposal, scheme.SchemeAddress, scheme.GovernanceToken);
@@ -248,7 +249,10 @@ public partial class GovernanceContract
         if (!enoughVoter)
         {
             proposalStatus = ProposalStatus.Expired;
-            return proposalStatus;
+            return new ProposalStatusOutput
+            {
+                ProposalStatus = 
+            };
         }
 
         var enoughVote = rejectVote.Add(abstainVote).Add(approveVote) >= threshold.MinimalVoteThreshold;

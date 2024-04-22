@@ -178,7 +178,7 @@ message CreateVoteSchemeInput {
 
 message VotingRegisterInput {
   aelf.Hash voting_item_id = 1; //proposal id
-  aelf.Hash scheme_id = 2;
+  aelf.Address scheme_address = 2;
   string accepted_token = 3;
   // The start time of the voting.
   google.protobuf.Timestamp start_timestamp = 4;

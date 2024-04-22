@@ -1,8 +1,11 @@
 syntax = "proto3";
 
+import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import public "google/protobuf/timestamp.proto";
+
 // The namespace of this class
 option csharp_namespace = "TomorrowDAO.Contracts.Election";
 
@@ -21,9 +24,102 @@ service ElectionContract {
     option (aelf.is_view) = true;
   }
 }
-
-// An event that will be emitted from contract method call
-message UpdatedMessage {
+message ElectionVotingEventRegistered{
   option (aelf.is_event) = true;
-  string value = 1;
+  aelf.Hash dao_id = 1;
+  // The number of seconds per term. 每一届时间
+  int64 time_each_term = 2;
+  int64 candidate_count = 3;
+  int64 high_council_count = 4;
+  string governance_token = 5;
+}
+
+message NewTerm {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  int64 pre_term_number = 2;
+  int64 new_number = 3;
+}
+
+message CandidateAdded {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+}
+
+message CandidateRemoved {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+}
+
+message Voted {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate_address = 2;
+  int64 amount = 3;
+  // The end timestamp of this vote.
+  google.protobuf.Timestamp end_timestamp = 4;
+  aelf.Hash vote_id = 5;
+}
+
+message VoteChanged {
+  option (aelf.is_event) = true;
+  aelf.Hash vote_id = 1;
+  aelf.Address candidate_address = 2;
+}
+
+message CandidateInfoUpdated {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  // The candidate public key.
+  aelf.Address candidate_address = 2;
+  // Is it a evil node. If true will remove the candidate.
+  bool is_evil_node = 3;
+}
+
+message CandidateAddressReplaced {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address old_address = 2;
+  aelf.Address new_address = 3;
+}
+
+message EvilNodeRemoved {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  aelf.Address evil_node_address = 2;
+}
+
+message ElectionEnabled {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+}
+
+message HighCouncilConfigSet {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  HighCouncilConfig high_council_config = 2;
+}
+
+message HighCouncilMemberUpdated {
+  option (aelf.is_event) = true;
+  aelf.Hash dao_id = 1;
+  HighCouncilInfo previous_high_council_info = 2;
+  HighCouncilInfo updated_high_council_info = 3;
+}
+
+message MemberList {
+  repeated aelf.Address data = 1;
+}
+
+message HighCouncilInfo {
+  int64 term_number = 1;
+  MemberList member_list = 2;
+}
+
+message HighCouncilConfig {
+  int64 max_high_council_member_count = 1;
+  int64 max_high_council_candidate_count = 2;
+  int64 election_period = 3;
 }

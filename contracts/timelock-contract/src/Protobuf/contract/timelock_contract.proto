@@ -1,8 +1,11 @@
 syntax = "proto3";
 
+import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import public "google/protobuf/timestamp.proto";
+
 // The namespace of this class
 option csharp_namespace = "TomorrowDAO.Contracts.Timelock";
 
@@ -10,20 +13,55 @@ service TimelockContract {
   // The name of the state class the smart contract is going to use to access blockchain state
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Timelock.TimelockContractState";
 
-  // Actions (methods that modify contract state)
-  // Stores the value in contract state
-  rpc Update (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+  rpc QueueOperation (OperationInput) returns (aelf.Hash) {
+  }
+  rpc ExecuteOperation (OperationInput) returns (google.protobuf.Empty) {
   }
 
-  // Views (methods that don't modify contract state)
-  // Get the value stored from contract state
-  rpc Read (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+  rpc GetOperation (aelf.Hash) returns (Operation) {
     option (aelf.is_view) = true;
   }
 }
 
-// An event that will be emitted from contract method call
-message UpdatedMessage {
+enum OperationState {
+  EMPTY = 0;
+  WAIT = 1;
+  READY = 2;
+  DONE = 3;
+  CANCEL = 4;
+}
+
+message Operation {
+  aelf.Address target = 1;
+  string method = 2;
+  bytes param = 3;
+  OperationState state = 4;
+}
+
+message OperationInput {
+  aelf.Address target = 1;
+  string method = 2;
+  bytes param = 3;
+  int64 delay = 4;
+}
+
+message OperationQueued {
   option (aelf.is_event) = true;
-  string value = 1;
+  aelf.Hash txHash = 1;
+  aelf.Address target = 2;
+  string method = 3;
+  bytes param = 4;
+  google.protobuf.Timestamp queue_time = 5;
+}
+
+message OperationExecuted {
+  option (aelf.is_event) = true;
+  aelf.Hash txHash = 1;
+  google.protobuf.Timestamp execute_time = 2;
+}
+
+message OperationCanceled {
+  option (aelf.is_event) = true;
+  aelf.Hash txHash = 1;
+  google.protobuf.Timestamp cancel_time = 2;
 }

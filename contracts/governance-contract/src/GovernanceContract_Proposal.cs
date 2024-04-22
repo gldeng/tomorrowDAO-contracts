@@ -226,10 +226,19 @@ public partial class GovernanceContract
 
     private ProposalStatusOutput GetProposalStatus(ProposalInfo proposalInfo)
     {
-        var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
+        //todo call VoteContract after it's development 
+        // var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
+        // {
+        //     VotingItemId = proposalInfo.ProposalId
+        // });
+        var votingResult = new VotingResult
         {
-            VotingItemId = proposalInfo.ProposalId
-        });
+            VotesAmount = 0,
+            ApproveCounts = 0,
+            RejectCounts = 0,
+            AbstainCounts = 0,
+            TotalVotersCount = 0
+        };
         var threshold = State.ProposalGovernanceSchemeSnapShot[proposalInfo.ProposalId];
         var proposalStage = proposalInfo.ProposalStage;
         var proposalStatus = proposalInfo.ProposalStatus;

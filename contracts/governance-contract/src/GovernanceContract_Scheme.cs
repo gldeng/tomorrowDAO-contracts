@@ -39,17 +39,24 @@ namespace TomorrowDAO.Contracts.Governance
                 SchemeThreshold = input.SchemeThreshold,
                 GovernanceToken = input.GovernanceToken
             };
-            State.GovernanceSchemeMap[scheme.SchemeAddress] = scheme;
+            var schemeAddress = scheme.SchemeAddress;
+            State.GovernanceSchemeMap[schemeAddress] = scheme;
+            var schemeAddressList = GetDaoGovernanceSchemeAddressList(input.DaoId);
+            if (!schemeAddressList.Value.Contains(schemeAddress))
+            {
+                schemeAddressList.Value.Add(schemeAddress);
+                State.DaoSchemeAddressList[input.DaoId] = schemeAddressList;
+            }
             Context.Fire(new GovernanceSchemeAdded
             {
                 SchemeId = scheme.SchemeId,
-                SchemeAddress = scheme.SchemeAddress,
+                SchemeAddress = schemeAddress,
                 DaoId = scheme.DaoId,
                 GovernanceMechanism = scheme.GovernanceMechanism,
                 SchemeThreshold = scheme.SchemeThreshold,
                 GovernanceToken = scheme.GovernanceToken
             });
-            return scheme.SchemeAddress;
+            return schemeAddress;
         }
 
         public override Empty UpdateGovernanceSchemeThreshold(UpdateGovernanceSchemeThresholdInput input)

@@ -30,14 +30,23 @@
 
     <ItemGroup>
         <Protobuf Include="Protobuf/base/*.proto">
-            <ContractOutputOptions>nocontract</ContractOutputOptions>
-        </Protobuf>
-        <Protobuf Include="Protobuf/message/*.proto">
-            <ContractOutputOptions>nocontract</ContractOutputOptions>
-        </Protobuf>
-        <Protobuf Include="Protobuf/stub/*.proto">
             <ContractOutputOptions>stub</ContractOutputOptions>
         </Protobuf>
+        <Protobuf Include="Protobuf/message/*.proto">
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf/contract/*.proto">
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf/reference/*.proto">
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\base\acs0.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
     <ItemGroup>
@@ -46,6 +55,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../src/TomorrowDAO.Contracts.Governance.csproj" />
+        <ProjectReference Include="..\..\dao-contract\src\TomorrowDAO.Contracts.DAO.csproj" />
     </ItemGroup>
     
 </Project>

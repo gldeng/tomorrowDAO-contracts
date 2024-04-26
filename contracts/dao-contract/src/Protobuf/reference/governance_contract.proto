@@ -112,6 +112,7 @@ message ProposalInfo {
   aelf.Address proposer = 7;
   ExecuteTransaction transaction = 8;
   aelf.Hash veto_proposal_id = 9;// for veto proposal
+  string forum_url = 10;
 }
 
 message ProposalBasicInfo {

@@ -18,6 +18,8 @@ public partial class GovernanceContract
     {
         var proposalId = CheckAndGetProposalId(input, input.ProposalBasicInfo, out var scheme);
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
+        Assert(input.ProposalType != ProposalType.Unused && input.ProposalType != ProposalType.Veto,
+            "ProposalType cannot be Unused or Veto.");
         var proposal = ValidateAndGetProposalInfo(proposalId, input.ProposalBasicInfo,
             input.ProposalType, input.Transaction);
         State.Proposals[proposalId] = proposal;
@@ -101,7 +103,8 @@ public partial class GovernanceContract
             ProposalStage = ProposalStage.Active,
             Proposer = Context.Sender,
             Transaction = executeTransaction,
-            VetoProposalId = vetoProposalId
+            VetoProposalId = vetoProposalId,
+            ForumUrl = proposalBasicInfo.ForumUrl
         };
         return proposal;
     }
@@ -154,7 +157,8 @@ public partial class GovernanceContract
             VoteSchemeId = basicInfo.VoteSchemeId,
             Transaction = proposal.Transaction,
             Proposer = proposal.Proposer,
-            VetoProposalId = proposal.VetoProposalId
+            VetoProposalId = proposal.VetoProposalId,
+            ForumUrl = proposal.ForumUrl
         });
     }
 
@@ -195,7 +199,7 @@ public partial class GovernanceContract
     //
     private void ExecuteProposal(ProposalInfo proposal, bool isExecute = false)
     {
-        Assert(Context.CurrentBlockTime > proposal.ProposalTime.ExecuteStartTime 
+        Assert(Context.CurrentBlockTime > proposal.ProposalTime.ExecuteStartTime
                && Context.CurrentBlockTime < proposal.ProposalTime.ExecuteEndTime,
             "The proposal is in active or expired.");
         //todo call VoteContract after it's development 
@@ -252,7 +256,7 @@ public partial class GovernanceContract
         {
             return result;
         }
-        
+
         var totalVote = votingResult.VotesAmount;
         var approveVote = votingResult.ApproveCounts;
         var rejectVote = votingResult.RejectCounts;
@@ -320,7 +324,7 @@ public partial class GovernanceContract
                 ProposalStage = ProposalStage.Execute
             };
         }
-        
+
         return new ProposalStatusOutput
         {
             ProposalStatus = ProposalStatus.Expired,

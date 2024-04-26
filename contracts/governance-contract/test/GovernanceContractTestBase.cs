@@ -58,6 +58,13 @@ public class GovernanceContractTestBase : TestBase
     
     protected async Task<Hash> CreateProposal(Address schemeAddress)
     {
+        var input = MockCreateProposalInput(schemeAddress);
+        var result = await GovernanceContractStub.CreateProposal.SendAsync(input);
+        return result.Output;
+    }
+
+    protected CreateProposalInput MockCreateProposalInput(Address schemeAddress)
+    {
         var proposalBasicInfo = new ProposalBasicInfo
         {
             DaoId = DefaultDaoId,
@@ -80,8 +87,6 @@ public class GovernanceContractTestBase : TestBase
             ProposalType = ProposalType.Governance,
             Transaction = executeTransaction
         };
-
-        var result = await GovernanceContractStub.CreateProposal.SendAsync(input);
-        return result.Output;
+        return input;
     }
 }

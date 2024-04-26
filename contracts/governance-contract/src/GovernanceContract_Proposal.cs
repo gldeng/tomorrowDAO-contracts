@@ -111,7 +111,7 @@ public partial class GovernanceContract
 
     private bool ValidateExecuteTransaction(ExecuteTransaction transaction)
     {
-        AssertParams(transaction, transaction.ToAddress, transaction.ContractMethodName);
+        AssertParams(transaction, transaction?.ToAddress, transaction?.ContractMethodName);
         // normal proposal can not call VetoProposal method
         return transaction.ContractMethodName == nameof(VetoProposal) && transaction.ToAddress == Context.Self;
     }

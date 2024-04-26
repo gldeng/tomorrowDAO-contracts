@@ -28,7 +28,7 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     }
     
     [Fact]
-    public async Task CreateProposalTest_Fo()
+    public async Task CreateProposalTest_EventTest()
     {
         await Initialize(DefaultAddress);
         var schemeAddress = await AddGovernanceScheme();
@@ -77,5 +77,19 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
         input.ProposalType = ProposalType.Veto;
         executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
         executionResult.TransactionResult.Error.ShouldContain("ProposalType cannot be Unused or Veto");
+    }
+    
+    [Fact]
+    public async Task CreateProposalTest_ExecuteTransactionIsNull()
+    {
+        await Initialize(DefaultAddress);
+        var schemeAddress = await AddGovernanceScheme();
+
+        var input = MockCreateProposalInput(schemeAddress);
+        input.Transaction = null;
+
+        var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
+        _testOutputHelper.WriteLine(executionResult.TransactionResult.Error);
+        executionResult.TransactionResult.Error.ShouldContain("Invalid input or parameter does not exist");
     }
 }

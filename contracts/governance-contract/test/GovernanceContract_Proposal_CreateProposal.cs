@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf;
 using Shouldly;
@@ -45,6 +46,13 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
             }
         }
         existProposalCreated.ShouldBe(true);
+        
+        var url = ProposalCreated.Parser
+            .ParseFrom(executionResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
+                .NonIndexed)
+            .ForumUrl;
+        url.ShouldNotBeNull();
+        url.ShouldContain("https://www.ForumUrl.com");
     }
 
     [Fact]

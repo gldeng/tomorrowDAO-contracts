@@ -18,10 +18,19 @@ namespace TomorrowDAO.Contracts.Governance
         /// </summary>
         public MappedState<Hash, AddressList> DaoSchemeAddressList { get; set; }
 
+        /// <summary>
+        /// proposal id -> proposal info
+        /// </summary>
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
 
+        /// <summary>
+        /// proposal id -> proposal scheme threshold
+        /// </summary>
         public MappedState<Hash, GovernanceSchemeThreshold> ProposalGovernanceSchemeSnapShot { get; set; }
 
+        /// <summary>
+        /// dao id -> dao proposal time period
+        /// </summary>
         public MappedState<Hash, DaoProposalTimePeriod> DaoProposalTimePeriods { get; set; }
         
     }

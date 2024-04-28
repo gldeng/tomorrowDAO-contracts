@@ -61,13 +61,13 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
         await Initialize(DefaultAddress);
         var schemeAddress = await AddGovernanceScheme();
 
-        var result = await CreateProposal(schemeAddress);
+        var input = MockCreateProposalInput(schemeAddress);
+        var result = await CreateProposal(input);
         result.ShouldNotBeNull();
         _testOutputHelper.WriteLine("ProposalId = {0}", result);
         
-        var input = MockCreateProposalInput(schemeAddress);
-
-        var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
+        //Proposal Id will never be duplicated
+        //var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
         //executionResult.TransactionResult.Error.ShouldContain("Proposal already exists");
     }
     

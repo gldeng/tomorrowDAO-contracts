@@ -38,8 +38,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Contracts.Timel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Contracts.Timelock.Tests", "contracts\timelock-contract\test\TomorrowDAO.Contracts.Timelock.Tests.csproj", "{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.TestContracts.Governance", "contracts\TomorrowDAO.TestContracts.Governance\TomorrowDAO.TestContracts.Governance.csproj", "{B784A1CD-D370-4E76-9032-51C3755729CB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,7 +62,6 @@ Global
 		{F6BB56CD-DD5B-45BF-9A28-F86BD139A92C} = {17F9524A-91B2-4C35-ACE2-7F4CF165E8DA}
 		{2A832919-E81E-4189-9083-0C2E3BD3C6A5} = {F6BB56CD-DD5B-45BF-9A28-F86BD139A92C}
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D} = {F6BB56CD-DD5B-45BF-9A28-F86BD139A92C}
-		{B784A1CD-D370-4E76-9032-51C3755729CB} = {0CF860E4-ACD6-4975-A74D-AC2B0A52D7E4}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{70CA14BC-A034-4586-AA59-BF7AC722E04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -115,9 +112,5 @@ Global
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B784A1CD-D370-4E76-9032-51C3755729CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B784A1CD-D370-4E76-9032-51C3755729CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B784A1CD-D370-4E76-9032-51C3755729CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B784A1CD-D370-4E76-9032-51C3755729CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

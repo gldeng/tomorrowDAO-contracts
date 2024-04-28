@@ -8,7 +8,7 @@ public class GovernanceContractSchemeUpdateThreshold : GovernanceContractTestBas
     [Fact]
     public async Task UpdateSchemeThresholdTest()
     {
-        await Initialize();
+        await Initialize(DefaultAddress);
         var address = await AddGovernanceScheme();
         
         var inpute = new UpdateGovernanceSchemeThresholdInput

@@ -8,6 +8,7 @@ using AElf.Standards.ACS0;
 using AElf.Testing.TestBase;
 using AElf.Types;
 using Google.Protobuf;
+using TomorrowDAO.Contracts.Governance;
 using TomorrowDAO.TestContracts.Governance;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
@@ -71,7 +72,7 @@ public class TestBase : ContractTestBase<Module>
         DAOContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
 
         // deploy test governance contract
-        code = System.IO.File.ReadAllBytes(typeof(TestGovernanceContract).Assembly.Location);
+        code = System.IO.File.ReadAllBytes(typeof(GovernanceContract).Assembly.Location);
         contractOperation = new ContractOperation
         {
             ChainId = 9992731,

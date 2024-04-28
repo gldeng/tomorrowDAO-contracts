@@ -9,7 +9,7 @@ public class GovernanceSchemeContractSchemeGet : GovernanceContractTestBase
     [Fact]
     public async Task GetGovernanceSchemeTest()
     {
-        await Initialize();
+        await Initialize(DefaultAddress);
         var address = await AddGovernanceScheme();
         var scheme = await GovernanceContractStub.GetGovernanceScheme.CallAsync(address);
         scheme.ShouldNotBeNull();
@@ -29,7 +29,7 @@ public class GovernanceSchemeContractSchemeGet : GovernanceContractTestBase
     [Fact]
     public async Task GetDaoGovernanceSchemeListTest()
     {
-        await Initialize();
+        await Initialize(DefaultAddress);
         await AddGovernanceScheme();
         var schemeList = await GovernanceContractStub.GetDaoGovernanceSchemeList.CallAsync(DefaultDaoId);
         schemeList.ShouldNotBeNull();

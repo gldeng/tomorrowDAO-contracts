@@ -18,7 +18,7 @@ public class GovernanceContractTestBase : TestBase
 {
     protected readonly Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
 
-    protected readonly GovernanceSchemeThreshold DefaultSchemeThreshold = new GovernanceSchemeThreshold
+    internal readonly GovernanceSchemeThreshold DefaultSchemeThreshold = new GovernanceSchemeThreshold
     {
         MinimalRequiredThreshold = 1,
         MinimalVoteThreshold = 1,
@@ -40,7 +40,7 @@ public class GovernanceContractTestBase : TestBase
         await GovernanceContractStub.Initialize.SendAsync(input);
     }
 
-    protected async Task<Address> AddGovernanceScheme(Hash daoId = default,
+    internal async Task<Address> AddGovernanceScheme(Hash daoId = default,
         GovernanceMechanism mechanism = GovernanceMechanism.Referendum, GovernanceSchemeThreshold threshold = null,
         string governanceToken = null)
     {
@@ -56,14 +56,20 @@ public class GovernanceContractTestBase : TestBase
         return executionResult.Output;
     }
     
-    protected async Task<Hash> CreateProposal(Address schemeAddress)
+    internal async Task<Hash> CreateProposal(Address schemeAddress)
     {
         var input = MockCreateProposalInput(schemeAddress);
         var result = await GovernanceContractStub.CreateProposal.SendAsync(input);
         return result.Output;
     }
 
-    protected CreateProposalInput MockCreateProposalInput(Address schemeAddress)
+    internal async Task<Hash> CreateProposal(CreateProposalInput input)
+    {
+        var result = await GovernanceContractStub.CreateProposal.SendAsync(input);
+        return result.Output;
+    }
+
+    internal CreateProposalInput MockCreateProposalInput(Address schemeAddress)
     {
         var proposalBasicInfo = new ProposalBasicInfo
         {

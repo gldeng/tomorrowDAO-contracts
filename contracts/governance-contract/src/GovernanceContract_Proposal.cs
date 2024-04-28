@@ -340,25 +340,34 @@ public partial class GovernanceContract
                State.GovernanceSchemeMap[proposal.ProposalBasicInfo.SchemeAddress].GovernanceMechanism ==
                GovernanceMechanism.HighCouncil;
     }
-    //
-    // public override Empty SetProposalTimePeriod(SetProposalTimePeriodInput input)
-    // {
-    //     var minActiveTimePeriod = input.ProposalTimePeriod.MinActiveTimePeriod;
-    //     var maxActiveTimePeriod = input.ProposalTimePeriod.MaxActiveTimePeriod;
-    //     var expiredTimePeriod = input.ProposalTimePeriod.ExecuteTimePeriod;
-    //     Assert(input.DaoId != null && minActiveTimePeriod > 0 &&
-    //            maxActiveTimePeriod > 0 &&
-    //            expiredTimePeriod > 0 && minActiveTimePeriod < maxActiveTimePeriod &&
-    //            maxActiveTimePeriod < expiredTimePeriod, "Invalid input.");
-    //     var timePeriod = new DaoProposalTimePeriod
-    //     {
-    //         MinActiveTimePeriod = minActiveTimePeriod,
-    //         MaxActiveTimePeriod = maxActiveTimePeriod,
-    //         ExecuteTimePeriod = expiredTimePeriod
-    //     };
-    //     State.DaoProposalTimePeriods[input.DaoId] = timePeriod;
-    //     return new Empty();
-    // }
+
+    public override Empty SetProposalTimePeriod(SetProposalTimePeriodInput input)
+    {
+        AssertParams(input, input?.DaoId, input?.ProposalTimePeriod);
+        var activeTimePeriod = input.ProposalTimePeriod.ActiveTimePeriod;
+        var vetoActiveTimePeriod = input.ProposalTimePeriod.VetoActiveTimePeriod;
+        var pendingTimePeriod = input.ProposalTimePeriod.PendingTimePeriod;
+        var executeTimePeriod = input.ProposalTimePeriod.ExecuteTimePeriod;
+        var vetoExecuteTimePeriod = input.ProposalTimePeriod.VetoExecuteTimePeriod;
+        Assert(activeTimePeriod > 0 && vetoActiveTimePeriod > 0 && pendingTimePeriod > 0 &&
+            executeTimePeriod > 0 && vetoExecuteTimePeriod > 0, "Invalid input.");
+        
+        var timePeriod = State.DaoProposalTimePeriods[input.DaoId];
+        if (timePeriod == null)
+        {
+            timePeriod = new DaoProposalTimePeriod();
+        }
+
+        timePeriod.ActiveTimePeriod = activeTimePeriod;
+        timePeriod.VetoActiveTimePeriod = vetoActiveTimePeriod;
+        timePeriod.PendingTimePeriod = pendingTimePeriod;
+        timePeriod.ExecuteTimePeriod = executeTimePeriod;
+        timePeriod.VetoExecuteTimePeriod = vetoExecuteTimePeriod;
+        
+        State.DaoProposalTimePeriods[input.DaoId] = timePeriod;
+        return new Empty();
+    }
+
     //
     // public override Empty SetOrganizationProposalWhitelistTransaction(
     //     SetOrganizationProposalWhitelistTransactionInput input)
@@ -370,16 +379,48 @@ public partial class GovernanceContract
     //
     // #region View
     //
-    // public override ProposalInfo GetProposalInfo(Hash input)
-    // {
-    //     var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-    //     {
-    //         VotingItemId = input
-    //     });
-    //     var proposal = State.Proposals[input];
-    //     return CheckProposalStatus(proposal, voteResult);
-    // }
-    //
+    public override ProposalInfoOutput GetProposalInfo(Hash input)
+    {
+        var proposal = State.Proposals[input];
+        if (proposal == null)
+        {
+            return new ProposalInfoOutput();
+        }
+        
+        //TODO Query the Vote contract.
+        // var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
+        // {
+        //     VotingItemId = input
+        // });
+
+        var proposalInfoOutput = new ProposalInfoOutput
+        {
+            DaoId = proposal.ProposalBasicInfo?.DaoId,
+            ProposalId = proposal.ProposalId,
+            ProposalTitle = proposal.ProposalBasicInfo?.ProposalTitle,
+            ProposalDescription = proposal.ProposalBasicInfo?.ProposalDescription,
+            ForumUrl = proposal.ForumUrl,
+            ProposalType = proposal.ProposalType,
+            ActiveStartTime = proposal.ProposalTime?.ActiveStartTime,
+            ActiveEndTime = proposal.ProposalTime?.ActiveEndTime,
+            ExecuteStartTime = proposal.ProposalTime?.ExecuteStartTime,
+            ExecuteEndTime = proposal.ProposalTime?.ExecuteEndTime,
+            ProposalStatus = proposal.ProposalStatus,
+            ProposalStage = proposal.ProposalStage,
+            Proposer = proposal.Proposer,
+            SchemeAddress = proposal.ProposalBasicInfo?.SchemeAddress,
+            Transaction = proposal.Transaction,
+            VoteSchemeId = proposal.ProposalBasicInfo?.VoteSchemeId,
+            VetoProposalId = proposal.VetoProposalId,
+            // VotersCount = voteResult.VotesAmount,
+            // VoteCount = voteResult.TotalVotersCount,
+            // ApprovalCount = voteResult.ApproveCounts,
+            // RejectionCount = voteResult.RejectCounts,
+            // AbstentionCount = voteResult.AbstainCounts
+        };
+        return proposalInfoOutput;
+    }
+    
     public override DaoProposalTimePeriod GetDaoProposalTimePeriod(Hash input)
     {
         var timePeriod = State.DaoProposalTimePeriods[input];

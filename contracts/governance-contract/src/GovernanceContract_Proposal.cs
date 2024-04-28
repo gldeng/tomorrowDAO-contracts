@@ -380,10 +380,18 @@ public partial class GovernanceContract
     //     return CheckProposalStatus(proposal, voteResult);
     // }
     //
-    // public override DaoProposalTimePeriod GetProposalTimePeriod(Hash input)
-    // {
-    //     return GetDaoProposalTimePeriod(input);
-    // }
+    public override DaoProposalTimePeriod GetDaoProposalTimePeriod(Hash input)
+    {
+        var timePeriod = State.DaoProposalTimePeriods[input];
+        return timePeriod ?? new DaoProposalTimePeriod
+        {
+            ActiveTimePeriod = GovernanceContractConstants.MinActiveTimePeriod,
+            VetoActiveTimePeriod = GovernanceContractConstants.MinVetoActiveTimePeriod,
+            PendingTimePeriod = GovernanceContractConstants.MinPendingTimePeriod,
+            ExecuteTimePeriod = GovernanceContractConstants.MinExecuteTimePeriod,
+            VetoExecuteTimePeriod = GovernanceContractConstants.MinVetoExecuteTimePeriod
+        };
+    }
     //
     // public override WhitelistTransactionList GetOrganizationProposalWhitelistTransaction(Empty input)
     // {

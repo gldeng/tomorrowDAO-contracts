@@ -161,19 +161,6 @@ public partial class GovernanceContract
         return startTime.AddDays(period).ToDateTime().Day == targetTime.ToDateTime().Day;
     }
 
-    private DaoProposalTimePeriod GetDaoProposalTimePeriod(Hash daoId)
-    {
-        var timePeriod = State.DaoProposalTimePeriods[daoId];
-        return timePeriod ?? new DaoProposalTimePeriod
-        {
-            ActiveTimePeriod = GovernanceContractConstants.MinActiveTimePeriod,
-            VetoActiveTimePeriod = GovernanceContractConstants.MinVetoActiveTimePeriod,
-            PendingTimePeriod = GovernanceContractConstants.MinPendingTimePeriod,
-            ExecuteTimePeriod = GovernanceContractConstants.MinExecuteTimePeriod,
-            VetoExecuteTimePeriod = GovernanceContractConstants.MinVetoExecuteTimePeriod
-        };
-    }
-
     #endregion
     
 }

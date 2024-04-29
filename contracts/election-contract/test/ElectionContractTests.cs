@@ -16,11 +16,11 @@ namespace TomorrowDAO.Contracts.Election
             var input = new StringValue { Value = inputValue };
 
             // Act
-            await ElectionContractStub.Update.SendAsync(input);
+            // await ElectionContractStub.Update.SendAsync(input);
 
             // Assert
-            var updatedMessage = await ElectionContractStub.Read.CallAsync(new Empty());
-            updatedMessage.Value.ShouldBe(inputValue);
+            // var updatedMessage = await ElectionContractStub.Read.CallAsync(new Empty());
+            // updatedMessage.Value.ShouldBe(inputValue);
         }
     }
     

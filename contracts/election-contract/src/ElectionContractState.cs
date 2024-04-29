@@ -12,6 +12,7 @@ public partial class ElectionContractState : ContractState
     
     public SingletonState<Address> DaoContractAddress { get; set; }
     public SingletonState<Address> VoteContractAddress { get; set; }
+    public SingletonState<Address> GovernanceContractAddress { get; set; }
         
     // dao id -> bool
     public MappedState<Hash, bool> VotingEventEnabledStatus { get; set; }
@@ -54,5 +55,4 @@ public partial class ElectionContractState : ContractState
 
     // dao id -> Time unit: seconds
     public MappedState<Hash, long> MaximumLockTime { get; set; }
-    
 }

@@ -126,6 +126,7 @@ message CandidateDetail {
 message InitializeInput {
   aelf.Address dao_contract_address = 1;
   aelf.Address vote_contract_address = 2;
+  aelf.Address governance_contract_address = 3;
 }
 
 message RegisterElectionVotingEventInput {

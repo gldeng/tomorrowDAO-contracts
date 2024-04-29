@@ -29,6 +29,12 @@ public partial class GovernanceContract
             }
         }
     }
+    
+    private void AssertNumberInRange(long numberToCheck, long minRange, long maxRange, string message)
+    {
+        Assert(IsNumberInRange(numberToCheck, minRange, maxRange),
+            $"{message ?? "number"} should be between {minRange} and {maxRange}");
+    }
 
     private GovernanceSchemeHashAddressPair CalculateGovernanceSchemeHashAddressPair(Hash daoId,
         GovernanceMechanism mechanism)
@@ -77,10 +83,15 @@ public partial class GovernanceContract
     {
         return State.DaoContract.GetSubsistStatus.Call(daoId).Value;
     }
-    
+
+    private bool IsNumberInRange(long numberToCheck, long minRange, long maxRange)
+    {
+        return numberToCheck >= minRange && numberToCheck <= maxRange;
+    }
+
     #region proposal
 
-    private ProposalTime GetProposalTimePeriod(ProposalBasicInfo proposalBasicInfo,ProposalType proposalType)
+    private ProposalTime GetProposalTimePeriod(ProposalBasicInfo proposalBasicInfo, ProposalType proposalType)
     {
         var timePeriod = GetDaoProposalTimePeriod(proposalBasicInfo.DaoId);
         var proposalTime = new ProposalTime
@@ -102,6 +113,7 @@ public partial class GovernanceContract
                     proposalTime.ExecuteStartTime = proposalTime.ActiveEndTime;
                     proposalTime.ExecuteEndTime = proposalTime.ExecuteStartTime.AddDays(timePeriod.ExecuteTimePeriod);
                 }
+
                 break;
             case ProposalType.Veto:
                 proposalTime.ExecuteStartTime = proposalTime.ActiveEndTime;
@@ -116,6 +128,7 @@ public partial class GovernanceContract
 
         return proposalTime;
     }
+
     private bool ValidateProposalTimePeriod(ProposalInfo proposal)
     {
         bool result;
@@ -128,12 +141,14 @@ public partial class GovernanceContract
                 AssertParams(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime, proposalTime.ExecuteStartTime,
                     proposalTime.ExecuteEndTime);
                 var scheme = GetScheme(proposal.ProposalBasicInfo.SchemeAddress);
-                result = ValidateTime(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime, timePeriod.ActiveTimePeriod);
+                result = ValidateTime(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime,
+                    timePeriod.ActiveTimePeriod);
                 if (scheme.GovernanceMechanism == GovernanceMechanism.HighCouncil)
                 {
                     result = result && ValidateTime(proposalTime.ActiveEndTime, proposalTime.ExecuteStartTime,
                         timePeriod.PendingTimePeriod);
                 }
+
                 result = result && ValidateTime(proposalTime.ExecuteStartTime, proposalTime.ExecuteEndTime,
                     timePeriod.ExecuteTimePeriod);
                 break;
@@ -141,12 +156,15 @@ public partial class GovernanceContract
             case ProposalType.Veto:
                 AssertParams(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime, proposalTime.ExecuteStartTime,
                     proposalTime.ExecuteEndTime);
-                result = ValidateTime(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime, timePeriod.VetoActiveTimePeriod) &&
-                         ValidateTime(proposalTime.ExecuteStartTime, proposalTime.ExecuteEndTime, timePeriod.VetoExecuteTimePeriod);
+                result = ValidateTime(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime,
+                             timePeriod.VetoActiveTimePeriod) &&
+                         ValidateTime(proposalTime.ExecuteStartTime, proposalTime.ExecuteEndTime,
+                             timePeriod.VetoExecuteTimePeriod);
                 break;
             case ProposalType.Advisory:
                 AssertParams(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime);
-                result = ValidateTime(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime, timePeriod.ActiveTimePeriod);
+                result = ValidateTime(proposalTime.ActiveStartTime, proposalTime.ActiveEndTime,
+                    timePeriod.ActiveTimePeriod);
                 break;
             case ProposalType.Unused:
             default:
@@ -162,5 +180,4 @@ public partial class GovernanceContract
     }
 
     #endregion
-    
 }

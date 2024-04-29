@@ -9,20 +9,8 @@ using Google.Protobuf.WellKnownTypes;
 namespace TomorrowDAO.Contracts.Governance
 {
     // Contract class must inherit the base class generated from the proto file
-    public partial class GovernanceContract : GovernanceContractContainer.GovernanceContractBase
+    public partial class GovernanceContract
     {
-        public override Empty Initialize(InitializeInput input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-            var contractInfo = State.GenesisContract.GetContractInfo.Call(Context.Self);
-            Assert(contractInfo.Deployer == Context.Sender, "No permission.");
-            AssertParams(input.DaoContractAddress);
-            State.DaoContract.Value = input.DaoContractAddress;
-            State.Initialized.Value = true;
-            return new Empty();
-        }
-
         public override Address AddGovernanceScheme(AddGovernanceSchemeInput input)
         {
             Assert(State.Initialized.Value, "Not initialized yet.");

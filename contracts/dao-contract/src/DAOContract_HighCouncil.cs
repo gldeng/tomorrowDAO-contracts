@@ -49,6 +49,10 @@ public partial class DAOContract
         Context.Fire(new HighCouncilEnabled
         {
             DaoId = daoId,
+            HighCouncilInput = new HighCouncilInput
+            {
+                HighCouncilConfig = highCouncilConfig
+            },
             HighCouncilAddress = State.HighCouncilAddressMap[daoId]
         });
     }

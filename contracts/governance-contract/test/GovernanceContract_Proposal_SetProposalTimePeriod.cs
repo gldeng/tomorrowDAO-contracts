@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
 using Shouldly;
@@ -23,7 +24,12 @@ public class GovernanceContractProposalSetProposalTimePeriod : GovernanceContrac
                 VetoExecuteTimePeriod = 1
             }
         };
-        await GovernanceContractStub.SetProposalTimePeriod.SendAsync(input);
+        var result = await GovernanceContractStub.SetProposalTimePeriod.SendAsync(input);
+        result.ShouldNotBeNull();
+        var daoProposalTimePeriodSet =
+            result.TransactionResult.Logs.FirstOrDefault(l => l.Name == "DaoProposalTimePeriodSet");
+        daoProposalTimePeriodSet.ShouldNotBeNull();
+
         var timePeriod = await GovernanceContractStub.GetDaoProposalTimePeriod.CallAsync(DefaultDaoId);
         timePeriod.ShouldNotBeNull();
     }
@@ -32,16 +38,17 @@ public class GovernanceContractProposalSetProposalTimePeriod : GovernanceContrac
     public async Task SetProposalTimePeriodTest_InvalidInput()
     {
         await Initialize();
-        var result = await GovernanceContractStub.SetProposalTimePeriod.SendWithExceptionAsync(new SetProposalTimePeriodInput());
+        var result =
+            await GovernanceContractStub.SetProposalTimePeriod.SendWithExceptionAsync(new SetProposalTimePeriodInput());
         result.TransactionResult.Error.ShouldContain("Invalid input");
-        
+
         var input = new SetProposalTimePeriodInput
         {
             DaoId = DefaultDaoId,
         };
         result = await GovernanceContractStub.SetProposalTimePeriod.SendWithExceptionAsync(input);
         result.TransactionResult.Error.ShouldContain("Invalid input");
-        
+
         input = new SetProposalTimePeriodInput
         {
             DaoId = DefaultDaoId,

@@ -35,7 +35,7 @@
         <Protobuf Include="Protobuf/message/*.proto">
             <ContractOutputOptions>nocontract</ContractOutputOptions>
         </Protobuf>
-        <Protobuf Include="../src/Protobuf/contract/*.proto">
+        <Protobuf Include="Protobuf/stub/*.proto">
             <ContractOutputOptions>stub</ContractOutputOptions>
         </Protobuf>
     </ItemGroup>
@@ -49,6 +49,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Protobuf\base" />
       <Folder Include="Protobuf\message\" />
       <Folder Include="Protobuf\stub\" />
     </ItemGroup>

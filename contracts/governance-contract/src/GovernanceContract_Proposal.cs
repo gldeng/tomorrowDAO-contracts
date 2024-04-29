@@ -376,6 +376,16 @@ public partial class GovernanceContract
         timePeriod.VetoExecuteTimePeriod = vetoExecuteTimePeriod;
         
         State.DaoProposalTimePeriods[input.DaoId] = timePeriod;
+        
+        Context.Fire(new DaoProposalTimePeriodSet
+        {
+            DaoId = input.DaoId,
+            ActiveTimePeriod = activeTimePeriod,
+            VetoActiveTimePeriod = vetoActiveTimePeriod,
+            PendingTimePeriod = pendingTimePeriod,
+            ExecuteTimePeriod = executeTimePeriod,
+            VetoExecuteTimePeriod = vetoExecuteTimePeriod
+        });
         return new Empty();
     }
 

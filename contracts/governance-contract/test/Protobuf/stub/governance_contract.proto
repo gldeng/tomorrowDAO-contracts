@@ -60,7 +60,7 @@ service GovernanceContract {
   rpc GetDaoProposalTimePeriod (aelf.Hash) returns (DaoProposalTimePeriod){
     option (aelf.is_view) = true;
   }
-  rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceScheme){
+  rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceSchemeThreshold){
     option (aelf.is_view) = true;
   }
   rpc GetProposalStatus (aelf.Hash) returns (ProposalStatusOutput){

@@ -36,4 +36,25 @@ public class GovernanceSchemeContractSchemeGet : GovernanceContractTestBase
         schemeList.Value.ShouldNotBeNull();
         schemeList.Value.Count.ShouldBe(1);
     }
+
+    [Fact]
+    public async Task GetProposalSnapShotSchemeTest()
+    {
+        await Initialize(DefaultAddress);
+        var scheme = await AddGovernanceScheme();
+        var proposal = await CreateProposal(scheme);
+
+        var threshold = await GovernanceContractStub.GetProposalSnapShotScheme.CallAsync(proposal);
+        threshold.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task GetProposalStatusTest()
+    {
+        await Initialize(DefaultAddress);
+        var scheme = await AddGovernanceScheme();
+        var proposal = await CreateProposal(scheme);
+        var proposalStatusOutput = await GovernanceContractStub.GetProposalStatus.CallAsync(proposal);
+        proposalStatusOutput.ShouldNotBeNull();
+    }
 }

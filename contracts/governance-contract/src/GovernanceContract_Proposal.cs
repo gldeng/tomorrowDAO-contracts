@@ -228,6 +228,17 @@ public partial class GovernanceContract
         });
     }
 
+    public override ProposalStatusOutput GetProposalStatus(Hash input)
+    {
+        Assert(input != null && input != Hash.Empty, "Invalid input.");
+        var proposal = State.Proposals[input];
+        if (proposal == null)
+        {
+            return new ProposalStatusOutput();
+        }
+
+        return GetProposalStatus(proposal);
+    }
     private ProposalStatusOutput GetProposalStatus(ProposalInfo proposalInfo)
     {
         //todo call VoteContract after it's development 
@@ -442,10 +453,18 @@ public partial class GovernanceContract
     //     };
     // }
     //
-    // public override GovernanceSubScheme GetProposalSnapShotScheme(Hash input)
-    // {
-    //     return State.ProposalGovernanceSchemeSnapShot[input];
-    // }
-    //
-    // #endregion
+    public override GovernanceSchemeThreshold GetProposalSnapShotScheme(Hash input)
+    {
+        if (input == null || input == Hash.Empty)
+        {
+            return new GovernanceSchemeThreshold();
+        }
+
+        return State.ProposalGovernanceSchemeSnapShot[input];
+    }
+
+    public override Empty ClearProposal(Hash input)
+    {
+        return new Empty(); 
+    }
 }

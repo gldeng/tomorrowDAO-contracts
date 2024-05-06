@@ -83,9 +83,8 @@ message GovernanceSchemeList {
   repeated GovernanceScheme value = 1;
 }
 enum GovernanceMechanism {
-  UNSPECIFIED = 0;
-  REFERENDUM = 1;
-  HIGH_COUNCIL = 2;
+  REFERENDUM = 0;
+  HIGH_COUNCIL = 1;
 }
 message GovernanceSchemeThreshold {
   int64 minimal_required_threshold = 1; //HighCouncil -> percentage / referendum -> number

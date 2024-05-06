@@ -60,7 +60,7 @@ service GovernanceContract {
   rpc GetDaoProposalTimePeriod (aelf.Hash) returns (DaoProposalTimePeriod){
     option (aelf.is_view) = true;
   }
-  rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceSchemeThreshold){
+  rpc GetProposalSnapShotScheme (aelf.Hash) returns (GovernanceScheme){
     option (aelf.is_view) = true;
   }
   rpc GetProposalStatus (aelf.Hash) returns (ProposalStatusOutput){
@@ -84,7 +84,7 @@ message GovernanceSchemeList {
 }
 enum GovernanceMechanism {
   REFERENDUM = 0;
-  HIGH_COUNCIL = 1;
+  HIGH_COUNCIL = 2;
 }
 message GovernanceSchemeThreshold {
   int64 minimal_required_threshold = 1; //HighCouncil -> percentage / referendum -> number

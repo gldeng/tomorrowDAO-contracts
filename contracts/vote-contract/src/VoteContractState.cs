@@ -15,9 +15,9 @@ namespace TomorrowDAO.Contracts.Vote
         public MappedState<Hash, VotingItem> VotingItems { get; set; }
         // voting_item_id(proposal id) -> voter -> VotingRecord
         public MappedState<Hash, Address, VotingRecord> VotingRecords { get; set; }
-        // voting_item_id -> VotingResult
+        // voting_item_id(proposal id) -> VotingResult
         public MappedState<Hash, VotingResult> VotingResults { get; set; }
-        // address -> dao_id -> amount
+        // voter -> dao_id -> amount
         public MappedState<Address, Hash, long> RemainVoteAmounts { get; set; }
         // dao_id -> EmergencyStatus
         public MappedState<Hash, bool> EmergencyStatusMap { get; set; }

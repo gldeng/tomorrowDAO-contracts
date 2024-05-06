@@ -349,6 +349,7 @@ message Voted {
   VoteOption option = 5;
   // The vote id.
   aelf.Hash vote_id = 6;
+  aelf.Hash dao_id = 7;
 }
 
 message Withdrawn {

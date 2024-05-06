@@ -90,7 +90,8 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             Amount = input.VoteAmount,
             VoteTimestamp = Context.CurrentBlockTime,
             Option = input.VoteOption,
-            VoteId = voteId
+            VoteId = voteId,
+            DaoId = votingItem.DaoId
         });
         return new Empty();
     }

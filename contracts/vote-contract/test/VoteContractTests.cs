@@ -24,13 +24,21 @@ namespace TomorrowDAO.Contracts.Vote
         {
             await InitializeTest();
             var result = await VoteContractStub.Initialize.SendWithExceptionAsync(new InitializeInput());
-            result.TransactionResult.Error.ShouldContain("Already initialized");
+            result.TransactionResult.Error.ShouldContain("Already initialized.");
         }
         
         [Fact]
         public async Task InitializeTest_NoPermission()
         {
-            await InitializeTest();
+            var result = await VoteContractStubOther.Initialize.SendWithExceptionAsync(new InitializeInput());
+            result.TransactionResult.Error.ShouldContain("No permission.");
+        }
+        
+        [Fact]
+        public async Task InitializeTest_InvalidInput()
+        {
+            var result = await VoteContractStub.Initialize.SendWithExceptionAsync(new InitializeInput());
+            result.TransactionResult.Error.ShouldContain("Invalid governance contract address.");
         }
     }
     

@@ -20,22 +20,22 @@ public partial class VoteContract
 
     private void AssertCommon<T>(T input)
     {
-        Assert(State.Initialized.Value, "Not initialized yet");
-        Assert(input != null, "input is null");
+        Assert(State.Initialized.Value, "Not initialized yet.");
+        Assert(input != null, "Input is null.");
     }
 
     private DAOInfo AssertDao(Hash daoId)
     {
         Assert(IsHashValid(daoId), "Invalid daoId.");
         var daoInfo = State.DaoContract.GetDAOInfo.Call(daoId);
-        Assert(daoInfo != null && daoInfo.DaoId == daoId, "dao not exists");
+        Assert(daoInfo != null && daoInfo.DaoId == daoId, "DAO not exists.");
         return daoInfo;
     }
     
     private DAOInfo AssertDaoSubsist(Hash daoId)
     {
         var daoInfo = AssertDao(daoId);
-        Assert(daoInfo.SubsistStatus, "dao not subsist.");
+        Assert(daoInfo.SubsistStatus, "DAO not subsist.");
         return daoInfo;
     }
     
@@ -79,7 +79,7 @@ public partial class VoteContract
         {
             Symbol = token
         });
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Token not exists");
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Token not exists.");
     }
 
     private void AssertHighCouncil(Address voter)
@@ -90,7 +90,7 @@ public partial class VoteContract
     private long AssertWithdraw(Address user, Hash daoId)
     {
         Assert(IsAddressValid(user), "Invalid withdraw user.");
-        Assert(State.RemainVoteAmounts[user][daoId] > 0, "Invalid withdraw amount");
+        Assert(State.RemainVoteAmounts[user][daoId] > 0, "Invalid withdraw amount.");
         return State.RemainVoteAmounts[user][daoId];
     }
 

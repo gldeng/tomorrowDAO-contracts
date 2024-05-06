@@ -10,7 +10,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         Assert(!State.Initialized.Value, "Already initialized.");
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         Assert(State.GenesisContract.GetContractInfo.Call(Context.Self).Deployer == Context.Sender, "No permission.");
-        Assert(input != null, "input is null");
+        Assert(input != null, "Input is null.");
         
         InitializeContract(input);
         return new Empty();

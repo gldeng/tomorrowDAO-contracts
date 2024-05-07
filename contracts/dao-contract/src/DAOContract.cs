@@ -76,7 +76,8 @@ public partial class DAOContract : DAOContractContainer.DAOContractBase
                 TimelockContractAddress = State.TimelockContract.Value,
                 TreasuryContractAddress = State.TreasuryContract.Value,
                 VoteContractAddress = State.VoteContract.Value
-            }
+            },
+            IsNetworkDao = input.IsNetworkDao
         };
 
         State.DAOInfoMap[daoId] = daoInfo;

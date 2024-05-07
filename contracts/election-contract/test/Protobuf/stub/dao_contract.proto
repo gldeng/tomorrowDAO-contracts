@@ -55,6 +55,7 @@ message CreateDAOInput {
   HighCouncilInput high_council_input = 4;
   bool is_treasury_contract_needed = 5;  // if true, create treasury
   repeated File files = 6;
+  bool is_network_dao = 7;
 }
 
 message HighCouncilInput {
@@ -121,6 +122,7 @@ message DAOInfo {
   bool subsist_status = 3;
   string governance_token = 4;
   ContractAddressList contract_address_list = 5;
+  bool is_network_dao = 6;
 }
 
 message ContractAddressList {

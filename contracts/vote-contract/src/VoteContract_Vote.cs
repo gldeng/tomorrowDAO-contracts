@@ -62,13 +62,20 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         var votingItem = AssertVotingItem(input.VotingItemId);
         Assert(votingItem.StartTimestamp <= Context.CurrentBlockTime,"Vote not begin.");
         Assert(votingItem.EndTimestamp >= Context.CurrentBlockTime, "Vote ended.");
-        AssertDaoSubsist(votingItem.DaoId);
+        var daoInfo = AssertDaoSubsist(votingItem.DaoId);
         AssertVotingRecord(votingItem.VotingItemId, Context.Sender);
         var voteScheme = AssertVoteScheme(votingItem.SchemeId);
 
         if (GovernanceMechanism.HighCouncil.ToString() == votingItem.GovernanceMechanism)
         {
-            AssertHighCouncil(Context.Sender);
+            if (daoInfo.IsNetworkDao)
+            {
+                AssertBP(Context.Sender);
+            }
+            else
+            {
+                AssertHighCouncil(Context.Sender);
+            }
         }
 
         switch (voteScheme.VoteMechanism)

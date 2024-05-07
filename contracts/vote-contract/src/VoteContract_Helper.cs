@@ -84,7 +84,12 @@ public partial class VoteContract
 
     private void AssertHighCouncil(Address voter)
     {
-        //todo check voter from highCouncil contract
+        //todo check voter from election contract
+    }
+    
+    private void AssertBP(Address voter)
+    {
+        Assert(State.AEDPoSContract.IsCurrentMiner.Call(voter).Value, "Invalid voter: not BP.");
     }
 
     private long AssertWithdraw(Address user, Hash daoId)

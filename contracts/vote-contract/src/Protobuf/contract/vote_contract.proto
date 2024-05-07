@@ -95,7 +95,7 @@ enum VoteMechanism {
 }
 
 message VotingItemIdList {
-  repeated aelf.Hash voting_item_id = 1;
+  repeated aelf.Hash value = 1;
 }
 
 message VotingItem {

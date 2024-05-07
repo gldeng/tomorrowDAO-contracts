@@ -82,6 +82,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         {
             case VoteMechanism.TokenBallot: // 1t1v
                 TokenBallotTransfer(votingItem, input);
+                AddAmount(votingItem, input.VoteAmount);
                 break;
             case VoteMechanism.UniqueVote: // 1a1v
                 Assert(input.VoteAmount == VoteContractConstants.UniqueVoteVoteAmount, "Invalid vote amount");
@@ -107,16 +108,17 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
         AssertCommon(input);
         var daoInfo = AssertDao(input.DaoId);
-        var withdrawAmount = AssertWithdraw(Context.Sender, input.DaoId);
+        var withdrawAmount = AssertWithdraw(Context.Sender, input);
         var virtualAddressHash = GetVirtualAddressHash(Context.Sender, input.DaoId);
         TransferOut(virtualAddressHash, Context.Sender, daoInfo.GovernanceToken, withdrawAmount);
-        State.RemainVoteAmounts[Context.Sender][input.DaoId] = 0;
+        RemoveAmount(input);
         Context.Fire(new Withdrawn
         {
             DaoId = input.DaoId,
             WithdrawAmount = withdrawAmount,
             User = Context.Sender,
             WithdrawTimestamp = Context.CurrentBlockTime,
+            VotingItemIdList = input.VotingItemIdList
         });
         return new Empty();
     }
@@ -125,7 +127,21 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
         var virtualAddress = GetVirtualAddress(Context.Sender, votingItem.DaoId);
         TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount.Mul(VoteContractConstants.Mantissa));
-        State.RemainVoteAmounts[Context.Sender][votingItem.DaoId] += input.VoteAmount;
+    }
+
+    private void AddAmount(VotingItem votingItem, long amount)
+    {
+        State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] += amount;
+        State.ProposalRemainAmounts[Context.Sender][votingItem.DaoId][votingItem.VotingItemId] = amount;
+    }
+    
+    private void RemoveAmount(WithdrawInput input)
+    {
+        State.DaoRemainAmounts[Context.Sender][input.DaoId] -= input.WithdrawAmount;
+        foreach (var votingItemId in input.VotingItemIdList.Value)
+        {
+            State.ProposalRemainAmounts[Context.Sender][input.DaoId][votingItemId] = 0;
+        }
     }
 
     private Hash AddVotingRecords(VoteInput input)

@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.Types;
@@ -92,11 +93,14 @@ public partial class VoteContract
         Assert(State.AEDPoSContract.IsCurrentMiner.Call(voter).Value, "Invalid voter: not BP.");
     }
 
-    private long AssertWithdraw(Address user, Hash daoId)
+    private long AssertWithdraw(Address user, WithdrawInput input)
     {
         Assert(IsAddressValid(user), "Invalid withdraw user.");
-        Assert(State.RemainVoteAmounts[user][daoId] > 0, "Invalid withdraw amount.");
-        return State.RemainVoteAmounts[user][daoId];
+        Assert(State.DaoRemainAmounts[user][input.DaoId] > 0, "no amount to withdraw.");
+        Assert(input.VotingItemIdList.Value.Count <= VoteContractConstants.MaxWithdrawProposalCount, "Withdraw proposal too much");
+        var withdrawAmount = input.VotingItemIdList.Value.Sum(votingItemId => State.ProposalRemainAmounts[user][input.DaoId][votingItemId]);
+        Assert(withdrawAmount == input.WithdrawAmount, "Invalid withdraw amount.");
+        return withdrawAmount;
     }
 
     private Hash GetVirtualAddressHash(Address user, Hash daoId)

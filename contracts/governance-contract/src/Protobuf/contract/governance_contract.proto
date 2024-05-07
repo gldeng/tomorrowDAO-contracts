@@ -179,6 +179,7 @@ message DaoProposalTimePeriod {
 // Input
 message InitializeInput {
   aelf.Address dao_contract_address = 1;
+  aelf.Address vote_contract_address = 2;
 }
 message AddGovernanceSchemeInput {
   aelf.Hash dao_id = 1;

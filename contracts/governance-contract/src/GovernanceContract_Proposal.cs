@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using AElf;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using TomorrowDAO.Contracts.Vote;
 
@@ -24,7 +20,7 @@ public partial class GovernanceContract
             input.ProposalType, input.Transaction);
         State.Proposals[proposalId] = proposal;
         State.ProposalGovernanceSchemeSnapShot[proposalId] = scheme.SchemeThreshold;
-        RegisterVotingItem(proposal, scheme.SchemeAddress, scheme.GovernanceToken);
+        RegisterVotingItem(proposal, input.ProposalBasicInfo.VoteSchemeId, scheme.GovernanceToken);
         FireProposalCreatedEvent(proposal);
         return proposalId;
     }
@@ -50,7 +46,7 @@ public partial class GovernanceContract
             ProposalType.Veto, transaction, vetoProposalId);
         State.Proposals[proposalId] = proposal;
         State.ProposalGovernanceSchemeSnapShot[proposalId] = scheme.SchemeThreshold;
-        RegisterVotingItem(proposal, scheme.SchemeAddress, scheme.GovernanceToken);
+        RegisterVotingItem(proposal, input.ProposalBasicInfo.VoteSchemeId, scheme.GovernanceToken);
         vetoProposal.ProposalStatus = ProposalStatus.Challenged;
         State.Proposals[vetoProposalId] = vetoProposal;
         FireProposalCreatedEvent(proposal);
@@ -123,12 +119,12 @@ public partial class GovernanceContract
         return scheme;
     }
 
-    private void RegisterVotingItem(ProposalInfo proposal, Address schemeAddress, string governanceToken)
+    private void RegisterVotingItem(ProposalInfo proposal, Hash voteSchemeId, string governanceToken)
     {
         State.VoteContract.Register.Send(new VotingRegisterInput
         {
-            SchemeAddress = schemeAddress,
             VotingItemId = proposal.ProposalId,
+            SchemeId = voteSchemeId,
             StartTimestamp = proposal.ProposalTime.ActiveStartTime,
             EndTimestamp = proposal.ProposalTime.ActiveEndTime,
             AcceptedToken = governanceToken
@@ -166,6 +162,8 @@ public partial class GovernanceContract
         var proposal = State.Proposals[input];
         Assert(proposal != null && ValidatePermission(proposal.ProposalBasicInfo.DaoId, Context.Sender),
             "Invalid proposal or no permission.");
+
+
         return new Empty();
     }
 
@@ -187,7 +185,7 @@ public partial class GovernanceContract
                && Context.CurrentBlockTime < proposal.ProposalTime.ExecuteEndTime,
             "The proposal is in active or expired.");
         var proposalStatusOutput = GetProposalStatus(proposal);
-        Assert(proposalStatusOutput.ProposalStatus == ProposalStatus.Approved 
+        Assert(proposalStatusOutput.ProposalStatus == ProposalStatus.Approved
                && proposalStatusOutput.ProposalStage == ProposalStage.Execute, "Proposal can not execute.");
         var governanceScheme = GetGovernanceScheme(proposal.ProposalBasicInfo.SchemeAddress);
         Assert(governanceScheme != null, "GovernanceScheme not found.");
@@ -217,10 +215,6 @@ public partial class GovernanceContract
 
     private ProposalStatusOutput GetProposalStatus(ProposalInfo proposalInfo)
     {
-        var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-        {
-            VotingItemId = proposalInfo.ProposalId
-        });
         var threshold = State.ProposalGovernanceSchemeSnapShot[proposalInfo.ProposalId];
         var proposalStage = proposalInfo.ProposalStage;
         var proposalStatus = proposalInfo.ProposalStatus;
@@ -234,6 +228,8 @@ public partial class GovernanceContract
         {
             return result;
         }
+
+        var votingResult = State.VoteContract.GetVotingResult.Call(proposalInfo.ProposalId);
 
         var totalVote = votingResult.VotesAmount;
         var approveVote = votingResult.ApproveCounts;
@@ -249,15 +245,23 @@ public partial class GovernanceContract
                 ProposalStage = ProposalStage.Finished
             };
         }
-        //TODO HC
-        var enoughVote = rejectVote.Add(abstainVote).Add(approveVote) >= threshold.MinimalVoteThreshold;
-        if (!enoughVote)
+        //the proposal of 1a1v is not subject to this control
+        var schemeAddress = proposalInfo.ProposalBasicInfo.SchemeAddress;
+        var governanceScheme = State.GovernanceSchemeMap[schemeAddress];
+        var voteSchemeId = proposalInfo.ProposalBasicInfo.VoteSchemeId;
+        var voteScheme = State.VoteContract.GetVoteScheme.Call(voteSchemeId);
+        if (governanceScheme?.GovernanceMechanism != GovernanceMechanism.HighCouncil &&
+            voteScheme?.VoteMechanism != VoteMechanism.UniqueVote)
         {
-            return new ProposalStatusOutput
+            var enoughVote = rejectVote.Add(abstainVote).Add(approveVote) >= threshold.MinimalVoteThreshold;
+            if (!enoughVote)
             {
-                ProposalStatus = ProposalStatus.BelowThreshold,
-                ProposalStage = ProposalStage.Finished
-            };
+                return new ProposalStatusOutput
+                {
+                    ProposalStatus = ProposalStatus.BelowThreshold,
+                    ProposalStage = ProposalStage.Finished
+                };
+            }
         }
 
         var isReject = (rejectVote / totalVote) * GovernanceContractConstants.AbstractVoteTotal >
@@ -292,7 +296,7 @@ public partial class GovernanceContract
                 ProposalStage = ProposalStage.Finished
             };
         }
-        
+
         proposalStatus = ProposalStatus.Approved;
         if (HasPendingStatus(proposalInfo.ProposalId))
         {
@@ -338,7 +342,7 @@ public partial class GovernanceContract
             GovernanceContractConstants.MaxExecuteTimePeriod, "ExecuteTimePeriod");
         AssertNumberInRange(vetoExecuteTimePeriod, GovernanceContractConstants.MinVetoExecuteTimePeriod,
             GovernanceContractConstants.MaxVetoExecuteTimePeriod, "VetoExecuteTimePeriod");
-        
+
         var timePeriod = State.DaoProposalTimePeriods[input.DaoId];
         if (timePeriod == null)
         {
@@ -373,10 +377,7 @@ public partial class GovernanceContract
             return new ProposalInfoOutput();
         }
 
-        var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-        {
-            VotingItemId = input
-        });
+        var voteResult = State.VoteContract.GetVotingResult.Call(input);
 
         var proposalInfoOutput = new ProposalInfoOutput
         {

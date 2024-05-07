@@ -22,14 +22,14 @@ service DAOContract {
   rpc GetMetadata (aelf.Hash) returns (Metadata) {option (aelf.is_view) = true;}
   rpc GetSubsistStatus (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
   rpc GetGovernanceToken (aelf.Hash) returns (google.protobuf.StringValue) {option (aelf.is_view) = true;}
+  rpc GetInitializedContracts (google.protobuf.Empty) returns (ContractAddressList) {option (aelf.is_view) = true;}
+  rpc GetReferendumAddress (aelf.Hash) returns (aelf.Address) {option (aelf.is_view) = true;}
+  rpc GetHighCouncilAddress (aelf.Hash) returns (aelf.Address) {option (aelf.is_view) = true;}
 
   // high council
   rpc EnableHighCouncil (EnableHighCouncilInput) returns (google.protobuf.Empty) {}
   rpc DisableHighCouncil (aelf.Hash) returns (google.protobuf.Empty) {}
-  rpc SetHighCouncilExecutionConfig (SetHighCouncilExecutionConfigInput) returns (google.protobuf.Empty) {}
   rpc GetHighCouncilStatus (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
-  rpc GetHighCouncilExecutionConfig (aelf.Hash) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
-  rpc GetHighCouncilAddress (aelf.Hash) returns (aelf.Address) {option (aelf.is_view) = true;}
 
   // file
   rpc UploadFileInfos (UploadFileInfosInput) returns (google.protobuf.Empty) {}
@@ -37,7 +37,6 @@ service DAOContract {
   rpc GetFileInfos (aelf.Hash) returns (FileInfoList) {option (aelf.is_view) = true;}
 
   // permission
-  rpc SetPermissions (SetPermissionsInput) returns (google.protobuf.Empty) {}
   rpc HasPermission (HasPermissionInput) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
 }
 
@@ -52,21 +51,16 @@ message InitializeInput {
 message CreateDAOInput {
   Metadata metadata = 1;  // basic info
   string governance_token = 2;  // can be empty
-  GovernanceSchemeInput governance_scheme_input = 3;
+  GovernanceSchemeThreshold governance_scheme_threshold = 3;  // governance scheme threshold for referendum
   HighCouncilInput high_council_input = 4;
   bool is_treasury_contract_needed = 5;  // if true, create treasury
   repeated File files = 6;
-  repeated PermissionInfo permission_infos = 7;
-}
-
-message GovernanceSchemeInput {
-  aelf.Hash governance_scheme_id = 1;  // if new Hash() means governance scheme si not fixed
-  GovernanceSchemeThreshold governance_scheme_threshold = 2;  // empty if governance scheme is not fixed
+  bool is_network_dao = 7;
 }
 
 message HighCouncilInput {
   HighCouncilConfig high_council_config = 1;  // empty if high council is not enabled
-  bool is_require_high_council_for_execution = 2;
+  GovernanceSchemeThreshold governance_scheme_threshold = 2;  // governance scheme threshold for high council
 }
 
 message Metadata {
@@ -92,6 +86,7 @@ message HighCouncilConfig {
   int64 max_high_council_member_count = 1;
   int64 max_high_council_candidate_count = 2;
   int64 election_period = 3;
+  int64 staking_amount = 4;
 }
 
 message File {
@@ -110,31 +105,15 @@ message FileInfoList {
   map<string, FileInfo> data = 1;  // cid -> FileInfo
 }
 
-message MemberList {
-  repeated aelf.Address data = 1;
-}
-
-message HighCouncilInfo {
-  int64 term_number = 1;
-  MemberList member_list = 2;
-}
-
 enum PermissionType {
-  NONE = 0;             // no permission
-  EVERYONE = 1;         // everyone
-  HIGHCOUNCILONLY = 2;  // HighCouncil member only
-  SPECIFICADDRESS = 3;  // specific address
+  DEFAULT = 0;         // Referendum and HighCouncil if enabled
+  CREATOR = 1;         // Creator only
 }
 
 message PermissionInfo {
-  aelf.Address where = 1;              // target contract address
-  string what = 2;                     // target function name
-  PermissionType permission_type = 3;  // permission type
-  aelf.Address who = 4;                // address who is granted the permission
-}
-
-message PermissionInfoList {
-  repeated PermissionInfo permission_infos = 1;
+  aelf.Address where = 1;
+  aelf.Address who = 2;
+  string what = 3;
 }
 
 message DAOInfo {
@@ -143,6 +122,7 @@ message DAOInfo {
   bool subsist_status = 3;
   string governance_token = 4;
   ContractAddressList contract_address_list = 5;
+  bool is_network_dao = 6;
 }
 
 message ContractAddressList {
@@ -160,31 +140,8 @@ message SetSubsistStatusInput {
 
 message EnableHighCouncilInput {
   aelf.Hash dao_id = 1;
-  HighCouncilConfig high_council_config = 2;
-  bool execution_config = 3;
+  HighCouncilInput high_council_input = 2;
 }
-
-//message SetHighCouncilConfigInput {
-//  aelf.Hash dao_id = 1;
-//  int64 max_high_council_member_count = 2;
-//  int64 max_high_council_candidate_count = 3;
-//  int64 election_period = 4;
-//}
-
-message SetHighCouncilExecutionConfigInput {
-  aelf.Hash dao_id = 1;
-  bool execution_config = 2;  // if true, all proposals must be executed by high council
-}
-
-//message UpdateHighCouncilMemberInput {
-//  aelf.Hash dao_id = 1;
-//  MemberList member_list = 2;
-//}
-//
-//message IsHighCouncilMemberInput {
-//  aelf.Hash dao_id = 1;
-//  aelf.Address address = 2;
-//}
 
 message UploadFileInfosInput {
   aelf.Hash dao_id = 1;
@@ -194,11 +151,6 @@ message UploadFileInfosInput {
 message RemoveFileInfosInput {
   aelf.Hash dao_id = 1;
   repeated string file_cids = 2;
-}
-
-message SetPermissionsInput {
-  aelf.Hash dao_id = 1;
-  repeated PermissionInfo permission_infos = 2;
 }
 
 message HasPermissionInput {
@@ -227,7 +179,7 @@ message SubsistStatusSet {
 message HighCouncilEnabled {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
-  bool execution_config = 2;
+  HighCouncilInput high_council_input = 2;
   aelf.Address high_council_address = 3;
 }
 
@@ -235,25 +187,6 @@ message HighCouncilDisabled {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
 }
-
-message HighCouncilExecutionConfigSet {
-  option (aelf.is_event) = true;
-  aelf.Hash dao_id = 1;
-  bool execution_config = 2;
-}
-
-//message HighCouncilConfigSet {
-//  option (aelf.is_event) = true;
-//  aelf.Hash dao_id = 1;
-//  HighCouncilConfig high_council_config = 2;
-//}
-//
-//message HighCouncilMemberUpdated {
-//  option (aelf.is_event) = true;
-//  aelf.Hash dao_id = 1;
-//  HighCouncilInfo previous_high_council_info = 2;
-//  HighCouncilInfo updated_high_council_info = 3;
-//}
 
 message FileInfosUploaded {
   option (aelf.is_event) = true;
@@ -265,11 +198,4 @@ message FileInfosRemoved {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
   FileInfoList removed_files = 2;
-}
-
-message PermissionsSet {
-  option (aelf.is_event) = true;
-  aelf.Hash dao_id = 1;
-  aelf.Address here = 2;   // address who grants the permission
-  PermissionInfoList permission_info_list = 3;
 }

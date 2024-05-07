@@ -1,12 +1,33 @@
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace TomorrowDAO.Contracts.Vote
-{
+namespace TomorrowDAO.Contracts.Vote;
 
-    public class VoteContract : VoteContractContainer.VoteContractBase
+public partial class VoteContract : VoteContractContainer.VoteContractBase
+{
+    public override Empty Initialize(InitializeInput input)
     {
+        Assert(!State.Initialized.Value, "Already initialized.");
+        State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+        Assert(State.GenesisContract.GetContractInfo.Call(Context.Self).Deployer == Context.Sender, "No permission.");
+        Assert(input != null, "Input is null.");
         
+        InitializeContract(input);
+        return new Empty();
     }
-    
+        
+    private void InitializeContract(InitializeInput input)
+    {
+        Assert(IsAddressValid(input.GovernanceContractAddress), "Invalid governance contract address.");
+        State.GovernanceContract.Value = input.DaoContractAddress;
+            
+        Assert(IsAddressValid(input.DaoContractAddress), "Invalid dao contract address.");
+        State.DaoContract.Value = input.DaoContractAddress;
+        
+        Assert(IsAddressValid(input.ElectionContractAddress), "Invalid election contract address.");
+        State.ElectionContract.Value = input.ElectionContractAddress;
+            
+        State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+        State.Initialized.Value = true;
+    }
 }

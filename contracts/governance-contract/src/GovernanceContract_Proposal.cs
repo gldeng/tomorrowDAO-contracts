@@ -125,15 +125,14 @@ public partial class GovernanceContract
 
     private void RegisterVotingItem(ProposalInfo proposal, Address schemeAddress, string governanceToken)
     {
-        //todo call VoteContract after it's development 
-        // State.VoteContract.Register.Send(new VotingRegisterInput
-        // {
-        //     SchemeAddress = schemeAddress,
-        //     VotingItemId = proposal.ProposalId,
-        //     StartTimestamp = proposal.ProposalTime.ActiveStartTime,
-        //     EndTimestamp = proposal.ProposalTime.ActiveEndTime,
-        //     AcceptedToken = governanceToken
-        // });
+        State.VoteContract.Register.Send(new VotingRegisterInput
+        {
+            SchemeAddress = schemeAddress,
+            VotingItemId = proposal.ProposalId,
+            StartTimestamp = proposal.ProposalTime.ActiveStartTime,
+            EndTimestamp = proposal.ProposalTime.ActiveEndTime,
+            AcceptedToken = governanceToken
+        });
     }
 
     private void FireProposalCreatedEvent(ProposalInfo proposal)
@@ -176,39 +175,20 @@ public partial class GovernanceContract
         AssertParams(input);
         var proposal = State.Proposals[input];
         Assert(proposal != null, "Proposal not found.");
-        // todo: permission
         Assert(Context.Sender == proposal.Proposer, "No permission.");
         ExecuteProposal(proposal);
         State.Proposals.Remove(proposal.ProposalId);
         return new Empty();
     }
 
-    //
-    // public override Empty ExecuteOrganizationProposal(Hash input)
-    // {
-    //     Assert(State.Initialized.Value, "Not initialized yet.");
-    //     AssertParams(input);
-    //     var proposal = State.OrganizationProposals[input];
-    //     Assert(proposal != null, "Proposal not found.");
-    //     // todo: permission
-    //     Assert(Context.Sender == proposal.Proposer, "No permission.");
-    //     ExecuteProposal(proposal, true);
-    //     State.OrganizationProposals.Remove(proposal.ProposalId);
-    //     return new Empty();
-    // }
-    //
     private void ExecuteProposal(ProposalInfo proposal, bool isExecute = false)
     {
         Assert(Context.CurrentBlockTime > proposal.ProposalTime.ExecuteStartTime
                && Context.CurrentBlockTime < proposal.ProposalTime.ExecuteEndTime,
             "The proposal is in active or expired.");
-        //todo call VoteContract after it's development 
-        // var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-        // {
-        //     VotingItemId = proposal.ProposalId
-        // });
-        // proposal = CheckProposalStatus(proposal, voteResult);
-        Assert(proposal.ProposalStatus == ProposalStatus.Approved, "Proposal not approve.");
+        var proposalStatusOutput = GetProposalStatus(proposal);
+        Assert(proposalStatusOutput.ProposalStatus == ProposalStatus.Approved 
+               && proposalStatusOutput.ProposalStage == ProposalStage.Execute, "Proposal can not execute.");
         var governanceScheme = GetGovernanceScheme(proposal.ProposalBasicInfo.SchemeAddress);
         Assert(governanceScheme != null, "GovernanceScheme not found.");
         var schemeId = governanceScheme.SchemeId;
@@ -232,29 +212,15 @@ public partial class GovernanceContract
     {
         Assert(input != null && input != Hash.Empty, "Invalid input.");
         var proposal = State.Proposals[input];
-        if (proposal == null)
-        {
-            return new ProposalStatusOutput();
-        }
-
-        return GetProposalStatus(proposal);
+        return proposal == null ? new ProposalStatusOutput() : GetProposalStatus(proposal);
     }
 
     private ProposalStatusOutput GetProposalStatus(ProposalInfo proposalInfo)
     {
-        //todo call VoteContract after it's development 
-        // var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-        // {
-        //     VotingItemId = proposalInfo.ProposalId
-        // });
-        var votingResult = new VotingResult
+        var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
         {
-            VotesAmount = 0,
-            ApproveCounts = 0,
-            RejectCounts = 0,
-            AbstainCounts = 0,
-            TotalVotersCount = 0
-        };
+            VotingItemId = proposalInfo.ProposalId
+        });
         var threshold = State.ProposalGovernanceSchemeSnapShot[proposalInfo.ProposalId];
         var proposalStage = proposalInfo.ProposalStage;
         var proposalStatus = proposalInfo.ProposalStatus;
@@ -318,29 +284,29 @@ public partial class GovernanceContract
 
         var isApproved = approveVote / totalVote * GovernanceContractConstants.AbstractVoteTotal >
                          threshold.MinimalApproveThreshold;
-        if (isApproved)
+        if (!isApproved)
         {
-            proposalStatus = ProposalStatus.Approved;
-            if (HasPendingStatus(proposalInfo.ProposalId))
+            return new ProposalStatusOutput
             {
-                return new ProposalStatusOutput
-                {
-                    ProposalStatus = proposalStatus,
-                    ProposalStage = ProposalStage.Pending
-                };
-            }
-
+                ProposalStatus = ProposalStatus.Expired,
+                ProposalStage = ProposalStage.Finished
+            };
+        }
+        
+        proposalStatus = ProposalStatus.Approved;
+        if (HasPendingStatus(proposalInfo.ProposalId))
+        {
             return new ProposalStatusOutput
             {
                 ProposalStatus = proposalStatus,
-                ProposalStage = ProposalStage.Execute
+                ProposalStage = ProposalStage.Pending
             };
         }
 
         return new ProposalStatusOutput
         {
-            ProposalStatus = ProposalStatus.Expired,
-            ProposalStage = ProposalStage.Finished
+            ProposalStatus = proposalStatus,
+            ProposalStage = ProposalStage.Execute
         };
     }
 
@@ -399,17 +365,6 @@ public partial class GovernanceContract
         return new Empty();
     }
 
-    //
-    // public override Empty SetOrganizationProposalWhitelistTransaction(
-    //     SetOrganizationProposalWhitelistTransactionInput input)
-    // {
-    //     State.WhitelistTransactionList.Value.WhitelistTransactionList_.AddRange(input.WhitelistTransactionList
-    //         .WhitelistTransactionList_);
-    //     return new Empty();
-    // }
-    //
-    // #region View
-    //
     public override ProposalInfoOutput GetProposalInfo(Hash input)
     {
         var proposal = State.Proposals[input];
@@ -418,11 +373,10 @@ public partial class GovernanceContract
             return new ProposalInfoOutput();
         }
 
-        //TODO Query the Vote contract.
-        // var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
-        // {
-        //     VotingItemId = input
-        // });
+        var voteResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
+        {
+            VotingItemId = input
+        });
 
         var proposalInfoOutput = new ProposalInfoOutput
         {
@@ -443,11 +397,11 @@ public partial class GovernanceContract
             Transaction = proposal.Transaction,
             VoteSchemeId = proposal.ProposalBasicInfo?.VoteSchemeId,
             VetoProposalId = proposal.VetoProposalId,
-            // VotersCount = voteResult.VotesAmount,
-            // VoteCount = voteResult.TotalVotersCount,
-            // ApprovalCount = voteResult.ApproveCounts,
-            // RejectionCount = voteResult.RejectCounts,
-            // AbstentionCount = voteResult.AbstainCounts
+            VotersCount = voteResult.VotesAmount,
+            VoteCount = voteResult.TotalVotersCount,
+            ApprovalCount = voteResult.ApproveCounts,
+            RejectionCount = voteResult.RejectCounts,
+            AbstentionCount = voteResult.AbstainCounts
         };
         return proposalInfoOutput;
     }
@@ -465,15 +419,6 @@ public partial class GovernanceContract
         };
     }
 
-    //
-    // public override WhitelistTransactionList GetOrganizationProposalWhitelistTransaction(Empty input)
-    // {
-    //     return new WhitelistTransactionList
-    //     {
-    //         WhitelistTransactionList_ = { GetWhitelistTransactionList() }
-    //     };
-    // }
-    //
     public override GovernanceSchemeThreshold GetProposalSnapShotScheme(Hash input)
     {
         if (input == null || input == Hash.Empty)

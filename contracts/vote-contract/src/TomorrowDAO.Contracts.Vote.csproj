@@ -23,5 +23,9 @@
         </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="obj\Debug\net6.0\Protobuf\contract\" />
+    </ItemGroup>
+
 </Project>
     

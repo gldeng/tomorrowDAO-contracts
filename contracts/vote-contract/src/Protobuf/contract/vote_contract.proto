@@ -94,6 +94,10 @@ enum VoteMechanism {
   TOKEN_BALLOT = 1; // 1t1v
 }
 
+message VotingItemIdList {
+  repeated aelf.Hash voting_item_id = 1;
+}
+
 message VotingItem {
   aelf.Hash dao_id = 1;
   // The voting activity id.(proposal id)
@@ -215,6 +219,8 @@ message VoteInput {
 
 message WithdrawInput {
   aelf.Hash dao_id = 1;
+  int64 withdraw_amount = 2;
+  VotingItemIdList voting_item_id_list = 3;
 }
 
 message StakeInput {
@@ -356,8 +362,9 @@ message Withdrawn {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
   aelf.Address user = 2;
-  int64 amount = 3;
+  int64 withdraw_amount = 3;
   google.protobuf.Timestamp withdraw_timestamp = 4;
+  VotingItemIdList voting_item_id_list = 5;
 }
 
 message EmergencyStatusSet {

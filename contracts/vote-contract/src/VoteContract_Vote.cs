@@ -114,9 +114,9 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         Context.Fire(new Withdrawn
         {
             DaoId = input.DaoId,
-            Amount = withdrawAmount,
+            WithdrawAmount = withdrawAmount,
             User = Context.Sender,
-            WithdrawTimestamp = Context.CurrentBlockTime
+            WithdrawTimestamp = Context.CurrentBlockTime,
         });
         return new Empty();
     }

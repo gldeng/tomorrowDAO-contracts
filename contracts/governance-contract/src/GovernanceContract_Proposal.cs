@@ -249,7 +249,7 @@ public partial class GovernanceContract
                 ProposalStage = ProposalStage.Finished
             };
         }
-
+        //TODO HC
         var enoughVote = rejectVote.Add(abstainVote).Add(approveVote) >= threshold.MinimalVoteThreshold;
         if (!enoughVote)
         {

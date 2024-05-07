@@ -3,6 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace TomorrowDAO.Contracts.Election;
 
@@ -26,8 +27,8 @@ public partial class ElectionContract
         AssertValidLockSeconds(lockSeconds);
 
         var voteId = GenerateVoteId(input);
-        Assert(State.LockTimeMap[input.DaoId][voteId] == 0, "Vote already exists.");
-        State.LockTimeMap[input.DaoId][voteId] = lockSeconds;
+        Assert(State.LockTimeMap[voteId] == 0, "Vote already exists.");
+        State.LockTimeMap[voteId] = lockSeconds;
 
         UpdateElectorInformation(input.DaoId, input.Amount, voteId);
         UpdateCandidateInformation(input.DaoId, input.CandidateAddress, input.Amount, voteId);
@@ -45,6 +46,30 @@ public partial class ElectionContract
         });
 
         return voteId;
+    }
+    
+    public override Empty Withdraw(Hash input)
+    {
+        AssertNotNullOrEmpty(input);
+
+        var votingRecord = State.VotingRecords[input];
+        Assert(votingRecord != null, $"Vote {input} not found.");
+        Assert(votingRecord!.Voter == Context.Sender, "No permission.");
+        var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+        var claimedLockSeconds = State.LockTimeMap[input];
+        Assert(actualLockedTime >= claimedLockSeconds,
+            $"Still need {claimedLockSeconds.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
+
+        var electorVote = State.ElectorVotes[votingRecord.DaoId][Context.Sender];
+        Assert(electorVote != null, $"Voter {Context.Sender.ToBase58()} never votes before");
+        electorVote.ActiveVotingRecordIds.Remove(input);
+        electorVote.WithdrawnVotingRecordIds.Add(input);
+        electorVote.ActiveVotedVotesAmount = electorVote.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
+        State.ElectorVotes[votingRecord.DaoId][Context.Sender] = electorVote;
+
+        //TODO 
+        
+        return new Empty();
     }
 
     private void LockToken(VoteHighCouncilInput input, VotingItem votingItem, Hash voteId)
@@ -143,6 +168,7 @@ public partial class ElectionContract
     {
         var votingRecord = new VotingRecord
         {
+            DaoId = input.DaoId,
             Voter = Context.Sender,
             VotingItemId = votingItemId,
             Amount = input.Amount,

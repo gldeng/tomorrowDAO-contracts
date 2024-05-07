@@ -21,7 +21,7 @@ public partial class ElectionContract
         State.CandidateAdmins[input.DaoId][Context.Sender] = input.CandidateAdmin;
 
         LockCandidateAnnounceToken(input.DaoId);
-        
+
         Context.Fire(new CandidateAdded
         {
             DaoId = input.DaoId,
@@ -48,7 +48,7 @@ public partial class ElectionContract
         LockCandidateAnnounceToken(input.DaoId);
 
         State.CandidateSponsorMap[input.DaoId][input.Candidate] = Context.Sender;
-        
+
         Context.Fire(new CandidateAdded
         {
             DaoId = input.DaoId,
@@ -58,7 +58,7 @@ public partial class ElectionContract
         });
         return new Empty();
     }
-    
+
     public override Empty QuitElection(QuitElectionInput input)
     {
         AssertValidAndQuitElection(input);
@@ -82,7 +82,7 @@ public partial class ElectionContract
         candidateInformation.IsCurrentCandidate = false;
         candidateInformation.AnnouncementTransactionId = Hash.Empty;
         State.CandidateInformationMap[input.DaoId][input.Candidate] = candidateInformation;
-        
+
         //Update candidate sponsor map
         State.CandidateSponsorMap[input.DaoId].Remove(input.Candidate);
 
@@ -93,7 +93,7 @@ public partial class ElectionContract
             State.ManagedCandidateMap[input.DaoId][Context.Sender] = managedCandidate;
         else
             State.ManagedCandidateMap[input.DaoId].Remove(Context.Sender);
-        
+
         //Update candidate admins map
         State.CandidateAdmins[input.DaoId].Remove(input.Candidate);
 
@@ -102,8 +102,35 @@ public partial class ElectionContract
             DaoId = input.DaoId,
             Candidate = input.Candidate
         });
-        
+
         return new Empty();
+    }
+
+    public override Empty SetCandidateAdmin(SetCandidateAdminInput input)
+    {
+        AssertNotNullOrEmpty(input);
+        AssertNotNullOrEmpty(input.DaoId, "DaoId");
+        AssertNotNullOrEmpty(input.Candidate, "Candidate");
+        AssertNotNullOrEmpty(input.NewAdmin, "NewAdmin");
+        var oldAdminAddress = State.CandidateAdmins[input.DaoId][input.Candidate];
+        Assert(oldAdminAddress == Context.Sender, "No permission.");
+        State.CandidateAdmins[input.DaoId][input.Candidate] = input.NewAdmin;
+        
+        var oldAdminManagedCandidates = State.ManagedCandidateMap[input.DaoId][oldAdminAddress] ?? new AddressList();
+        if (oldAdminManagedCandidates.Value.Contains(input.Candidate))
+        {
+            oldAdminManagedCandidates.Value.Remove(input.Candidate);
+            State.ManagedCandidateMap[input.DaoId][oldAdminAddress] = oldAdminManagedCandidates;
+        }
+
+        var newAdminManagedCandidates = State.ManagedCandidateMap[input.DaoId][input.NewAdmin] ?? new AddressList();
+        if (!newAdminManagedCandidates.Value.Contains(input.Candidate))
+        {
+            newAdminManagedCandidates.Value.Add(input.Candidate);
+            State.ManagedCandidateMap[input.DaoId][input.NewAdmin] = newAdminManagedCandidates;
+        }
+
+        return base.SetCandidateAdmin(input);
     }
 
     private void AnnounceElection(Hash daoId, Address candidateAddress, Address candidateAdmin)
@@ -130,13 +157,13 @@ public partial class ElectionContract
                 IsCurrentCandidate = true
             };
         }
-        
+
         var addresses = State.Candidates[daoId] ?? new AddressList();
         Assert(addresses.Value.Count < highCouncil.MaxHighCouncilCandidateCount,
             $"The number of candidates cannot exceed {highCouncil.MaxHighCouncilCandidateCount}");
         addresses.Value.Add(candidateAddress);
         State.Candidates[daoId] = addresses;
-        
+
         var managedAddresses = State.ManagedCandidateMap[daoId][candidateAdmin] ?? new AddressList();
         if (!managedAddresses.Value.Contains(Context.Sender))
         {
@@ -165,14 +192,14 @@ public partial class ElectionContract
             Memo = $"Lock for dao announcing election, {daoId.ToHex()}."
         });
     }
-    
+
     private void AssertValidAndQuitElection(QuitElectionInput input)
     {
         AssertNotNullOrEmpty(input);
         AssertNotNullOrEmpty(input.Candidate, "Candidate");
         var managedCandidates = State.CandidateAdmins[input.DaoId][input.Candidate];
         Assert(Context.Sender == managedCandidates, "Only admin can quit election.");
-        
+
         Assert(State.Candidates[input.DaoId].Value.Contains(input.Candidate), "Target is not a candidate.");
         State.Candidates[input.DaoId].Value.Remove(input.Candidate);
     }

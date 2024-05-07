@@ -10,7 +10,6 @@ option csharp_namespace = "TomorrowDAO.Contracts.Election";
 service ElectionContract {
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Election.ElectionContractState";
 
-
   rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {}
 
   rpc SetHighCouncilConfig (SetHighCouncilConfigInput) returns (google.protobuf.Empty) {}
@@ -26,6 +25,11 @@ service ElectionContract {
   rpc Vote (VoteHighCouncilInput) returns (aelf.Hash) {}
 
   rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {}
+  
+  rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {}
+
+  rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
+  }
 
 
   // views
@@ -76,9 +80,6 @@ service ElectionContract {
   rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
   }
 
-  rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
-  }
-
   rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
   }
 
@@ -87,10 +88,6 @@ service ElectionContract {
 
   rpc ReplaceCandidateAddress (ReplaceCandidatePubkeyInput) returns (google.protobuf.Empty) {
   }
-
-  rpc SetCandidateAdmin (SetCandidateAdminInput) returns (google.protobuf.Empty) {
-  }
-
   rpc RemoveEvilNode (RemoveEvilNodeInput) returns (google.protobuf.Empty) {
   }
 
@@ -296,6 +293,7 @@ message VotingRecord {
   aelf.Hash voting_item_id = 10;
   int64 snapshot_number = 11;
   bool is_change_target = 12;
+  aelf.Hash dao_id = 13;
 }
 message Voted {
   option (aelf.is_event) = true;
@@ -407,6 +405,12 @@ message ElectionResult {
   bool is_active = 4;
 }
 
+message SetCandidateAdminInput {
+  aelf.Hash dao_id = 1;
+  aelf.Address candidate = 2;
+  aelf.Address new_admin = 3;
+}
+
 
 
 
@@ -454,10 +458,6 @@ message ReplaceCandidatePubkeyInput {
   aelf.Hash dao_id = 1;
   aelf.Address old_address = 2;
   aelf.Address new_address = 3;
-}
-
-message SetCandidateAdminInput {
-  aelf.Address new_admin = 1;
 }
 
 message RemoveEvilNodeInput {

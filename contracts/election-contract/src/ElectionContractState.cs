@@ -45,9 +45,9 @@ public partial class ElectionContractState : ContractState
 
     // dao -> Address-> Voting information of candidates
     public MappedState<Hash, Address, CandidateVote> CandidateVotes { get; set; }
-    //dao id -> vote id -> lock time(seconds)
-    public MappedState<Hash, Hash, long> LockTimeMap { get; set; }
-    // dao -> Address-> Voter's Voting Information
+    //vote id -> lock time(seconds)
+    public MappedState<Hash, long> LockTimeMap { get; set; }
+    // dao -> elector address-> Voter's Voting Information
     public MappedState<Hash, Address, ElectorVote> ElectorVotes { get; set; }
     // vote id -> voting record
     public MappedState<Hash, VotingRecord> VotingRecords { get; set; }

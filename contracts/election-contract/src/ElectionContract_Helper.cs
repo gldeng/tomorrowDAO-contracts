@@ -11,18 +11,16 @@ public partial class ElectionContract
         Assert(State.Initialized.Value, "Contract not initialized.");
     }
     
-    private void AssertSenderPermission(params Address[] privilegedSender)
-    {
-        var hasPermission = privilegedSender.Any(address => address == Context.Sender);
-        Assert(!hasPermission, "No permission.");
-    }
-    
     private void AssertSenderDaoContract()
     {
-        AssertSenderPermission(State.DaoContract.Value);
+        Assert(State.DaoContract.Value == Context.Sender, "No permission.");
     }
 
-    
+    private void AssertSenderDaoOrGovernanceContract()
+    {
+        Assert(State.DaoContract.Value == Context.Sender || State.GovernanceContract.Value == Context.Sender,
+            "No permission.");
+    }
 
     private void AssertNotNullOrEmpty(object input, string message = null)
     {
@@ -41,8 +39,17 @@ public partial class ElectionContract
                 break;
         }
     }
-    
-    internal TokenInfo GetTokenInfo(string symbol)
+
+    private Hash GetVotingResultHash(Hash votingItemId, long snapshotNumber)
+    {
+        return new VotingResult
+        {
+            VotingItemId = votingItemId,
+            SnapshotNumber = snapshotNumber
+        }.GetHash();
+    }
+
+    private TokenInfo GetTokenInfo(string symbol)
     {
         return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
         {

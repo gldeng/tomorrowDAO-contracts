@@ -1,23 +1,47 @@
+using System.Linq;
 using AElf.Contracts.MultiToken;
+using AElf.Types;
 
 namespace TomorrowDAO.Contracts.Election;
 
 public partial class ElectionContract
 {
-
-
-    internal void AssertInitialized()
+    private void AssertInitialized()
     {
         Assert(State.Initialized.Value, "Contract not initialized.");
     }
-
-
-    internal void AssertSenderDaoContract()
+    
+    private void AssertSenderPermission(params Address[] privilegedSender)
     {
-        Assert(State.DaoContractAddress.Value == Context.Sender, "No permission.");
+        var hasPermission = privilegedSender.Any(address => address == Context.Sender);
+        Assert(!hasPermission, "No permission.");
+    }
+    
+    private void AssertSenderDaoContract()
+    {
+        AssertSenderPermission(State.DaoContract.Value);
     }
 
+    
 
+    private void AssertNotNullOrEmpty(object input, string message = null)
+    {
+        message = string.IsNullOrWhiteSpace(message) ? "Invalid input." : $"{message} cannot be null or empty.";
+        Assert(input != null, message);
+        switch (input)
+        {
+            case Address address:
+                Assert(address.Value.Any(), message);
+                break;
+            case Hash hash:
+                Assert(hash != Hash.Empty, message);
+                break;
+            case string s:
+                Assert(!string.IsNullOrEmpty(s), message);
+                break;
+        }
+    }
+    
     internal TokenInfo GetTokenInfo(string symbol)
     {
         return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
@@ -25,6 +49,4 @@ public partial class ElectionContract
             Symbol = symbol
         });
     }
-
-
 }

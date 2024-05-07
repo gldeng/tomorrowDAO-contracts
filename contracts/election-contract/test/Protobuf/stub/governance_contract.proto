@@ -170,11 +170,11 @@ message ExecuteTransaction {
 }
 
 message DaoProposalTimePeriod {
-  int64 active_time_period = 1; //day
-  int64 veto_active_time_period = 2; //day
-  int64 pending_time_period = 3; //day
-  int64 execute_time_period = 4; //day
-  int64 veto_execute_time_period = 5; //day
+  int64 active_time_period = 1; //seconds
+  int64 veto_active_time_period = 2; //seconds
+  int64 pending_time_period = 3; //seconds
+  int64 execute_time_period = 4; //seconds
+  int64 veto_execute_time_period = 5; //seconds
 }
 
 // Input

@@ -100,7 +100,9 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             Option = input.VoteOption,
             VoteId = voteId,
             DaoId = votingItem.DaoId,
-            VoteMechanism = voteScheme.VoteMechanism
+            VoteMechanism = voteScheme.VoteMechanism,
+            StartTime = votingItem.StartTimestamp,
+            EndTime = votingItem.EndTimestamp
         });
         return new Empty();
     }

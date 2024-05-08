@@ -12,6 +12,7 @@ option csharp_namespace = "TomorrowDAO.Contracts.Vote";
 
 service VoteContract {
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Vote.VoteContractState";
+  option (aelf.base) = "Protobuf/base/acs12.proto";
 
   rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
   }

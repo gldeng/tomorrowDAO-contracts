@@ -10,6 +10,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         Assert(!State.Initialized.Value, "Already initialized.");
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+        State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         Assert(State.GenesisContract.GetContractInfo.Call(Context.Self).Deployer == Context.Sender, "No permission.");
         Assert(input != null, "Input is null.");
         
@@ -27,8 +28,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         
         Assert(IsAddressValid(input.ElectionContractAddress), "Invalid election contract address.");
         State.ElectionContract.Value = input.ElectionContractAddress;
-            
-        State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+        
         State.Initialized.Value = true;
     }
 }

@@ -81,6 +81,12 @@ service VoteContract {
   rpc GetVotingIds (aelf.Address) returns (VotedIds) {
     option (aelf.is_view) = true;
   }
+  rpc GetDaoRemainAmount (aelf.Hash) returns (DaoRemainAmount) {
+    option (aelf.is_view) = true;
+  }
+  rpc GetProposalRemainAmount (GetProposalRemainAmountInput) returns (ProposalRemainAmount) {
+    option (aelf.is_view) = true;
+  }
 }
 
 // Data structure
@@ -169,6 +175,17 @@ message StakeableTokenList {
 
 message VotedIds {
   repeated aelf.Hash vote_ids = 1;
+}
+
+message DaoRemainAmount {
+  aelf.Hash dao_id = 1;
+  int64 amount = 2;
+}
+
+message ProposalRemainAmount {
+  aelf.Hash dao_id = 1;
+  aelf.Hash voting_item_id = 2;
+  int64 amount = 3;
 }
 
 message StringList {
@@ -316,6 +333,11 @@ message GetVotingSnapShotInput {
 message GetVotingRecordInput {
   aelf.Hash voting_item_id = 1;
   aelf.Address voter = 2;
+}
+
+message GetProposalRemainAmountInput {
+  aelf.Hash dao_id = 1;
+  aelf.Hash voting_item_id = 2;
 }
 
 //Events

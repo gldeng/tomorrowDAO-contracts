@@ -230,5 +230,25 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         return GetVirtualAddress(Context.Sender, input);
     }
 
+    public override DaoRemainAmount GetDaoRemainAmount(Hash input)
+    {
+        return new DaoRemainAmount
+        {
+            DaoId = input,
+            Amount = State.DaoRemainAmounts[Context.Sender][input]
+        };
+    }
+    
+    public override ProposalRemainAmount GetProposalRemainAmount(GetProposalRemainAmountInput input)
+    {
+        AssertCommon(input);
+        return new ProposalRemainAmount
+        {
+            DaoId = input.DaoId,
+            VotingItemId = input.VotingItemId,
+            Amount = State.ProposalRemainAmounts[Context.Sender][input.DaoId][input.VotingItemId]
+        };
+    }
+
     #endregion
 }

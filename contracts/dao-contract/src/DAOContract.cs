@@ -91,7 +91,8 @@ public partial class DAOContract : DAOContractContainer.DAOContractBase
             Metadata = input.Metadata,
             Creator = Context.Sender,
             GovernanceToken = input.GovernanceToken,
-            ContractAddressList = daoInfo.ContractAddressList
+            ContractAddressList = daoInfo.ContractAddressList,
+            IsNetworkDao = input.IsNetworkDao
         });
     }
 

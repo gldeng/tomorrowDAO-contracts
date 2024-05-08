@@ -81,6 +81,12 @@ service VoteContract {
   rpc GetVotingIds (aelf.Address) returns (VotedIds) {
     option (aelf.is_view) = true;
   }
+  rpc GetDaoRemainAmount (aelf.Hash) returns (DaoRemainAmount) {
+    option (aelf.is_view) = true;
+  }
+  rpc GetProposalRemainAmount (GetProposalRemainAmountInput) returns (ProposalRemainAmount) {
+    option (aelf.is_view) = true;
+  }
 }
 
 // Data structure
@@ -95,7 +101,7 @@ enum VoteMechanism {
 }
 
 message VotingItemIdList {
-  repeated aelf.Hash voting_item_id = 1;
+  repeated aelf.Hash value = 1;
 }
 
 message VotingItem {
@@ -169,6 +175,17 @@ message StakeableTokenList {
 
 message VotedIds {
   repeated aelf.Hash vote_ids = 1;
+}
+
+message DaoRemainAmount {
+  aelf.Hash dao_id = 1;
+  int64 amount = 2;
+}
+
+message ProposalRemainAmount {
+  aelf.Hash dao_id = 1;
+  aelf.Hash voting_item_id = 2;
+  int64 amount = 3;
 }
 
 message StringList {
@@ -318,6 +335,11 @@ message GetVotingRecordInput {
   aelf.Address voter = 2;
 }
 
+message GetProposalRemainAmountInput {
+  aelf.Hash dao_id = 1;
+  aelf.Hash voting_item_id = 2;
+}
+
 //Events
 message VoteSchemeCreated {
   option (aelf.is_event) = true;
@@ -356,12 +378,13 @@ message Voted {
   // The vote id.
   aelf.Hash vote_id = 6;
   aelf.Hash dao_id = 7;
+  VoteMechanism vote_mechanism = 8;
 }
 
 message Withdrawn {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
-  aelf.Address user = 2;
+  aelf.Address withdrawer = 2;
   int64 withdraw_amount = 3;
   google.protobuf.Timestamp withdraw_timestamp = 4;
   VotingItemIdList voting_item_id_list = 5;

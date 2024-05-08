@@ -21,7 +21,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     private void InitializeContract(InitializeInput input)
     {
         Assert(IsAddressValid(input.GovernanceContractAddress), "Invalid governance contract address.");
-        State.GovernanceContract.Value = input.DaoContractAddress;
+        State.GovernanceContract.Value = input.GovernanceContractAddress;
             
         Assert(IsAddressValid(input.DaoContractAddress), "Invalid dao contract address.");
         State.DaoContract.Value = input.DaoContractAddress;

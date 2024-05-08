@@ -379,6 +379,8 @@ message Voted {
   aelf.Hash vote_id = 6;
   aelf.Hash dao_id = 7;
   VoteMechanism vote_mechanism = 8;
+  google.protobuf.Timestamp start_time = 9;
+  google.protobuf.Timestamp end_time = 10;
 }
 
 message Withdrawn {

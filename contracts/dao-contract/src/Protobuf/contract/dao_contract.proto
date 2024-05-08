@@ -38,6 +38,13 @@ service DAOContract {
 
   // permission
   rpc HasPermission (HasPermissionInput) returns (google.protobuf.BoolValue) {option (aelf.is_view) = true;}
+  
+  // to delete
+  rpc SetGovernanceContract (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc SetElectionContract (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc SetTimelockContract (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc SetTreasuryContract (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc SetVoteContract (aelf.Address) returns (google.protobuf.Empty) {}
 }
 
 message InitializeInput {

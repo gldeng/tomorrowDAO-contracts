@@ -356,6 +356,7 @@ message Voted {
   // The vote id.
   aelf.Hash vote_id = 6;
   aelf.Hash dao_id = 7;
+  VoteMechanism vote_mechanism = 8;
 }
 
 message Withdrawn {

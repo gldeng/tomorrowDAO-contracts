@@ -45,15 +45,16 @@ public partial class DAOContract
                 GovernanceMechanism = GovernanceMechanism.HighCouncil
             });
 
-        State.ElectionContract.RegisterElectionVotingEvent.Call(new RegisterElectionVotingEventInput
-        {
-            DaoId = daoId,
-            ElectionPeriod = highCouncilConfig.ElectionPeriod,
-            GovernanceToken = State.DAOInfoMap[daoId].GovernanceToken,
-            LockTokenForElection = highCouncilConfig.StakingAmount,
-            MaxCandidateCount = highCouncilConfig.MaxHighCouncilCandidateCount,
-            MaxHighCouncilMemberCount = highCouncilConfig.MaxHighCouncilMemberCount
-        });
+        // todo call it after
+        // State.ElectionContract.RegisterElectionVotingEvent.Call(new RegisterElectionVotingEventInput
+        // {
+        //     DaoId = daoId,
+        //     ElectionPeriod = highCouncilConfig.ElectionPeriod,
+        //     GovernanceToken = State.DAOInfoMap[daoId].GovernanceToken,
+        //     LockTokenForElection = highCouncilConfig.StakingAmount,
+        //     MaxCandidateCount = highCouncilConfig.MaxHighCouncilCandidateCount,
+        //     MaxHighCouncilMemberCount = highCouncilConfig.MaxHighCouncilMemberCount
+        // });
 
         Context.Fire(new HighCouncilEnabled
         {

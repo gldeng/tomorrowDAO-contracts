@@ -21,7 +21,6 @@ public class ElectionContractBaseRegisterElectionVotingEvent : ElectionContractB
                 ElectionPeriod = 7 * 24 * 60 * 60,
                 IsRequireHighCouncilForExecution = false,
                 GovernanceToken = DefaultGovernanceToken,
-                LockTokenForElection = 50000
             });
 
         var logEvent = GetLogEvent<ElectionVotingEventRegistered>(result.TransactionResult);

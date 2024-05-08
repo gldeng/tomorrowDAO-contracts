@@ -5,6 +5,8 @@ import "aelf/options.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "Protobuf/base/acs12.proto";
+
 option csharp_namespace = "TomorrowDAO.Contracts.Election";
 
 service ElectionContract {
@@ -125,7 +127,6 @@ message SetHighCouncilConfigInput {
   int64 election_period = 5;
   bool is_require_high_council_for_execution = 6;
   string governance_token = 7;
-  int64 lock_token_for_election = 8;
 }
 message HighCouncilConfigSet {
   option (aelf.is_event) = true;
@@ -141,7 +142,6 @@ message RegisterElectionVotingEventInput {
   int64 max_high_council_member_count = 4;
   int64 stake_threshold = 5;
   string governance_token = 6;
-  int64 lock_token_for_election = 7;
   bool is_require_high_council_for_execution = 8;
 }
 // events
@@ -369,7 +369,6 @@ message HighCouncilConfig {
   bool is_require_high_council_for_execution = 4;
   string governance_token = 5;
   int64 stake_threshold = 6;
-  int64 lock_token_for_election = 7;
 }
 
 message GetElectorVoteInput {

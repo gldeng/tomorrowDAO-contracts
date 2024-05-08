@@ -67,7 +67,6 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
             Config = highCouncilConfig,
             VotingItem = votingItem
         });
-
         return new Empty();
     }
 
@@ -135,7 +134,6 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
         highCouncilConfig.GovernanceToken = input.GovernanceToken;
         highCouncilConfig.ElectionPeriod = input.ElectionPeriod;
         highCouncilConfig.IsRequireHighCouncilForExecution = input.IsRequireHighCouncilForExecution;
-        highCouncilConfig.LockTokenForElection = input.LockTokenForElection;
         State.HighCouncilConfig[input.DaoId] = highCouncilConfig;
     }
 
@@ -149,8 +147,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
             StakeThreshold = input.StakeThreshold,
             ElectionPeriod = input.ElectionPeriod,
             IsRequireHighCouncilForExecution = input.IsRequireHighCouncilForExecution,
-            GovernanceToken = input.GovernanceToken,
-            LockTokenForElection = input.LockTokenForElection
+            GovernanceToken = input.GovernanceToken
         });
     }
 

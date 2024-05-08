@@ -106,6 +106,68 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
         return votingItemId;
     }
 
+    private void AssertValidAndSetHighCouncilConfig(SetHighCouncilConfigInput input)
+    {
+        AssertInitialized();
+        AssertSenderDaoOrGovernanceContract();
+        AssertNotNullOrEmpty(input);
+        AssertNotNullOrEmpty(input.DaoId, "DaoId");
+        Assert(input.MaxHighCouncilMemberCount > 0, "Invalid MaxHighCouncilMemberCount.");
+        Assert(input.MaxHighCouncilCandidateCount > 0, "Invalid MaxHighCouncilCandidateCount.");
+        Assert(input.StakeThreshold > 0, "Invalid StakeThreshold.");
+        Assert(input.ElectionPeriod >= 0, "Invalid ElectionPeriod.");
+        AssertNotNullOrEmpty(input.GovernanceToken, "GovernanceToken");
+        //var governanceTokenInfo = GetTokenInfo(input.GovernanceToken);
+        //Assert(governanceTokenInfo != null && governanceTokenInfo.Symbol.Length > 0, "Invalid governanceToken");
+        
+        // Accepted currency is in white list means this token symbol supports voting.
+        // var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
+        // {
+        //     Symbol = input.GovernanceToken,
+        //     Address = Context.Self
+        // }).Value;
+        // Assert(isInWhiteList, "Claimed accepted token is not available for voting.");
+
+        var highCouncilConfig = State.HighCouncilConfig[input.DaoId] ?? new HighCouncilConfig();
+        highCouncilConfig.MaxHighCouncilMemberCount = input.MaxHighCouncilMemberCount;
+        highCouncilConfig.MaxHighCouncilCandidateCount = input.MaxHighCouncilCandidateCount;
+        highCouncilConfig.StakeThreshold = input.StakeThreshold;
+        highCouncilConfig.GovernanceToken = input.GovernanceToken;
+        highCouncilConfig.ElectionPeriod = input.ElectionPeriod;
+        highCouncilConfig.IsRequireHighCouncilForExecution = input.IsRequireHighCouncilForExecution;
+        highCouncilConfig.LockTokenForElection = input.LockTokenForElection;
+        State.HighCouncilConfig[input.DaoId] = highCouncilConfig;
+    }
+
+    private void InitHighCouncilConfig(RegisterElectionVotingEventInput input)
+    {
+        AssertValidAndSetHighCouncilConfig(new SetHighCouncilConfigInput
+        {
+            DaoId = input.DaoId,
+            MaxHighCouncilMemberCount = input.MaxHighCouncilMemberCount,
+            MaxHighCouncilCandidateCount = input.MaxHighCouncilCandidateCount,
+            StakeThreshold = input.StakeThreshold,
+            ElectionPeriod = input.ElectionPeriod,
+            IsRequireHighCouncilForExecution = input.IsRequireHighCouncilForExecution,
+            GovernanceToken = input.GovernanceToken,
+            LockTokenForElection = input.LockTokenForElection
+        });
+    }
+
+    private Hash AssertValidNewVotingItem(Hash daoId)
+    {
+        var votingItemId = GetVotingItemHash(daoId, Context.Sender)
+            ;
+        Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
+        Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
+        return votingItemId;
+    }
+
+    private static Hash GetVotingItemHash(Hash daoId, Address sponsorAddress)
+    {
+        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(daoId), HashHelper.ComputeFrom(sponsorAddress));
+    }
+    
     public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
     {
         return base.ChangeVotingOption(input);
@@ -149,64 +211,5 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
     public override Address GetEmergency(Hash input)
     {
         return base.GetEmergency(input);
-    }
-
-    private void AssertValidAndSetHighCouncilConfig(SetHighCouncilConfigInput input)
-    {
-        AssertInitialized();
-        AssertSenderDaoOrGovernanceContract();
-        AssertNotNullOrEmpty(input);
-        AssertNotNullOrEmpty(input.DaoId, "DaoId");
-        Assert(input.MaxHighCouncilMemberCount > 0, "Invalid MaxHighCouncilMemberCount.");
-        Assert(input.MaxHighCouncilCandidateCount > 0, "Invalid MaxHighCouncilCandidateCount.");
-        Assert(input.StakeThreshold > 0, "Invalid StakeThreshold.");
-        Assert(input.ElectionPeriod >= 0, "Invalid ElectionPeriod.");
-        AssertNotNullOrEmpty(input.GovernanceToken, "GovernanceToken");
-        //var governanceTokenInfo = GetTokenInfo(input.GovernanceToken);
-        //Assert(governanceTokenInfo != null && governanceTokenInfo.Symbol.Length > 0, "Invalid governanceToken");
-        // Accepted currency is in white list means this token symbol supports voting.
-        var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
-        {
-            Symbol = input.GovernanceToken,
-            Address = Context.Self
-        }).Value;
-        Assert(isInWhiteList, "Claimed accepted token is not available for voting.");
-
-        var highCouncilConfig = State.HighCouncilConfig[input.DaoId] ?? new HighCouncilConfig();
-        highCouncilConfig.MaxHighCouncilMemberCount = input.MaxHighCouncilMemberCount;
-        highCouncilConfig.MaxHighCouncilCandidateCount = input.MaxHighCouncilCandidateCount;
-        highCouncilConfig.StakeThreshold = input.StakeThreshold;
-        highCouncilConfig.GovernanceToken = input.GovernanceToken;
-        highCouncilConfig.ElectionPeriod = input.ElectionPeriod;
-        highCouncilConfig.IsRequireHighCouncilForExecution = input.IsRequireHighCouncilForExecution;
-        State.HighCouncilConfig[input.DaoId] = highCouncilConfig;
-    }
-
-    private void InitHighCouncilConfig(RegisterElectionVotingEventInput input)
-    {
-        AssertValidAndSetHighCouncilConfig(new SetHighCouncilConfigInput
-        {
-            DaoId = input.DaoId,
-            MaxHighCouncilMemberCount = input.MaxHighCouncilMemberCount,
-            MaxHighCouncilCandidateCount = input.MaxHighCouncilCandidateCount,
-            StakeThreshold = input.StakeThreshold,
-            ElectionPeriod = input.ElectionPeriod,
-            IsRequireHighCouncilForExecution = input.IsRequireHighCouncilForExecution,
-            GovernanceToken = input.GovernanceToken
-        });
-    }
-
-    private Hash AssertValidNewVotingItem(Hash daoId)
-    {
-        var votingItemId = GetVotingItemHash(daoId, Context.Sender)
-            ;
-        Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
-        Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
-        return votingItemId;
-    }
-
-    private static Hash GetVotingItemHash(Hash daoId, Address sponsorAddress)
-    {
-        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(daoId), HashHelper.ComputeFrom(sponsorAddress));
     }
 }

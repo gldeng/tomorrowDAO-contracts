@@ -1,9 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf;
+using AElf.CSharp.Core;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
+using Google.Protobuf;
 using Shouldly;
-using Xunit;
 
 namespace TomorrowDAO.Contracts.Election;
 
@@ -12,17 +13,28 @@ public class ElectionContractBaseTests : TestBase
     protected readonly Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
     protected readonly string DefaultGovernanceToken = "ELF";
     protected readonly Hash DefaultVoteSchemeId = HashHelper.ComputeFrom("DefaultVoteSchemeId");
-    
-    
+
+
     protected async Task Initialize(Address daoAddress = null, Address voteAddress = null,
         Address governanceAddress = null)
     {
         var input = new InitializeInput
         {
             DaoContractAddress = daoAddress ?? DAOContractAddress,
-            VoteContractAddress = voteAddress??VoteContractAddress,
-            GovernanceContractAddress = governanceAddress??GovernanceContractAddress
+            VoteContractAddress = voteAddress ?? VoteContractAddress,
+            GovernanceContractAddress = governanceAddress ?? GovernanceContractAddress
         };
         await ElectionContractStub.Initialize.SendAsync(input);
+    }
+
+    protected static T GetLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
+    {
+        var log = transactionResult.Logs.FirstOrDefault(l => l.Name == typeof(T).Name);
+        log.ShouldNotBeNull();
+
+        var logEvent = new T();
+        logEvent.MergeFrom(log.NonIndexed);
+
+        return logEvent;
     }
 }

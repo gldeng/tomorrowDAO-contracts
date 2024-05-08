@@ -14,11 +14,13 @@ public partial class ElectionContract
         AssertNotNullOrEmpty(input);
         AssertNotNullOrEmpty(input.DaoId, "DaoId");
         AssertNotNullOrEmpty(input.CandidateAddress, "CandidateAddress");
-        Assert(input.Amount > 0, "Amount must be greater than 0");
         var votingItemId = State.HighCouncilElectionVotingItemId[input.DaoId];
         Assert(votingItemId != null, "Voting item not exists");
         var votingItem = State.VotingItems[votingItemId];
         Assert(votingItem != null, "Voting item not exists");
+        var highCouncilConfig = State.HighCouncilConfig[input.DaoId];
+        Assert(highCouncilConfig != null, "High Council Config not exists");
+        Assert(input.Amount > highCouncilConfig!.LockTokenForElection, $"Amount must be greater than {highCouncilConfig.LockTokenForElection}");
 
         var targetInformation = State.CandidateInformationMap[input.DaoId][input.CandidateAddress];
         AssertValidCandidateInformation(targetInformation);

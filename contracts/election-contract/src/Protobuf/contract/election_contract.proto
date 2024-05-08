@@ -125,6 +125,7 @@ message SetHighCouncilConfigInput {
   int64 election_period = 5;
   bool is_require_high_council_for_execution = 6;
   string governance_token = 7;
+  int64 lock_token_for_election = 8;
 }
 message HighCouncilConfigSet {
   option (aelf.is_event) = true;
@@ -368,6 +369,7 @@ message HighCouncilConfig {
   bool is_require_high_council_for_execution = 4;
   string governance_token = 5;
   int64 stake_threshold = 6;
+  int64 lock_token_for_election = 7;
 }
 
 message GetElectorVoteInput {

@@ -384,7 +384,7 @@ message Voted {
 message Withdrawn {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
-  aelf.Address user = 2;
+  aelf.Address withdrawer = 2;
   int64 withdraw_amount = 3;
   google.protobuf.Timestamp withdraw_timestamp = 4;
   VotingItemIdList voting_item_id_list = 5;

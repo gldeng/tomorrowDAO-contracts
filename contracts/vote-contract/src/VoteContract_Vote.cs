@@ -117,7 +117,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         {
             DaoId = input.DaoId,
             WithdrawAmount = withdrawAmount,
-            User = Context.Sender,
+            Withdrawer = Context.Sender,
             WithdrawTimestamp = Context.CurrentBlockTime,
             VotingItemIdList = input.VotingItemIdList
         });

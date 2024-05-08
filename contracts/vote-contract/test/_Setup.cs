@@ -29,7 +29,7 @@ namespace TomorrowDAO.Contracts.Vote
     public class TestBase : ContractTestBase<Module>
     {
         internal ACS0Container.ACS0Stub GenesisContractStub;
-        internal Address VoteContractAddress { get; set; }
+        public static Address VoteContractAddress { get; set; }
         internal VoteContractContainer.VoteContractStub VoteContractStub;
         internal VoteContractContainer.VoteContractStub VoteContractStubOther;
         internal Address GovernanceContractAddress { get; set; }

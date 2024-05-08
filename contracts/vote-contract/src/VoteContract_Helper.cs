@@ -76,6 +76,7 @@ public partial class VoteContract
 
     private void AssertToken(string token)
     {
+        Assert(!string.IsNullOrEmpty(token), "Token is null");
         var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
         {
             Symbol = token

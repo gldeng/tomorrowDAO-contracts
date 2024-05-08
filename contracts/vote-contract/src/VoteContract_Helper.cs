@@ -74,15 +74,6 @@ public partial class VoteContract
         Assert(State.VotingRecords[votingItemId][voter] == null, "Voter already voted.");
     }
 
-    private void AssertToken(string token)
-    {
-        var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
-        {
-            Symbol = token
-        });
-        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Token not exists.");
-    }
-
     private void AssertHighCouncil(Address voter)
     {
         //todo check voter from election contract

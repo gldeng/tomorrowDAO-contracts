@@ -14,9 +14,8 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
         Assert(Context.Sender == State.GovernanceContract.Value, "No permission.");
         AssertCommon(input);
-        AssertToken(input.AcceptedToken);
-        Assert(input.StartTimestamp <= input.EndTimestamp && input.StartTimestamp > Context.CurrentBlockTime,"Invalid startTime or endTime input");
-        AssertVoteScheme(input.VotingItemId);
+        Assert(input.StartTimestamp <= input.EndTimestamp,"Invalid startTime or endTime input");
+        AssertVoteScheme(input.SchemeId);
         var proposalInfo = AssertProposal(input.VotingItemId);
         AssertDaoSubsist(proposalInfo.DaoId);
         var governanceScheme = AssertGovernanceScheme(proposalInfo.SchemeAddress);

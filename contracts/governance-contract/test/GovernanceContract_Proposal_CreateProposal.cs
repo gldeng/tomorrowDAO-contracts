@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,20 +17,24 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     [Fact]
     public async Task CreateProposalTest()
     {
-        await Initialize(DefaultAddress);
-        var schemeAddress = await AddGovernanceScheme();
+        await InitializeAll();
+
+        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(DefaultDaoId);
+        addressList.ShouldNotBeNull();
+        addressList.Value.Count.ShouldBe(1);
+        var schemeAddress = addressList.Value.FirstOrDefault();
 
         var result = await CreateProposal(schemeAddress);
         result.ShouldNotBeNull();
         _testOutputHelper.WriteLine("ProposalId = {0}", result);
     }
-    
+
     [Fact]
     public async Task CreateProposalTest_EventTest()
     {
         await Initialize(DefaultAddress);
         var schemeAddress = await AddGovernanceScheme();
-        
+
         var input = MockCreateProposalInput(schemeAddress);
         var executionResult = await GovernanceContractStub.CreateProposal.SendAsync(input);
         var logEvents = executionResult.TransactionResult.Logs;
@@ -45,8 +46,9 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
                 existProposalCreated = true;
             }
         }
+
         existProposalCreated.ShouldBe(true);
-        
+
         var url = ProposalCreated.Parser
             .ParseFrom(executionResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
                 .NonIndexed)
@@ -65,28 +67,28 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
         var result = await CreateProposal(input);
         result.ShouldNotBeNull();
         _testOutputHelper.WriteLine("ProposalId = {0}", result);
-        
+
         //Proposal Id will never be duplicated
         //var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
         //executionResult.TransactionResult.Error.ShouldContain("Proposal already exists");
     }
-    
+
     [Fact]
     public async Task CreateProposalTest_CannotBeUnusedOrVeto()
     {
         await Initialize(DefaultAddress);
         var schemeAddress = await AddGovernanceScheme();
-        
+
         var input = MockCreateProposalInput(schemeAddress);
         input.ProposalType = ProposalType.Unused;
         var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
         executionResult.TransactionResult.Error.ShouldContain("ProposalType cannot be Unused or Veto");
-        
+
         input.ProposalType = ProposalType.Veto;
         executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
         executionResult.TransactionResult.Error.ShouldContain("ProposalType cannot be Unused or Veto");
     }
-    
+
     [Fact]
     public async Task CreateProposalTest_ExecuteTransactionIsNull()
     {

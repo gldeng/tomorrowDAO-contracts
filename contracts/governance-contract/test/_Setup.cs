@@ -9,6 +9,8 @@ using AElf.Testing.TestBase;
 using AElf.Types;
 using Google.Protobuf;
 using TomorrowDAO.Contracts.DAO;
+using TomorrowDAO.Contracts.Election;
+using TomorrowDAO.Contracts.Vote;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -37,6 +39,12 @@ namespace TomorrowDAO.Contracts.Governance
         
         internal Address DAOContractAddress { get; set; }
         internal DAOContractContainer.DAOContractStub DAOContractStub;
+        
+        internal Address VoteContractAddress { get; set; }
+        internal VoteContractContainer.VoteContractStub VoteContractStub;
+        
+        internal Address ElectionContractAddress { get; set; }
+        internal ElectionContractContainer.ElectionContractStub ElectionContractStub;
 
         // A key pair that can be used to interact with the contract instance
         internal ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
@@ -51,8 +59,9 @@ namespace TomorrowDAO.Contracts.Governance
             GenesisContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
 
             DeployGovernanceContract();
-
             DeployDaoContract();
+            DeployVoteContract();
+            DeployElectionContract();
         }
 
         internal T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)
@@ -116,6 +125,56 @@ namespace TomorrowDAO.Contracts.Governance
 
             DAOContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
             DAOContractStub = GetContractStub<DAOContractContainer.DAOContractStub>(DAOContractAddress, DefaultKeyPair);
+        }
+        
+        private void DeployVoteContract()
+        {
+            var code = System.IO.File.ReadAllBytes(typeof(VoteContract).Assembly.Location);
+            var contractOperation = new ContractOperation
+            {
+                ChainId = 9992731,
+                CodeHash = HashHelper.ComputeFrom(code),
+                Deployer = DefaultAddress,
+                Salt = HashHelper.ComputeFrom("vote"),
+                Version = 1
+            };
+            contractOperation.Signature = GenerateContractSignature(DefaultKeyPair.PrivateKey, contractOperation);
+
+            var result = AsyncHelper.RunSync(async () => await GenesisContractStub.DeploySmartContract.SendAsync(
+                new ContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(code),
+                    ContractOperation = contractOperation
+                }));
+
+            VoteContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
+            VoteContractStub = GetContractStub<VoteContractContainer.VoteContractStub>(VoteContractAddress, DefaultKeyPair);
+        }
+        
+        private void DeployElectionContract()
+        {
+            var code = System.IO.File.ReadAllBytes(typeof(ElectionContract).Assembly.Location);
+            var contractOperation = new ContractOperation
+            {
+                ChainId = 9992731,
+                CodeHash = HashHelper.ComputeFrom(code),
+                Deployer = DefaultAddress,
+                Salt = HashHelper.ComputeFrom("election"),
+                Version = 1
+            };
+            contractOperation.Signature = GenerateContractSignature(DefaultKeyPair.PrivateKey, contractOperation);
+
+            var result = AsyncHelper.RunSync(async () => await GenesisContractStub.DeploySmartContract.SendAsync(
+                new ContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(code),
+                    ContractOperation = contractOperation
+                }));
+
+            ElectionContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
+            ElectionContractStub = GetContractStub<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, DefaultKeyPair);
         }
     }
 }

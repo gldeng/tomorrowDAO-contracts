@@ -10,12 +10,7 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task InitializeTest()
         {
-            var result = await VoteContractStub.Initialize.SendAsync(new InitializeInput
-            {
-                DaoContractAddress = DAOContractAddress,
-                ElectionContractAddress = ElectionContractAddress,
-                GovernanceContractAddress = GovernanceContractAddress,
-            });
+            var result = await InitializeVote();
             result.TransactionResult.Error.ShouldBe("");
         }
         

@@ -77,6 +77,9 @@ service VoteContract {
   rpc GetVotingRecord (GetVotingRecordInput) returns (VotingRecord) {
     option (aelf.is_view) = true;
   }
+  rpc GetVirtualAddressDelete (GetVirtualAddressInput) returns (aelf.Address) {
+    option (aelf.is_view) = true;
+  }
   rpc GetVirtualAddress (aelf.Hash) returns (aelf.Address) {
     option (aelf.is_view) = true;
   }
@@ -334,6 +337,11 @@ message GetVotingSnapShotInput {
 
 message GetVotingRecordInput {
   aelf.Hash voting_item_id = 1;
+  aelf.Address voter = 2;
+}
+
+message GetVirtualAddressInput {
+  aelf.Hash dao_id = 1;
   aelf.Address voter = 2;
 }
 

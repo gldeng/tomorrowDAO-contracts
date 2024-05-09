@@ -5,6 +5,7 @@ using AElf;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Governance;
@@ -18,6 +19,16 @@ public class VoteContractTestBase : TestBase
     protected Hash TokenBallotVoteSchemeId; //1t1v
     protected string TokenElf = "ELF";
     protected Hash DaoId;
+
+    public async Task<IExecutionResult<Empty>> InitializeVote()
+    {
+        return await VoteContractStub.Initialize.SendAsync(new InitializeInput
+        {
+            DaoContractAddress = DAOContractAddress,
+            ElectionContractAddress = ElectionContractAddress,
+            GovernanceContractAddress = GovernanceContractAddress,
+        });
+    }
     
     public async Task InitializeAll()
     {
@@ -37,6 +48,9 @@ public class VoteContractTestBase : TestBase
             TimelockContractAddress = DefaultAddress,
             TreasuryContractAddress = DefaultAddress
         });
+        
+        //init vote contract
+        await InitializeVote();
 
         UniqueVoteVoteSchemeId = await InitializeVoteScheme(VoteMechanism.UniqueVote);
         TokenBallotVoteSchemeId = await InitializeVoteScheme(VoteMechanism.TokenBallot);

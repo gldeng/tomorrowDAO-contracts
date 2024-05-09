@@ -228,6 +228,12 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         return State.VotingRecords[input.VotingItemId][input.Voter] ?? new VotingRecord();
     }
 
+    // to delete
+    public override Address GetVirtualAddressDelete(GetVirtualAddressInput input)
+    {
+        return GetVirtualAddress(input.Voter, input.DaoId);
+    }
+    
     public override Address GetVirtualAddress(Hash input)
     {
         return GetVirtualAddress(Context.Sender, input);

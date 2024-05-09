@@ -130,7 +130,8 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     private void TokenBallotTransfer(VotingItem votingItem, VoteInput input)
     {
         var virtualAddress = GetVirtualAddress(Context.Sender, votingItem.DaoId);
-        TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount.Mul(VoteContractConstants.Mantissa));
+        var tokenInfo = AssertToken(votingItem.AcceptedSymbol);
+        TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount.Mul(tokenInfo.Decimals));
     }
 
     private void AddAmount(VotingItem votingItem, long amount)

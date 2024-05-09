@@ -28,6 +28,7 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task RegisterTest()
         {
+            await InitializeAll();
             await CreateVoteSchemeTest();
             var result = await VoteContractStub.Register.SendAsync(new VotingRegisterInput
             {

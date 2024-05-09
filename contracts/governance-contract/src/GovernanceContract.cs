@@ -7,7 +7,7 @@ public partial class GovernanceContract : GovernanceContractContainer.Governance
 {
     public override Empty Initialize(InitializeInput input)
     {
-        //Assert(!State.Initialized.Value, "Already initialized.");
+        Assert(!State.Initialized.Value, "Already initialized.");
         State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
         State.AEDPoSContract.Value =
             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);

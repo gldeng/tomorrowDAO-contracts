@@ -1,13 +1,23 @@
 using System;
 using System.Threading.Tasks;
+using AElf;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace TomorrowDAO.Contracts.Vote
 { 
     public partial class VoteContractTest : VoteContractTestBase
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public VoteContractTest(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public async Task RegisterTest_NoPermission()
         {
@@ -41,6 +51,15 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task VoteTest()
         {
+        }
+
+        [Fact]
+        public async Task GetVirtualAddressTest()
+        {
+            var daoId = HashHelper.ComputeFrom("daoId");
+            await InitializeTest();
+            var result = VoteContractStub.GetVirtualAddress.CallAsync(daoId);
+            _testOutputHelper.WriteLine("DaoId={id}", DaoId);
         }
     }
     

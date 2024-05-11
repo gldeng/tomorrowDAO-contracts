@@ -95,6 +95,12 @@ service VoteContract {
   rpc GetProposalRemainAmount (GetProposalRemainAmountInput) returns (ProposalRemainAmount) {
     option (aelf.is_view) = true;
   }
+  rpc GetProposalRemainAmountTest (GetProposalRemainAmountTestInput) returns (ProposalRemainAmount) {
+    option (aelf.is_view) = true;
+  }
+  rpc GetDaoRemainAmountTest (GetProposalRemainAmountTestInput) returns (DaoRemainAmount) {
+    option (aelf.is_view) = true;
+  }
 }
 
 // Data structure
@@ -351,6 +357,13 @@ message GetVirtualAddressInput {
 message GetProposalRemainAmountInput {
   aelf.Hash dao_id = 1;
   aelf.Hash voting_item_id = 2;
+}
+
+// to delete
+message GetProposalRemainAmountTestInput {
+  aelf.Hash dao_id = 1;
+  aelf.Hash voting_item_id = 2;
+  aelf.Address voter = 3;
 }
 
 //Events

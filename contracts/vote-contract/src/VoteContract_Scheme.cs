@@ -1,4 +1,3 @@
-using System.Linq;
 using AElf;
 using AElf.Sdk.CSharp;
 using AElf.Types;

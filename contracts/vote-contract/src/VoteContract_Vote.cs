@@ -135,7 +135,8 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
 
     private void AddAmount(VotingItem votingItem, long amount)
     {
-        State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] += amount;
+        var daoAmount = State.DaoRemainAmounts[Context.Sender][votingItem.DaoId].Add(amount);
+        State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] = daoAmount;
         State.ProposalRemainAmounts[Context.Sender][votingItem.DaoId][votingItem.VotingItemId] = amount;
     }
     
@@ -256,6 +257,28 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             DaoId = input.DaoId,
             VotingItemId = input.VotingItemId,
             Amount = State.ProposalRemainAmounts[Context.Sender][input.DaoId][input.VotingItemId]
+        };
+    }
+    
+    
+    // to delete
+    public override ProposalRemainAmount GetProposalRemainAmountTest(GetProposalRemainAmountTestInput input)
+    {
+        AssertCommon(input);
+        return new ProposalRemainAmount
+        {
+            DaoId = input.DaoId,
+            VotingItemId = input.VotingItemId,
+            Amount = State.ProposalRemainAmounts[input.Voter][input.DaoId][input.VotingItemId]
+        };
+    }
+    
+    public override DaoRemainAmount GetDaoRemainAmountTest(GetProposalRemainAmountTestInput input)
+    {
+        return new DaoRemainAmount
+        {
+            DaoId = input.DaoId,
+            Amount = State.DaoRemainAmounts[input.Voter][input.DaoId]
         };
     }
 

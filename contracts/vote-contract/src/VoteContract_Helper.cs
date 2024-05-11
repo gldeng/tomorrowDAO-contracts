@@ -104,7 +104,7 @@ public partial class VoteContract
         foreach (var votingItemId in input.VotingItemIdList.Value)
         {
             var votingItem = State.VotingItems[votingItemId];
-            Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
+            // Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
             withdrawAmount += State.ProposalRemainAmounts[user][input.DaoId][votingItemId];
         }
         Assert(withdrawAmount == input.WithdrawAmount, "Invalid withdraw amount.");

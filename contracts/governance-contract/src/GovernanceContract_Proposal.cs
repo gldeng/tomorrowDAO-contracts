@@ -179,7 +179,7 @@ public partial class GovernanceContract
         return new Empty();
     }
 
-    private void ExecuteProposal(ProposalInfo proposal, bool isExecute = false)
+    private void ExecuteProposal(ProposalInfo proposal)
     {
         Assert(Context.CurrentBlockTime > proposal.ProposalTime.ExecuteStartTime
                && Context.CurrentBlockTime < proposal.ProposalTime.ExecuteEndTime,
@@ -191,14 +191,11 @@ public partial class GovernanceContract
         Assert(governanceScheme != null, "GovernanceScheme not found.");
         var schemeId = governanceScheme.SchemeId;
 
-        if (isExecute)
-        {
-            Context.SendVirtualInline(
-                schemeId,
-                proposal.Transaction.ToAddress,
-                proposal.Transaction.ContractMethodName, proposal.Transaction.Params);
-        }
-
+        Context.SendVirtualInline(
+            schemeId,
+            proposal.Transaction.ToAddress,
+            proposal.Transaction.ContractMethodName, proposal.Transaction.Params);
+        
         Context.Fire(new ProposalExecuted
         {
             ProposalId = proposal.ProposalId,
@@ -332,17 +329,16 @@ public partial class GovernanceContract
         var pendingTimePeriod = input.ProposalTimePeriod.PendingTimePeriod;
         var executeTimePeriod = input.ProposalTimePeriod.ExecuteTimePeriod;
         var vetoExecuteTimePeriod = input.ProposalTimePeriod.VetoExecuteTimePeriod;
-        //TODO 
-        // AssertNumberInRange(activeTimePeriod, GovernanceContractConstants.MinActiveTimePeriod,
-        //     GovernanceContractConstants.MaxActiveTimePeriod, "ActiveTimePeriod");
-        // AssertNumberInRange(vetoActiveTimePeriod, GovernanceContractConstants.MinVetoActiveTimePeriod,
-        //     GovernanceContractConstants.MaxVetoActiveTimePeriod, "VetoActiveTimePeriod");
-        // AssertNumberInRange(pendingTimePeriod, GovernanceContractConstants.MinPendingTimePeriod,
-        //     GovernanceContractConstants.MaxPendingTimePeriod, "PendingTimePeriod");
-        // AssertNumberInRange(executeTimePeriod, GovernanceContractConstants.MinExecuteTimePeriod,
-        //     GovernanceContractConstants.MaxExecuteTimePeriod, "ExecuteTimePeriod");
-        // AssertNumberInRange(vetoExecuteTimePeriod, GovernanceContractConstants.MinVetoExecuteTimePeriod,
-        //     GovernanceContractConstants.MaxVetoExecuteTimePeriod, "VetoExecuteTimePeriod");
+        AssertNumberInRange(activeTimePeriod, GovernanceContractConstants.MinActiveTimePeriod,
+            GovernanceContractConstants.MaxActiveTimePeriod, "ActiveTimePeriod");
+        AssertNumberInRange(vetoActiveTimePeriod, GovernanceContractConstants.MinVetoActiveTimePeriod,
+            GovernanceContractConstants.MaxVetoActiveTimePeriod, "VetoActiveTimePeriod");
+        AssertNumberInRange(pendingTimePeriod, GovernanceContractConstants.MinPendingTimePeriod,
+            GovernanceContractConstants.MaxPendingTimePeriod, "PendingTimePeriod");
+        AssertNumberInRange(executeTimePeriod, GovernanceContractConstants.MinExecuteTimePeriod,
+            GovernanceContractConstants.MaxExecuteTimePeriod, "ExecuteTimePeriod");
+        AssertNumberInRange(vetoExecuteTimePeriod, GovernanceContractConstants.MinVetoExecuteTimePeriod,
+            GovernanceContractConstants.MaxVetoExecuteTimePeriod, "VetoExecuteTimePeriod");
 
         var timePeriod = State.DaoProposalTimePeriods[input.DaoId];
         if (timePeriod == null)

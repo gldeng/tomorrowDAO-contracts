@@ -100,7 +100,13 @@ public partial class VoteContract
         Assert(IsAddressValid(user), "Invalid withdraw user.");
         Assert(State.DaoRemainAmounts[user][input.DaoId] > 0, "no amount to withdraw.");
         Assert(input.VotingItemIdList.Value.Count <= VoteContractConstants.MaxWithdrawProposalCount, "Withdraw proposal too much");
-        var withdrawAmount = input.VotingItemIdList.Value.Sum(votingItemId => State.ProposalRemainAmounts[user][input.DaoId][votingItemId]);
+        var withdrawAmount = 0L;
+        foreach (var votingItemId in input.VotingItemIdList.Value)
+        {
+            var votingItem = State.VotingItems[votingItemId];
+            Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
+            withdrawAmount += State.ProposalRemainAmounts[user][input.DaoId][votingItemId];
+        }
         Assert(withdrawAmount == input.WithdrawAmount, "Invalid withdraw amount.");
         return withdrawAmount;
     }

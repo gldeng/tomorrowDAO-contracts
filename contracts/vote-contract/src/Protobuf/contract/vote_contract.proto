@@ -38,6 +38,9 @@ service VoteContract {
   }
   rpc SetEmergencyStatus (SetEmergencyStatusInput) returns (google.protobuf.Empty){
   }
+  // to delete
+  rpc Test (SetEmergencyStatusInput) returns (google.protobuf.Empty){
+  }
   rpc WithdrawInEmergency (WithdrawInEmergencyInput) returns (google.protobuf.Empty){
   }
 
@@ -276,12 +279,12 @@ message SetMaxVotingPowersInput {
 
 message SetUnstakeCooldownStatusInput{
   aelf.Hash dao_id = 1;
-  bool isEnable = 2;
+  bool is_enable = 2;
 }
 
 message SetEmergencyStatusInput {
   aelf.Hash dao_id = 1;
-  bool isEnable = 2;
+  bool is_enable = 2;
 }
 
 message WithdrawInEmergencyInput {

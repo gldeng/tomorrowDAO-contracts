@@ -55,12 +55,14 @@ public partial class ElectionContract
         AssertNotNullOrEmpty(input);
 
         var votingRecord = State.VotingRecords[input];
-        Assert(votingRecord != null, $"Vote {input} not found.");
+        Assert(votingRecord != null, $"Vote {input} not exists.");
         Assert(votingRecord!.Voter == Context.Sender, "No permission.");
         var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
         var claimedLockSeconds = State.LockTimeMap[input];
         Assert(actualLockedTime >= claimedLockSeconds,
             $"Still need {claimedLockSeconds.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
+        var highCouncilConfig = State.HighCouncilConfig[votingRecord.DaoId];
+        Assert(highCouncilConfig != null, "High Council Config not exists");
 
         var electorVote = State.ElectorVotes[votingRecord.DaoId][Context.Sender];
         Assert(electorVote != null, $"Voter {Context.Sender.ToBase58()} never votes before");
@@ -69,8 +71,16 @@ public partial class ElectionContract
         electorVote.ActiveVotedVotesAmount = electorVote.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
         State.ElectorVotes[votingRecord.DaoId][Context.Sender] = electorVote;
 
-        //TODO 
-        
+        var candidateVote = State.CandidateVotes[votingRecord.DaoId][votingRecord.Candidate];
+        Assert(candidateVote != null, "Candidate vote record not found");
+        candidateVote.ObtainedActiveVotingRecordIds.Remove(input);
+        candidateVote.ObtainedWithdrawnVotingRecordIds.Add(input);
+        candidateVote.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+        State.CandidateVotes[votingRecord.DaoId][votingRecord.Candidate] = candidateVote;
+
+        UnlockTokensOfVoter(votingRecord.DaoId, input, votingRecord.Amount, votingRecord.Voter);
+        RetrieveTokensFromVoter(votingRecord.DaoId, input, votingRecord.Amount, highCouncilConfig, votingRecord.Voter);
+
         return new Empty();
     }
 
@@ -199,5 +209,30 @@ public partial class ElectionContract
         votingResult.VotersCount = votingResult.VotersCount.Add(1);
         votingResult.VotesAmount = votingResult.VotesAmount.Add(amount);
         State.VotingResults[votingResultHash] = votingResult;
+    }
+    
+    private void UnlockTokensOfVoter(Hash daoId, Hash input, long amount, Address voterAddress = null)
+    {
+        State.TokenContract.Unlock.Send(new UnlockInput
+        {
+            Address = voterAddress ?? Context.Sender,
+            Symbol = Context.Variables.NativeSymbol,
+            Amount = amount,
+            LockId = input,
+            Usage = $"Withdraw votes for High Council Election."
+        });
+    }
+    
+    private void RetrieveTokensFromVoter(Hash daoId, Hash input, long amount, HighCouncilConfig highCouncilConfig, Address voterAddress = null)
+    {
+        State.TokenContract.TransferFrom.Send(new TransferFromInput
+        {
+            From = voterAddress ?? Context.Sender,
+            To = Context.Self,
+            Amount = amount,
+            Symbol = highCouncilConfig.GovernanceToken,
+            Memo = $"Return {highCouncilConfig.GovernanceToken} tokens."
+        });
+            
     }
 }

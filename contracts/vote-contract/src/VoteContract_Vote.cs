@@ -129,7 +129,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
 
     private void TokenBallotTransfer(VotingItem votingItem, VoteInput input)
     {
-        var virtualAddress = GetVirtualAddress(Context.Self, votingItem.DaoId);
+        var virtualAddress = GetVirtualAddress(Context.Sender, votingItem.DaoId);
         var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input),
             HashHelper.ComputeFrom(Context.Sender));
         TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount, voteId.ToHex());

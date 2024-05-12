@@ -130,7 +130,9 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     private void TokenBallotTransfer(VotingItem votingItem, VoteInput input)
     {
         var virtualAddress = GetVirtualAddress(Context.Sender, votingItem.DaoId);
-        TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount);
+        var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input),
+            HashHelper.ComputeFrom(Context.Sender));
+        TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount, voteId.ToHex());
     }
 
     private void AddAmount(VotingItem votingItem, long amount)
@@ -187,7 +189,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     }
 
 
-    private void TransferIn(Address virtualAddress, Address from, string symbol, long amount)
+    private void TransferIn(Address virtualAddress, Address from, string symbol, long amount, string voteId)
     {
         State.TokenContract.TransferFrom.Send(
             new TransferFromInput
@@ -195,7 +197,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
                 Symbol = symbol,
                 Amount = amount,
                 From = from,
-                Memo = "TransferIn",
+                Memo = voteId,
                 To = virtualAddress
             });
     }

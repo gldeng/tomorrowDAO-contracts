@@ -136,7 +136,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     private void AddAmount(VotingItem votingItem, long amount)
     {
         State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] += amount;
-        State.ProposalRemainAmounts[Context.Sender][GetDaoProposalId(votingItem.DaoId, votingItem.VotingItemId)] = amount;
+        State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(votingItem.DaoId, votingItem.VotingItemId)] = amount;
     }
     
     private void RemoveAmount(WithdrawInput input)
@@ -144,7 +144,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         State.DaoRemainAmounts[Context.Sender][input.DaoId] -= input.WithdrawAmount;
         foreach (var votingItemId in input.VotingItemIdList.Value)
         {
-            State.ProposalRemainAmounts[Context.Sender][GetDaoProposalId(input.DaoId, votingItemId)] = 0;
+            State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(input.DaoId, votingItemId)] = 0;
         }
     }
 
@@ -249,7 +249,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         {
             DaoId = input.DaoId,
             VotingItemId = input.VotingItemId,
-            Amount = State.ProposalRemainAmounts[input.Voter][GetDaoProposalId(input.DaoId, input.VotingItemId)]
+            Amount = State.DaoProposalRemainAmounts[input.Voter][GetDaoProposalId(input.DaoId, input.VotingItemId)]
         };
     }
 

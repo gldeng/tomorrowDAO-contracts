@@ -105,7 +105,7 @@ public partial class VoteContract
         {
             var votingItem = State.VotingItems[votingItemId];
             // Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
-            withdrawAmount += State.ProposalRemainAmounts[user][input.DaoId][votingItemId];
+            withdrawAmount += State.ProposalRemainAmounts[user][GetDaoProposalId(input.DaoId,votingItemId)];
         }
         Assert(withdrawAmount == input.WithdrawAmount, "Invalid withdraw amount.");
         return withdrawAmount;
@@ -119,5 +119,10 @@ public partial class VoteContract
     private Address GetVirtualAddress(Address user, Hash daoId)
     {
         return Context.ConvertVirtualAddressToContractAddress(GetVirtualAddressHash(user, daoId));
+    }
+    
+    private Hash GetDaoProposalId(Hash daoId, Hash proposalId)
+    {
+        return HashHelper.ConcatAndCompute(daoId, proposalId);
     }
 }

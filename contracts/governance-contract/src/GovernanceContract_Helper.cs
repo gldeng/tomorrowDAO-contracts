@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
@@ -29,7 +30,7 @@ public partial class GovernanceContract
             }
         }
     }
-    
+
     private void AssertNumberInRange(long numberToCheck, long minRange, long maxRange, string message)
     {
         Assert(IsNumberInRange(numberToCheck, minRange, maxRange),
@@ -87,6 +88,27 @@ public partial class GovernanceContract
     private bool IsNumberInRange(long numberToCheck, long minRange, long maxRange)
     {
         return numberToCheck >= minRange && numberToCheck <= maxRange;
+    }
+
+    private DAOInfo CallAndCheckDaoInfo(Hash daoId)
+    {
+        var daoInfo = State.DaoContract.GetDAOInfo.Call(daoId);
+        Assert(daoInfo != null, $"Dao {daoId} not exists.");
+        return daoInfo;
+    }
+
+    private int CallAndCheckHighCouncilCount(Hash daoId)
+    {
+        var addressList = State.ElectionContract.GetVictories.Call(daoId);
+        Assert(addressList != null && addressList.Value.Count > 0, "The 'High Council' elections have not taken place yet.");
+        return addressList!.Value.Count;
+    }
+
+    private int CallAndCheckBpCount()
+    {
+        var minerList = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty());
+        Assert(minerList != null && minerList.Pubkeys.Count > 0, "Invalid BP Count.");
+        return minerList!.Pubkeys.Count;
     }
 
     #region proposal

@@ -104,8 +104,10 @@ public partial class VoteContract
         foreach (var votingItemId in input.VotingItemIdList.Value)
         {
             var votingItem = State.VotingItems[votingItemId];
-            Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
-            withdrawAmount += State.DaoProposalRemainAmounts[user][GetDaoProposalId(input.DaoId,votingItemId)];
+            // Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
+            var daoProposalAmount = State.DaoProposalRemainAmounts[user][GetDaoProposalId(input.DaoId,votingItemId)];
+            Assert(daoProposalAmount > 0, $"Invalid proposal, no amount to withdraw {votingItemId}");
+            withdrawAmount += daoProposalAmount;
         }
         Assert(withdrawAmount == input.WithdrawAmount, $"Invalid withdraw amount. withdrawAmount is {withdrawAmount} input.WithdrawAmount is {input.WithdrawAmount}");
         return withdrawAmount;

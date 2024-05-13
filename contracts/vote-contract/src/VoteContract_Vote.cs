@@ -130,16 +130,13 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     private void TokenBallotTransfer(VotingItem votingItem, VoteInput input)
     {
         var virtualAddress = GetVirtualAddress(Context.Sender, votingItem.DaoId);
-        var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input),
-            HashHelper.ComputeFrom(Context.Sender));
-        TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount, voteId.ToHex());
+        TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount);
     }
 
     private void AddAmount(VotingItem votingItem, long amount)
     {
-        var daoAmount = State.DaoRemainAmounts[Context.Sender][votingItem.DaoId].Add(amount);
-        State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] = daoAmount;
-        State.ProposalRemainAmounts[Context.Sender][votingItem.DaoId][votingItem.VotingItemId] = amount;
+        State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] += amount;
+        State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(votingItem.DaoId, votingItem.VotingItemId)] = amount;
     }
     
     private void RemoveAmount(WithdrawInput input)
@@ -147,7 +144,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         State.DaoRemainAmounts[Context.Sender][input.DaoId] -= input.WithdrawAmount;
         foreach (var votingItemId in input.VotingItemIdList.Value)
         {
-            State.ProposalRemainAmounts[Context.Sender][input.DaoId][votingItemId] = 0;
+            State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(input.DaoId, votingItemId)] = 0;
         }
     }
 
@@ -189,7 +186,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     }
 
 
-    private void TransferIn(Address virtualAddress, Address from, string symbol, long amount, string voteId)
+    private void TransferIn(Address virtualAddress, Address from, string symbol, long amount)
     {
         State.TokenContract.TransferFrom.Send(
             new TransferFromInput
@@ -197,7 +194,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
                 Symbol = symbol,
                 Amount = amount,
                 From = from,
-                Memo = voteId,
+                Memo = "TransferIn",
                 To = virtualAddress
             });
     }
@@ -230,24 +227,18 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         AssertCommon(input);
         return State.VotingRecords[input.VotingItemId][input.Voter] ?? new VotingRecord();
     }
-
-    // to delete
-    public override Address GetVirtualAddressDelete(GetVirtualAddressInput input)
+    
+    public override Address GetVirtualAddress(GetVirtualAddressInput input)
     {
         return GetVirtualAddress(input.Voter, input.DaoId);
     }
-    
-    public override Address GetVirtualAddress(Hash input)
-    {
-        return GetVirtualAddress(Context.Sender, input);
-    }
 
-    public override DaoRemainAmount GetDaoRemainAmount(Hash input)
+    public override DaoRemainAmount GetDaoRemainAmount(GetDaoRemainAmountInput input)
     {
         return new DaoRemainAmount
         {
-            DaoId = input,
-            Amount = State.DaoRemainAmounts[Context.Sender][input]
+            DaoId = input.DaoId,
+            Amount = State.DaoRemainAmounts[input.Voter][input.DaoId]
         };
     }
     
@@ -258,29 +249,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         {
             DaoId = input.DaoId,
             VotingItemId = input.VotingItemId,
-            Amount = State.ProposalRemainAmounts[Context.Sender][input.DaoId][input.VotingItemId]
-        };
-    }
-    
-    
-    // to delete
-    public override ProposalRemainAmount GetProposalRemainAmountTest(GetProposalRemainAmountTestInput input)
-    {
-        AssertCommon(input);
-        return new ProposalRemainAmount
-        {
-            DaoId = input.DaoId,
-            VotingItemId = input.VotingItemId,
-            Amount = State.ProposalRemainAmounts[input.Voter][input.DaoId][input.VotingItemId]
-        };
-    }
-    
-    public override DaoRemainAmount GetDaoRemainAmountTest(GetProposalRemainAmountTestInput input)
-    {
-        return new DaoRemainAmount
-        {
-            DaoId = input.DaoId,
-            Amount = State.DaoRemainAmounts[input.Voter][input.DaoId]
+            Amount = State.DaoProposalRemainAmounts[input.Voter][GetDaoProposalId(input.DaoId, input.VotingItemId)]
         };
     }
 

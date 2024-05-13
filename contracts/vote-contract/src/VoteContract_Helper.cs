@@ -105,9 +105,11 @@ public partial class VoteContract
         {
             var votingItem = State.VotingItems[votingItemId];
             // Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
-            withdrawAmount += State.ProposalRemainAmounts[user][input.DaoId][votingItemId];
+            var daoProposalAmount = State.DaoProposalRemainAmounts[user][GetDaoProposalId(input.DaoId,votingItemId)];
+            Assert(daoProposalAmount > 0, $"Invalid proposal, no amount to withdraw {votingItemId}");
+            withdrawAmount += daoProposalAmount;
         }
-        Assert(withdrawAmount == input.WithdrawAmount, "Invalid withdraw amount.");
+        Assert(withdrawAmount == input.WithdrawAmount, $"Invalid withdraw amount. withdrawAmount is {withdrawAmount} input.WithdrawAmount is {input.WithdrawAmount}");
         return withdrawAmount;
     }
 
@@ -119,5 +121,10 @@ public partial class VoteContract
     private Address GetVirtualAddress(Address user, Hash daoId)
     {
         return Context.ConvertVirtualAddressToContractAddress(GetVirtualAddressHash(user, daoId));
+    }
+    
+    private Hash GetDaoProposalId(Hash daoId, Hash proposalId)
+    {
+        return HashHelper.ConcatAndCompute(daoId, proposalId);
     }
 }

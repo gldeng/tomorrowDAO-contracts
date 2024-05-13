@@ -83,22 +83,16 @@ service VoteContract {
   rpc GetVirtualAddressDelete (GetVirtualAddressInput) returns (aelf.Address) {
     option (aelf.is_view) = true;
   }
-  rpc GetVirtualAddress (aelf.Hash) returns (aelf.Address) {
+  rpc GetVirtualAddress (GetVirtualAddressInput) returns (aelf.Address) {
     option (aelf.is_view) = true;
   }
   rpc GetVotingIds (aelf.Address) returns (VotedIds) {
     option (aelf.is_view) = true;
   }
-  rpc GetDaoRemainAmount (aelf.Hash) returns (DaoRemainAmount) {
+  rpc GetDaoRemainAmount (GetDaoRemainAmountInput) returns (DaoRemainAmount) {
     option (aelf.is_view) = true;
   }
   rpc GetProposalRemainAmount (GetProposalRemainAmountInput) returns (ProposalRemainAmount) {
-    option (aelf.is_view) = true;
-  }
-  rpc GetProposalRemainAmountTest (GetProposalRemainAmountTestInput) returns (ProposalRemainAmount) {
-    option (aelf.is_view) = true;
-  }
-  rpc GetDaoRemainAmountTest (GetProposalRemainAmountTestInput) returns (DaoRemainAmount) {
     option (aelf.is_view) = true;
   }
 }
@@ -354,13 +348,13 @@ message GetVirtualAddressInput {
   aelf.Address voter = 2;
 }
 
-message GetProposalRemainAmountInput {
+message GetDaoRemainAmountInput {
   aelf.Hash dao_id = 1;
   aelf.Hash voting_item_id = 2;
+  aelf.Address voter = 3;
 }
 
-// to delete
-message GetProposalRemainAmountTestInput {
+message GetProposalRemainAmountInput {
   aelf.Hash dao_id = 1;
   aelf.Hash voting_item_id = 2;
   aelf.Address voter = 3;

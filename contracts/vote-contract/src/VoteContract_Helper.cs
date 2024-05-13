@@ -98,13 +98,14 @@ public partial class VoteContract
     private long AssertWithdraw(Address user, WithdrawInput input)
     {
         Assert(IsAddressValid(user), "Invalid withdraw user.");
-        Assert(State.DaoRemainAmounts[user][input.DaoId] > 0, "no amount to withdraw.");
-        Assert(input.VotingItemIdList.Value.Count <= VoteContractConstants.MaxWithdrawProposalCount, "Withdraw proposal too much");
+        Assert(State.DaoRemainAmounts[user][input.DaoId] > 0, "Invalid dao, no amount to withdraw.");
+        Assert(input.VotingItemIdList.Value.Count <= VoteContractConstants.MaxWithdrawProposalCount, "Invalid VotingItemIdList, count too much");
+        Assert(input.VotingItemIdList.Value.Count > 0, "Invalid VotingItemIdList, count is zero");
         var withdrawAmount = 0L;
         foreach (var votingItemId in input.VotingItemIdList.Value)
         {
             var votingItem = State.VotingItems[votingItemId];
-            // Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
+            Assert(votingItem != null && votingItem.EndTimestamp < Context.CurrentBlockTime, $"VotingItem not end {votingItemId}");
             var daoProposalAmount = State.DaoProposalRemainAmounts[user][GetDaoProposalId(input.DaoId,votingItemId)];
             Assert(daoProposalAmount > 0, $"Invalid proposal, no amount to withdraw {votingItemId}");
             withdrawAmount += daoProposalAmount;

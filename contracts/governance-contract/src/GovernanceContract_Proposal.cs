@@ -312,14 +312,16 @@ public partial class GovernanceContract
 
     private long GetRealMinimalRequiredThreshold(ProposalInfo proposalInfo, GovernanceSchemeThreshold threshold)
     {
+        
         var schemeAddress = proposalInfo.ProposalBasicInfo.SchemeAddress;
         var governanceScheme = State.GovernanceSchemeMap[schemeAddress];
         Assert(governanceScheme != null, $"Governance Scheme {schemeAddress} not exists.");
         if (governanceScheme!.GovernanceMechanism == GovernanceMechanism.HighCouncil)
         {
-            var addressList = State.ElectionContract.GetVictories.Call(proposalInfo.ProposalBasicInfo.DaoId);
-            Assert(addressList != null && addressList.Value.Count > 0, "The 'High Council' elections have not taken place yet.");
-            var realMinimalRequiredThreshold = threshold.MinimalRequiredThreshold * addressList!.Value.Count;
+            var daoId = proposalInfo.ProposalBasicInfo.DaoId;
+            var daoInfo = CallAndCheckDaoInfo(daoId);
+            var highCouncilCount = daoInfo.IsNetworkDao ? CallAndCheckBpCount() : CallAndCheckHighCouncilCount(daoId);
+            var realMinimalRequiredThreshold = threshold.MinimalRequiredThreshold * highCouncilCount;
             realMinimalRequiredThreshold =
                 realMinimalRequiredThreshold / GovernanceContractConstants.AbstractVoteTotal +
                 (realMinimalRequiredThreshold % GovernanceContractConstants.AbstractVoteTotal == 0 ? 0 : 1);

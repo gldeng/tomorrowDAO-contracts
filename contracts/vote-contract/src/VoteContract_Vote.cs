@@ -75,7 +75,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             }
             else
             {
-                AssertHighCouncil(Context.Sender);
+                AssertHighCouncil(daoInfo.DaoId, Context.Sender);
             }
         }
 

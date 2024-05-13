@@ -85,9 +85,10 @@ public partial class VoteContract
         return tokenInfo;
     }
 
-    private void AssertHighCouncil(Address voter)
+    private void AssertHighCouncil(Hash daoId, Address voter)
     {
-        //todo check voter from election contract
+        // var addressList = State.ElectionContract.GetVictories.Call(daoId);
+        // Assert(addressList.Value.Contains(voter), "Invalid voter: not HC");
     }
     
     private void AssertBP(Address voter)

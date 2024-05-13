@@ -2,6 +2,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Standards.ACS0;
 using TomorrowDAO.Contracts.DAO;
+using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Vote;
 
 namespace TomorrowDAO.Contracts.Governance;
@@ -17,4 +18,6 @@ public partial class GovernanceContractState
     internal DAOContractContainer.DAOContractReferenceState DaoContract { get; set; }
 
     internal VoteContractContainer.VoteContractReferenceState VoteContract { get; set; }
+    
+    internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
 }

@@ -212,7 +212,6 @@ public partial class GovernanceContract
 
     private ProposalStatusOutput GetProposalStatus(ProposalInfo proposalInfo)
     {
-        var threshold = State.ProposalGovernanceSchemeSnapShot[proposalInfo.ProposalId];
         var proposalStage = proposalInfo.ProposalStage;
         var proposalStatus = proposalInfo.ProposalStatus;
         var proposalTime = proposalInfo.ProposalTime;
@@ -226,6 +225,8 @@ public partial class GovernanceContract
             return result;
         }
 
+        var threshold = State.ProposalGovernanceSchemeSnapShot[proposalInfo.ProposalId];
+        Assert(threshold != null, "GovernanceSchemeThreshold not exists.");
         var votingResult = State.VoteContract.GetVotingResult.Call(proposalInfo.ProposalId);
 
         var totalVote = votingResult.VotesAmount;
@@ -233,7 +234,7 @@ public partial class GovernanceContract
         var rejectVote = votingResult.RejectCounts;
         var abstainVote = votingResult.AbstainCounts;
         var totalVoter = votingResult.TotalVotersCount;
-        var enoughVoter = totalVoter >= threshold.MinimalRequiredThreshold;
+        var enoughVoter = totalVoter >= GetRealMinimalRequiredThreshold(proposalInfo, threshold);
         if (!enoughVoter)
         {
             return new ProposalStatusOutput
@@ -242,13 +243,11 @@ public partial class GovernanceContract
                 ProposalStage = ProposalStage.Finished
             };
         }
+
         //the proposal of 1a1v is not subject to this control
-        var schemeAddress = proposalInfo.ProposalBasicInfo.SchemeAddress;
-        var governanceScheme = State.GovernanceSchemeMap[schemeAddress];
         var voteSchemeId = proposalInfo.ProposalBasicInfo.VoteSchemeId;
         var voteScheme = State.VoteContract.GetVoteScheme.Call(voteSchemeId);
-        if (governanceScheme?.GovernanceMechanism != GovernanceMechanism.HighCouncil &&
-            voteScheme?.VoteMechanism != VoteMechanism.UniqueVote)
+        if (voteScheme?.VoteMechanism != VoteMechanism.UniqueVote)
         {
             var enoughVote = rejectVote.Add(abstainVote).Add(approveVote) >= threshold.MinimalVoteThreshold;
             if (!enoughVote)
@@ -309,6 +308,25 @@ public partial class GovernanceContract
             ProposalStatus = proposalStatus,
             ProposalStage = ProposalStage.Execute
         };
+    }
+
+    private long GetRealMinimalRequiredThreshold(ProposalInfo proposalInfo, GovernanceSchemeThreshold threshold)
+    {
+        var schemeAddress = proposalInfo.ProposalBasicInfo.SchemeAddress;
+        var governanceScheme = State.GovernanceSchemeMap[schemeAddress];
+        Assert(governanceScheme != null, $"Governance Scheme {schemeAddress} not exists.");
+        if (governanceScheme!.GovernanceMechanism == GovernanceMechanism.HighCouncil)
+        {
+            var addressList = State.ElectionContract.GetVictories.Call(proposalInfo.ProposalBasicInfo.DaoId);
+            Assert(addressList != null && addressList.Value.Count > 0, "The 'High Council' elections have not taken place yet.");
+            var realMinimalRequiredThreshold = threshold.MinimalRequiredThreshold * addressList!.Value.Count;
+            realMinimalRequiredThreshold =
+                realMinimalRequiredThreshold / GovernanceContractConstants.AbstractVoteTotal +
+                (realMinimalRequiredThreshold % GovernanceContractConstants.AbstractVoteTotal == 0 ? 0 : 1);
+            return realMinimalRequiredThreshold;
+        }
+
+        return threshold.MinimalRequiredThreshold;
     }
 
     private bool HasPendingStatus(Hash proposalId)

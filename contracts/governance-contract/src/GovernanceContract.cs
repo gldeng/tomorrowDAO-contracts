@@ -16,6 +16,7 @@ public partial class GovernanceContract : GovernanceContractContainer.Governance
         AssertParams(input.DaoContractAddress);
         State.DaoContract.Value = input.DaoContractAddress;
         State.VoteContract.Value = input.VoteContractAddress;
+        State.ElectionContract.Value = input.ElectionContractAddress;
         State.Initialized.Value = true;
         return new Empty();
     }

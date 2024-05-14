@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Governance;
 
@@ -93,7 +95,9 @@ public partial class VoteContract
     
     private void AssertBP(Address voter)
     {
-        Assert(State.AEDPoSContract.IsCurrentMiner.Call(voter).Value, "Invalid voter: not BP.");
+        var minerList = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty());
+        var minerAddressList = minerList.Pubkeys.Select(x => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(x.ToHex()))).ToList();
+        Assert(minerAddressList.Contains(voter), "Invalid voter: not BP.");
     }
 
     private long AssertWithdraw(Address user, WithdrawInput input)

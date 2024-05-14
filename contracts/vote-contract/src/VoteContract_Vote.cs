@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
@@ -250,6 +251,16 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             DaoId = input.DaoId,
             VotingItemId = input.VotingItemId,
             Amount = State.DaoProposalRemainAmounts[input.Voter][GetDaoProposalId(input.DaoId, input.VotingItemId)]
+        };
+    }
+
+    public override AddressList GetBPAddresses(Empty input)
+    {
+        var minerList = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty());
+        var minerAddressList = minerList.Pubkeys.Select(x => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(x.ToHex()))).ToList();
+        return new AddressList
+        {
+            Value = { minerAddressList }
         };
     }
 

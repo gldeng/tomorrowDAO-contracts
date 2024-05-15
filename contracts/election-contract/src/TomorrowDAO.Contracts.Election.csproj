@@ -30,8 +30,8 @@
     
     <ItemGroup>
         <PackageReference Include="AElf.Contracts.Genesis" Version="1.6.0" />
-        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0" />
-        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.6.0" />
+<!--        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.6.0" />-->
         <PackageReference Include="AElf.Testing.TestBase" Version="1.0.0" />
         <PackageReference Include="AElf.EconomicSystem" Version="1.6.0" />
         <PackageReference Include="AElf.GovernmentSystem" Version="1.6.0" />

@@ -55,9 +55,9 @@
         <ProjectReference Include="..\..\vote-contract\src\TomorrowDAO.Contracts.Vote.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Protobuf\message\" />
-      <Folder Include="Protobuf\stub\" />
-    </ItemGroup>
+<!--    <ItemGroup>-->
+<!--      <Folder Include="Protobuf\message\" />-->
+<!--      <Folder Include="Protobuf\stub\" />-->
+<!--    </ItemGroup>-->
     
 </Project>

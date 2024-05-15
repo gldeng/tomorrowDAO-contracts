@@ -168,6 +168,7 @@ message DAOCreated {
   aelf.Hash dao_id = 3;
   aelf.Address creator = 4;
   ContractAddressList contract_address_list = 5;
+  bool is_network_dao = 6;
 }
 
 message SubsistStatusSet {

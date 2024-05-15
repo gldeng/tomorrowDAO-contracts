@@ -95,6 +95,9 @@ service VoteContract {
   rpc GetProposalRemainAmount (GetProposalRemainAmountInput) returns (ProposalRemainAmount) {
     option (aelf.is_view) = true;
   }
+  rpc GetBPAddresses (google.protobuf.Empty) returns (AddressList) {
+    option (aelf.is_view) = true;
+  }
 }
 
 // Data structure
@@ -194,6 +197,10 @@ message ProposalRemainAmount {
   aelf.Hash dao_id = 1;
   aelf.Hash voting_item_id = 2;
   int64 amount = 3;
+}
+
+message AddressList {
+  repeated aelf.Address value = 1;
 }
 
 message StringList {

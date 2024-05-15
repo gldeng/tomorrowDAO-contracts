@@ -26,9 +26,15 @@
 
     <ItemGroup>
         <Folder Include="Protobuf\base\" />
-        <Folder Include="Protobuf\reference\" />
-<!--        <Folder Include="Protobuf\base\" />-->
-<!--        <Folder Include="Protobuf\base\" />-->
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractReference Include="Protobuf\Reference\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\dao_contract.proto">
+            <Link>Protobuf\Proto\dao_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
     
     <ItemGroup>

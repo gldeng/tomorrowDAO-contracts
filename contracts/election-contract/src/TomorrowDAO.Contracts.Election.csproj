@@ -3,6 +3,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>TomorrowDAO.Contracts.Election</RootNamespace>
         <IsContract>true</IsContract>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
     <PropertyGroup>
@@ -22,6 +23,14 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
     
 
     <ItemGroup>
@@ -34,6 +43,18 @@
         </ContractReference>
         <ContractReference Include="Protobuf\Reference\dao_contract.proto">
             <Link>Protobuf\Proto\dao_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\governance_contract.proto">
+            <Link>Protobuf\Proto\governance_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\vote_contract.proto">
+            <Link>Protobuf\Proto\vote_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\treasury_contract.proto">
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     

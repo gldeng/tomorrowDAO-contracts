@@ -22,9 +22,28 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+    
 
     <ItemGroup>
         <Folder Include="Protobuf\base\" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractReference Include="Protobuf\Reference\acs0.proto">
+            
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\dao_contract.proto">
+            
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\governance_contract.proto">
+
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\governance_contract.proto">
+
+        </ContractReference>
+        <ContractReference Include="Protobuf\Reference\token_contract.proto">
+
+        </ContractReference>
     </ItemGroup>
 
 </Project>

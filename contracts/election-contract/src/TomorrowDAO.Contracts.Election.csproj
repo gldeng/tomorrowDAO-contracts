@@ -29,21 +29,19 @@
     </ItemGroup>
     
     <ItemGroup>
-        <ContractReference Include="Protobuf\Reference\acs0.proto">
-            
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\dao_contract.proto">
-            
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\governance_contract.proto">
-
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\governance_contract.proto">
-
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\token_contract.proto">
-
-        </ContractReference>
+        <PackageReference Include="AElf.Contracts.Genesis" Version="1.6.0" />
+        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0" />
+        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.6.0" />
+        <PackageReference Include="AElf.Testing.TestBase" Version="1.0.0" />
+        <PackageReference Include="AElf.EconomicSystem" Version="1.6.0" />
+        <PackageReference Include="AElf.GovernmentSystem" Version="1.6.0" />
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="AElf.ContractTestKit" Version="1.6.0" />
+        <PackageReference Include="AElf.Tools" Version="1.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="AElf.Kernel.SmartContract.ExecutionPluginForMethodFee" Version="1.6.0" />
     </ItemGroup>
 
 </Project>

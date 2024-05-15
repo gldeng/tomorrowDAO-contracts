@@ -26,6 +26,9 @@
 
     <ItemGroup>
         <Folder Include="Protobuf\base\" />
+        <Folder Include="Protobuf\reference\" />
+<!--        <Folder Include="Protobuf\base\" />-->
+<!--        <Folder Include="Protobuf\base\" />-->
     </ItemGroup>
     
     <ItemGroup>

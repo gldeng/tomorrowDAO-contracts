@@ -3,86 +3,40 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>TomorrowDAO.Contracts.Election</RootNamespace>
         <IsContract>true</IsContract>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
     <PropertyGroup>
         <ObjPath>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/$(TargetFramework)/</ObjPath>
     </PropertyGroup>
 
-<!--    <Target Name="ProtoGeneratedRecognition" AfterTargets="CoreCompile">-->
-<!--        <ItemGroup>-->
-<!--            <Compile Include="$(ObjPath)Protobuf/**/*.cs" />-->
-<!--        </ItemGroup>-->
-<!--    </Target>-->
+    <Target Name="ProtoGeneratedRecognition" AfterTargets="CoreCompile">
+        <ItemGroup>
+            <Compile Include="$(ObjPath)Protobuf/**/*.cs" />
+        </ItemGroup>
+    </Target>
 
-<!--    <ItemGroup>-->
-<!--        <PackageReference Include="AElf.Sdk.CSharp" Version="1.6.0" />-->
-<!--        <PackageReference Include="AElf.Tools" Version="1.0.2">-->
-<!--            <PrivateAssets>all</PrivateAssets>-->
-<!--            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
-<!--        </PackageReference>-->
-<!--    </ItemGroup>-->
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="AElf.Sdk.CSharp" Version="1.6.0" />
+        <PackageReference Include="AElf.Tools" Version="1.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
     
 
-<!--    <ItemGroup>-->
-<!--        <Folder Include="Protobuf\base\" />-->
-<!--    </ItemGroup>-->
-
     <ItemGroup>
-        <ContractBase Include="Protobuf\base\acs12.proto">
-            <Link>Protobuf\Proto\reference\acs12.proto</Link>
-        </ContractBase>
-    </ItemGroup>
-
-    <ItemGroup>
-        <CommonMessage Include="Protobuf\message\authority_info.proto">
-            <Link>Protobuf\Proto\authority_info.proto</Link>
-        </CommonMessage>
+        <Folder Include="Protobuf\base\" />
     </ItemGroup>
     
     <ItemGroup>
-        <ContractReference Include="Protobuf\Reference\acs0.proto">
-            <Link>Protobuf\Proto\acs0.proto</Link>
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\dao_contract.proto">
-            <Link>Protobuf\Proto\dao_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\governance_contract.proto">
-            <Link>Protobuf\Proto\governance_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\token_contract.proto">
-            <Link>Protobuf\Proto\token_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\vote_contract.proto">
-            <Link>Protobuf\Proto\vote_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="Protobuf\Reference\treasury_contract.proto">
-            <Link>Protobuf\Proto\treasury_contract.proto</Link>
-        </ContractReference>
-
-        <ContractCode Include="Protobuf\contract\election_contract.proto">
-            <Link>Protobuf\Proto\election_contract.proto</Link>
-        </ContractCode>
+<!--        <PackageReference Include="AElf.Contracts.Genesis" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.EconomicSystem" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.GovernmentSystem" Version="1.6.0" />-->
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="AElf.Kernel.SmartContract.ExecutionPluginForMethodFee" Version="1.6.0" />
     </ItemGroup>
-    
-<!--    <ItemGroup>-->
-<!--&lt;!&ndash;        <PackageReference Include="AElf.Contracts.Genesis" Version="1.6.0" />&ndash;&gt;-->
-<!--&lt;!&ndash;        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0" />&ndash;&gt;-->
-<!--&lt;!&ndash;        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.6.0" />&ndash;&gt;-->
-<!--&lt;!&ndash;        <PackageReference Include="AElf.EconomicSystem" Version="1.6.0" />&ndash;&gt;-->
-<!--&lt;!&ndash;        <PackageReference Include="AElf.GovernmentSystem" Version="1.6.0" />&ndash;&gt;-->
-<!--        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />-->
-<!--        <PackageReference Include="AElf.Kernel.SmartContract.ExecutionPluginForMethodFee" Version="1.6.0" />-->
-<!--    </ItemGroup>-->
 
 </Project>
     

@@ -38,9 +38,6 @@ service VoteContract {
   }
   rpc SetEmergencyStatus (SetEmergencyStatusInput) returns (google.protobuf.Empty){
   }
-  // to delete
-  rpc Test (SetEmergencyStatusInput) returns (google.protobuf.Empty){
-  }
   rpc WithdrawInEmergency (WithdrawInEmergencyInput) returns (google.protobuf.Empty){
   }
 
@@ -78,9 +75,6 @@ service VoteContract {
     option (aelf.is_view) = true;
   }
   rpc GetVotingRecord (GetVotingRecordInput) returns (VotingRecord) {
-    option (aelf.is_view) = true;
-  }
-  rpc GetVirtualAddressDelete (GetVirtualAddressInput) returns (aelf.Address) {
     option (aelf.is_view) = true;
   }
   rpc GetVirtualAddress (GetVirtualAddressInput) returns (aelf.Address) {

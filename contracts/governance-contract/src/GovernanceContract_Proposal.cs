@@ -198,6 +198,7 @@ public partial class GovernanceContract
         
         Context.Fire(new ProposalExecuted
         {
+            DaoId = proposal.ProposalBasicInfo.DaoId,
             ProposalId = proposal.ProposalId,
             ExecuteTime = Context.CurrentBlockTime
         });

@@ -1,6 +1,5 @@
 using AElf.Contracts.MultiToken;
 using AElf.Standards.ACS0;
-using AElf.Types;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Governance;
 

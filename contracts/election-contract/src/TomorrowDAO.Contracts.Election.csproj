@@ -22,9 +22,20 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+    
 
     <ItemGroup>
         <Folder Include="Protobuf\base\" />
+    </ItemGroup>
+    
+    <ItemGroup>
+<!--        <PackageReference Include="AElf.Contracts.Genesis" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.EconomicSystem" Version="1.6.0" />-->
+<!--        <PackageReference Include="AElf.GovernmentSystem" Version="1.6.0" />-->
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="AElf.Kernel.SmartContract.ExecutionPluginForMethodFee" Version="1.6.0" />
     </ItemGroup>
 
 </Project>

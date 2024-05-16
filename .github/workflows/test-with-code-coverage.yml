@@ -36,7 +36,7 @@ jobs:
 
       - name: Test
         run: |
-          for name in `ls ./test/*.csproj | awk '{print $NF}'`;
+          for name in `ls ./*/test/*.csproj | awk '{print $NF}'`;
           do
               dotnet test ${name} --no-restore --no-build --logger trx --settings CodeCoverage.runsettings --results-directory coverage --collect:"XPlat Code Coverage" 
           done

@@ -454,6 +454,7 @@ public partial class GovernanceContract
         }
 
         var voteResult = State.VoteContract.GetVotingResult.Call(input);
+        var proposalStatusOutput = GetProposalStatus(proposal);
 
         var proposalInfoOutput = new ProposalInfoOutput
         {
@@ -467,8 +468,8 @@ public partial class GovernanceContract
             ActiveEndTime = proposal.ProposalTime?.ActiveEndTime,
             ExecuteStartTime = proposal.ProposalTime?.ExecuteStartTime,
             ExecuteEndTime = proposal.ProposalTime?.ExecuteEndTime,
-            ProposalStatus = proposal.ProposalStatus,
-            ProposalStage = proposal.ProposalStage,
+            ProposalStatus = proposalStatusOutput.ProposalStatus,
+            ProposalStage = proposalStatusOutput.ProposalStage,
             Proposer = proposal.Proposer,
             SchemeAddress = proposal.ProposalBasicInfo?.SchemeAddress,
             Transaction = proposal.Transaction,

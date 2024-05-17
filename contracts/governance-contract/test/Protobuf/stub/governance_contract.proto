@@ -45,7 +45,7 @@ service GovernanceContract {
   }
   rpc CreateVetoProposal (CreateVetoProposalInput) returns (aelf.Hash){
   }
-  rpc VetoProposal (aelf.Hash) returns (google.protobuf.Empty){
+  rpc VetoProposal (VetoProposalInput) returns (google.protobuf.Empty){
   }
   rpc ExecuteProposal (aelf.Hash) returns (google.protobuf.Empty) {
   }
@@ -180,6 +180,7 @@ message DaoProposalTimePeriod {
 message InitializeInput {
   aelf.Address dao_contract_address = 1;
   aelf.Address vote_contract_address = 2;
+  aelf.Address election_contract_address = 3;
 }
 message AddGovernanceSchemeInput {
   aelf.Hash dao_id = 1;
@@ -252,6 +253,10 @@ message CalculateGovernanceSchemeAddressInput {
   aelf.Hash dao_id = 1;
   GovernanceMechanism governance_mechanism = 2;
 }
+message VetoProposalInput {
+  aelf.Hash proposal_id = 1;
+  aelf.Hash veto_proposal_id = 2;
+}
 
 // Event
 message GovernanceSchemeAdded {
@@ -299,7 +304,6 @@ message ProposalCreated {
   aelf.Hash vote_scheme_id = 16;
   aelf.Hash veto_proposal_id = 17;
 }
-
 message ProposalVetoed {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;

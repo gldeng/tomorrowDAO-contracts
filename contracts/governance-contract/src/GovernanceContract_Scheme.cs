@@ -52,7 +52,7 @@ namespace TomorrowDAO.Contracts.Governance
             Assert(State.Initialized.Value, "Not initialized yet.");
             AssertParams(input.DaoId, input.SchemeAddress, input.SchemeThreshold);
             //TODO Who has the update permission
-            //Assert(Context.Sender == State.DaoContract.Value, "No permission.");
+            Assert(Context.Sender == State.DaoContract.Value, "No permission.");
             Assert(ValidatePermission(input.DaoId, input.SchemeAddress), "Scheme not found.");
             Assert(ValidateDaoSubsistStatus(input.DaoId), "DAO not subsist. ");
             var scheme = State.GovernanceSchemeMap[input.SchemeAddress];
@@ -72,6 +72,7 @@ namespace TomorrowDAO.Contracts.Governance
         public override Empty RemoveGovernanceScheme(RemoveGovernanceSchemeInput input)
         {
             Assert(State.Initialized.Value, "Not initialized yet.");
+            //TODO Who has the remove permission
             Assert(Context.Sender == State.DaoContract.Value, "No permission.");
             Assert(ValidateDaoSubsistStatus(input.DaoId), "DAO not subsist.");
             AssertParams(input.DaoId, input.SchemeAddress);

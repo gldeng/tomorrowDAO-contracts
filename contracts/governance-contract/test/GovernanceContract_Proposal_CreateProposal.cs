@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,18 +15,21 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     {
         _testOutputHelper = testOutputHelper;
     }
+    
+    
 
     [Fact]
     public async Task CreateProposalTest()
     {
-        await InitializeAll();
-
-        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(DefaultDaoId);
+        await InitializeAllContract();
+        var daoId = await MockDao();
+        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
         addressList.ShouldNotBeNull();
-        addressList.Value.Count.ShouldBe(1);
+        addressList.Value.Count.ShouldBe(2);
         var schemeAddress = addressList.Value.FirstOrDefault();
+        var voteMechanismId = await MockVoteScheme();
 
-        var result = await CreateProposal(schemeAddress);
+        var result = await CreateProposal(schemeAddress, voteMechanismId, daoId);
         result.ShouldNotBeNull();
         _testOutputHelper.WriteLine("ProposalId = {0}", result);
     }
@@ -33,11 +37,8 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     [Fact]
     public async Task CreateProposalTest_EventTest()
     {
-        await Initialize(DefaultAddress);
-        var schemeAddress = await AddGovernanceScheme();
-
-        var input = MockCreateProposalInput(schemeAddress);
-        var executionResult = await GovernanceContractStub.CreateProposal.SendAsync(input);
+        var input = MockCreateProposalInput();
+        var executionResult = await CreateProposalAsync(input, false);
         var logEvents = executionResult.TransactionResult.Logs;
         var existProposalCreated = false;
         foreach (var logEvent in logEvents)
@@ -50,39 +51,29 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
 
         existProposalCreated.ShouldBe(true);
 
+        LogEvent proposalCreatedEvent = null;
+        foreach (var logEvent in executionResult.TransactionResult.Logs)
+        {
+            if (logEvent.Name.Contains(nameof(ProposalCreated)))
+            {
+                proposalCreatedEvent = logEvent;
+            }
+        }
+
+        proposalCreatedEvent.ShouldNotBeNull();
         var url = ProposalCreated.Parser
-            .ParseFrom(executionResult.TransactionResult.Logs.First(l => l.Name.Contains(nameof(ProposalCreated)))
-                .NonIndexed)
+            .ParseFrom(proposalCreatedEvent.NonIndexed)
             .ForumUrl;
         url.ShouldNotBeNull();
         url.ShouldContain("https://www.ForumUrl.com");
     }
 
     [Fact]
-    public async Task CreateProposalTest_Exists()
-    {
-        await Initialize(DefaultAddress);
-        var schemeAddress = await AddGovernanceScheme();
-
-        var input = MockCreateProposalInput(schemeAddress);
-        var result = await CreateProposal(input);
-        result.ShouldNotBeNull();
-        _testOutputHelper.WriteLine("ProposalId = {0}", result);
-
-        //Proposal Id will never be duplicated
-        //var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
-        //executionResult.TransactionResult.Error.ShouldContain("Proposal already exists");
-    }
-
-    [Fact]
     public async Task CreateProposalTest_CannotBeUnusedOrVeto()
     {
-        await Initialize(DefaultAddress);
-        var schemeAddress = await AddGovernanceScheme();
-
-        var input = MockCreateProposalInput(schemeAddress);
+        var input = MockCreateProposalInput();
         input.ProposalType = ProposalType.Unused;
-        var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
+        var executionResult = await CreateProposalAsync(input, true);
         executionResult.TransactionResult.Error.ShouldContain("ProposalType cannot be Unused or Veto");
 
         input.ProposalType = ProposalType.Veto;
@@ -93,13 +84,10 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     [Fact]
     public async Task CreateProposalTest_ExecuteTransactionIsNull()
     {
-        await Initialize(DefaultAddress);
-        var schemeAddress = await AddGovernanceScheme();
-
-        var input = MockCreateProposalInput(schemeAddress);
+        var input = MockCreateProposalInput();
+        input.ProposalType = ProposalType.Governance;
         input.Transaction = null;
-
-        var executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
+        var executionResult = await CreateProposalAsync(input, true);
         _testOutputHelper.WriteLine(executionResult.TransactionResult.Error);
         executionResult.TransactionResult.Error.ShouldContain("Invalid input or parameter does not exist");
     }

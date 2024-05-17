@@ -1,8 +1,5 @@
-using System;
 using System.Linq;
 using AElf;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.CSharp.Core;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -100,7 +97,8 @@ public partial class GovernanceContract
     private int CallAndCheckHighCouncilCount(Hash daoId)
     {
         var addressList = State.ElectionContract.GetVictories.Call(daoId);
-        Assert(addressList != null && addressList.Value.Count > 0, "The 'High Council' elections have not taken place yet.");
+        Assert(addressList != null && addressList.Value.Count > 0,
+            "The 'High Council' elections have not taken place yet.");
         return addressList!.Value.Count;
     }
 
@@ -112,6 +110,15 @@ public partial class GovernanceContract
     }
 
     #region proposal
+
+    private ProposalStatusOutput CreateProposalStatusOutput(ProposalStatus proposalStatus, ProposalStage proposalStage)
+    {
+        return new ProposalStatusOutput
+        {
+            ProposalStatus = proposalStatus,
+            ProposalStage = proposalStage
+        };
+    }
 
     private ProposalTime GetProposalTimePeriod(ProposalBasicInfo proposalBasicInfo, ProposalType proposalType)
     {

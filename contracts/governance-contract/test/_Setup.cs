@@ -1,32 +1,53 @@
-﻿using AElf;
+﻿using System;
+using System.Diagnostics;
+using AElf;
+using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
+using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Standards.ACS0;
-using AElf.Testing.TestBase;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Vote;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using TimestampHelper = AElf.Contracts.Election.TimestampHelper;
 
 namespace TomorrowDAO.Contracts.Governance
 {
     // The Module class load the context required for unit testing
-    public class Module : ContractTestModule<GovernanceContract>
+    [DependsOn(typeof(ContractTestModule))]
+    public class Module : AElf.Testing.TestBase.ContractTestModule<GovernanceContract>
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+
+            //context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProviderProxy>();
+            // context.Services.Replace(ServiceDescriptor
+            //     .Singleton<IBlockTimeProvider, DelayBlockTimeProvider>());
+            
         }
     }
 
+    public class ResetBlockTimeProviderProxy : IResetBlockTimeProvider
+    {
+        public bool Enabled { get; } = true;
+        public int StepMilliseconds { get; set; }
+    }
+    
     // The TestBase class inherit ContractTestBase class, it defines Stub classes and gets instances required for unit testing
-    public class TestBase : ContractTestBase<Module>
+    public class TestBase : AElf.Testing.TestBase.ContractTestBase<Module>
     {
         internal ACS0Container.ACS0Stub GenesisContractStub;
         
@@ -56,12 +77,26 @@ namespace TomorrowDAO.Contracts.Governance
 
         protected TestBase()
         {
+            var blockTimeProvider = Application.Services.GetRequiredService<IBlockTimeProvider>();
+            blockTimeProvider.SetBlockTime(DateTime.UtcNow.AddDays(1).ToTimestamp());
+            
             GenesisContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
-
+            
             DeployGovernanceContract();
             DeployDaoContract();
             DeployVoteContract();
             DeployElectionContract();
+        }
+        
+        protected override void AfterAddApplication(IServiceCollection services)
+        {
+            base.AfterAddApplication(services);
+            
+            var blockTimeProvider = this.Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
+            blockTimeProvider.SetBlockTime(DateTime.UtcNow.AddDays(3).ToTimestamp());
+            // services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProviderProxy>();
+            // context.Services.Replace(ServiceDescriptor
+            //     .Singleton<IBlockTimeProvider, DelayBlockTimeProvider>());
         }
 
         internal T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)

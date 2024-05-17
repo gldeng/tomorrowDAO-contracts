@@ -20,7 +20,7 @@ public partial class ElectionContract
         AnnounceElection(input.DaoId, Context.Sender, input.CandidateAdmin);
         State.CandidateAdmins[input.DaoId][Context.Sender] = input.CandidateAdmin;
 
-        LockCandidateAnnounceToken(input.DaoId);
+        LockCandidateAnnounceToken(input.DaoId, highCouncilConfig);
 
         Context.Fire(new CandidateAdded
         {
@@ -45,7 +45,7 @@ public partial class ElectionContract
         AnnounceElection(input.DaoId, input.Candidate, input.CandidateAdmin);
         State.CandidateAdmins[input.DaoId][input.Candidate] = input.CandidateAdmin;
 
-        LockCandidateAnnounceToken(input.DaoId);
+        LockCandidateAnnounceToken(input.DaoId, highCouncilConfig);
 
         State.CandidateSponsorMap[input.DaoId][input.Candidate] = Context.Sender;
 
@@ -63,20 +63,21 @@ public partial class ElectionContract
     {
         AssertValidAndQuitElection(input);
 
-        var hCouncilConfig = State.HighCouncilConfig[input.DaoId];
-        var candidateInformation = State.CandidateInformationMap[input.DaoId][input.Candidate];
+        var hCouncilConfig = GetAndValidateHighCouncilConfig(input.DaoId);
+        var candidateInformation = GetAndValidateCandidateInformation(input.DaoId, input.Candidate);
 
         // Unlock candidate's native token.
         var lockId = candidateInformation.AnnouncementTransactionId;
-        var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
-        State.TokenContract.TransferFrom.Send(new TransferFromInput
-        {
-            From = lockVirtualAddress,
-            To = State.CandidateSponsorMap[input.DaoId][input.Candidate] ?? input.Candidate,
-            Symbol = hCouncilConfig.GovernanceToken,
-            Amount = hCouncilConfig.StakeThreshold,
-            Memo = $"Quit election, {input.DaoId}."
-        });
+        // var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
+        State.TokenContract.Transfer.VirtualSend(lockId, 
+            new TransferInput
+            {
+                To = State.CandidateSponsorMap[input.DaoId][input.Candidate] ?? input.Candidate,
+                Symbol = hCouncilConfig.GovernanceToken,
+                Amount = hCouncilConfig.StakeThreshold,
+                Memo = $"Quit election, {input.DaoId}."
+                
+            });
 
         // Update candidate information.
         candidateInformation.IsCurrentCandidate = false;
@@ -136,6 +137,7 @@ public partial class ElectionContract
     private void AnnounceElection(Hash daoId, Address candidateAddress, Address candidateAdmin)
     {
         var highCouncil = State.HighCouncilConfig[daoId];
+        Assert(highCouncil != null, $"Dao {daoId} not exists.");
         var candidateInformation = State.CandidateInformationMap[daoId][candidateAddress];
 
         if (candidateInformation != null)
@@ -177,9 +179,8 @@ public partial class ElectionContract
         return State.BannedAddressMap[daoId][address];
     }
 
-    private void LockCandidateAnnounceToken(Hash daoId)
+    private void LockCandidateAnnounceToken(Hash daoId, HighCouncilConfig highCouncilConfig)
     {
-        var highCouncilConfig = State.HighCouncilConfig[daoId];
         var lockId = Context.OriginTransactionId;
         var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
         var sponsorAddress = Context.Sender;

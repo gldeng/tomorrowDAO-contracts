@@ -1,9 +1,5 @@
 using System;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
-using AElf.ContractTestKit;
-using AElf.CSharp.Core.Extension;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using TomorrowDAO.Contracts.Vote;
@@ -36,6 +32,10 @@ public class GovernanceContractProposalCreateVetoProposal : GovernanceContractTe
         
         //Election
         await HighCouncilElection(input.ProposalBasicInfo.DaoId);
+        
+        await HighCouncilElectionFor(input.ProposalBasicInfo.DaoId, UserAddress);
+        var addressList = await ElectionContractStub.GetVictories.CallAsync(input.ProposalBasicInfo.DaoId);
+        addressList.Value.Count.ShouldBe(2);
 
         //Vote 10s
         BlockTimeProvider.SetBlockTime(10000);

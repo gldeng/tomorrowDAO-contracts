@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -11,10 +10,11 @@ public class GovernanceContractProposalSetProposalTimePeriod : GovernanceContrac
     [Fact]
     public async Task SetProposalTimePeriodTest()
     {
-        await Initialize();
+        await InitializeAllContract();
+        var daoId = await MockDao();
         var input = new SetProposalTimePeriodInput
         {
-            DaoId = DefaultDaoId,
+            DaoId = daoId,
             ProposalTimePeriod = new DaoProposalTimePeriod
             {
                 ActiveTimePeriod = 7,
@@ -37,7 +37,9 @@ public class GovernanceContractProposalSetProposalTimePeriod : GovernanceContrac
     [Fact]
     public async Task SetProposalTimePeriodTest_InvalidInput()
     {
-        await Initialize();
+        await InitializeAllContract();
+        var daoId = await MockDao();
+        
         var result =
             await GovernanceContractStub.SetProposalTimePeriod.SendWithExceptionAsync(new SetProposalTimePeriodInput());
         result.TransactionResult.Error.ShouldContain("Invalid input");
@@ -64,11 +66,11 @@ public class GovernanceContractProposalSetProposalTimePeriod : GovernanceContrac
         };
         result = await GovernanceContractStub.SetProposalTimePeriod.SendWithExceptionAsync(input);
         result.TransactionResult.Error.ShouldContain("Invalid input");
-
+        
         //out of range
         input = new SetProposalTimePeriodInput
         {
-            DaoId = DefaultDaoId,
+            DaoId = daoId,
             ProposalTimePeriod = new DaoProposalTimePeriod
             {
                 ActiveTimePeriod = 7,

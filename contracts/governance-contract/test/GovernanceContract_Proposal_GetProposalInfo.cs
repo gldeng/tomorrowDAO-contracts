@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -10,9 +9,9 @@ public class GovernanceContractProposalGetProposalInfo : GovernanceContractTestB
     [Fact]
     public async Task GetProposalInfoTest()
     {
-        await Initialize(DefaultAddress);
-        var schemeAddress = await AddGovernanceScheme();
-        var proposalId = await CreateProposal(schemeAddress);
+        var input = MockCreateProposalInput();
+        var executionResult = await CreateProposalAsync(input, false);
+        var proposalId = executionResult.Output;
 
         var proposalInfo = await GovernanceContractStub.GetProposalInfo.CallAsync(proposalId);
         proposalInfo.ShouldNotBeNull();

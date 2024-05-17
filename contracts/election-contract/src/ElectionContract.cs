@@ -121,7 +121,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
     private void AssertValidAndSetHighCouncilConfig(SetHighCouncilConfigInput input)
     {
         AssertInitialized();
-        //AssertSenderDaoContract();
+        AssertSenderDaoContract();
         AssertNotNullOrEmpty(input);
         AssertNotNullOrEmpty(input.DaoId, "DaoId");
         Assert(input.MaxHighCouncilMemberCount > 0, "Invalid MaxHighCouncilMemberCount.");

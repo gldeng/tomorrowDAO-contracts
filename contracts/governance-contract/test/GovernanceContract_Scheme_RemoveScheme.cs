@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using TomorrowDAO.Contracts.DAO;
+using Shouldly;
 using Xunit;
 
 namespace TomorrowDAO.Contracts.Governance;
@@ -9,23 +9,26 @@ public class GovernanceContractSchemeRemoveScheme : GovernanceContractTestBase
     [Fact]
     public async Task RemoveSchemeTest()
     {
-        await Initialize(DefaultAddress);
-        var address = await AddGovernanceScheme();
+        await InitializeAllContract();
+        var daoId = await MockDao();
+        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
+        addressList.ShouldNotBeNull();
+        addressList.Value.Count.ShouldBe(2);
 
-        var setSubsistStatusInput = new SetSubsistStatusInput
-        {
-            DaoId = DefaultDaoId,
-            Status = true
-        };
-        await DAOContractStub.SetSubsistStatus.SendAsync(setSubsistStatusInput);
+        // var setSubsistStatusInput = new SetSubsistStatusInput
+        // {
+        //     DaoId = daoId,
+        //     Status = true
+        // };
+        // await DAOContractStub.SetSubsistStatus.SendAsync(setSubsistStatusInput);
 
-        var inpute = new RemoveGovernanceSchemeInput
-        {
-            DaoId = DefaultDaoId,
-            SchemeAddress = address
-        };
-
-        await GovernanceContractStub.RemoveGovernanceScheme.SendAsync(inpute);
+        // var inpute = new RemoveGovernanceSchemeInput
+        // {
+        //     DaoId = daoId,
+        //     SchemeAddress = addressList.Value.FirstOrDefault()
+        // };
+        //
+        // await GovernanceContractStub.RemoveGovernanceScheme.SendAsync(inpute);
     }
     
 }

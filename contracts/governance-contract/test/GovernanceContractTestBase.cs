@@ -256,6 +256,36 @@ public class GovernanceContractTestBase : TestBase
             TermNumber = 1
         });
     }
+    
+    internal async Task<IExecutionResult<Empty>> HighCouncilElectionFor(Hash DaoId, Address candidateAddress)
+    {
+        await TokenContractStub.Approve.SendAsync(new ApproveInput
+        {
+            Spender = ElectionContractAddress,
+            Symbol = "ELF",
+            Amount = 1000000000
+        });
+        
+        await ElectionContractStub.AnnounceElectionFor.SendAsync(new AnnounceElectionForInput
+        {
+            DaoId = DaoId,
+            Candidate = candidateAddress,
+            CandidateAdmin = DefaultAddress
+        });
+        await ElectionContractStub.Vote.SendAsync(new VoteHighCouncilInput
+        {
+            DaoId = DaoId,
+            CandidateAddress = candidateAddress,
+            Amount = 100000000,
+            EndTimestamp = DateTime.UtcNow.AddDays(4).ToTimestamp(),
+            Token = null
+        });
+        return await ElectionContractStub.TakeSnapshot.SendAsync(new TakeElectionSnapshotInput
+        {
+            DaoId = DaoId,
+            TermNumber = 2
+        });
+    }
 
     internal async Task<IExecutionResult<Empty>> VoteProposalAsync(Hash proposalId, long amount, VoteOption voteOption)
     {

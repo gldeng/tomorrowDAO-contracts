@@ -40,21 +40,22 @@ public class GovernanceSchemeContractSchemeGet : GovernanceContractTestBase
     [Fact]
     public async Task GetProposalSnapShotSchemeTest()
     {
-        await Initialize(DefaultAddress);
-        var scheme = await AddGovernanceScheme();
-        var proposal = await CreateProposal(scheme);
+        var input = MockCreateProposalInput();
+        var executionResult = await CreateProposalAsync(input, false);
+        var proposalId = executionResult.Output;
 
-        var threshold = await GovernanceContractStub.GetProposalSnapShotScheme.CallAsync(proposal);
+        var threshold = await GovernanceContractStub.GetProposalSnapShotScheme.CallAsync(proposalId);
         threshold.ShouldNotBeNull();
     }
 
     [Fact]
     public async Task GetProposalStatusTest()
     {
-        await Initialize(DefaultAddress);
-        var scheme = await AddGovernanceScheme();
-        var proposal = await CreateProposal(scheme);
-        var proposalStatusOutput = await GovernanceContractStub.GetProposalStatus.CallAsync(proposal);
+        var input = MockCreateProposalInput();
+        var executionResult = await CreateProposalAsync(input, false);
+        var proposalId = executionResult.Output;
+        
+        var proposalStatusOutput = await GovernanceContractStub.GetProposalStatus.CallAsync(proposalId);
         proposalStatusOutput.ShouldNotBeNull();
     }
 }

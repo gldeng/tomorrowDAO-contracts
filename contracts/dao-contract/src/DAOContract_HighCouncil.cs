@@ -45,7 +45,7 @@ public partial class DAOContract
                 GovernanceMechanism = GovernanceMechanism.HighCouncil
             });
 
-        State.ElectionContract.RegisterElectionVotingEvent.Call(new RegisterElectionVotingEventInput
+        State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput
         {
             DaoId = daoId,
             ElectionPeriod = highCouncilConfig.ElectionPeriod,

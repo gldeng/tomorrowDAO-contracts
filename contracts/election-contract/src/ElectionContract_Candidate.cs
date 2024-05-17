@@ -75,7 +75,7 @@ public partial class ElectionContract
                 To = State.CandidateSponsorMap[input.DaoId][input.Candidate] ?? input.Candidate,
                 Symbol = hCouncilConfig.GovernanceToken,
                 Amount = hCouncilConfig.StakeThreshold,
-                Memo = $"Quit election, {input.DaoId}."
+                Memo = $"Quit election."
                 
             });
 
@@ -190,7 +190,7 @@ public partial class ElectionContract
             To = lockVirtualAddress,
             Symbol = highCouncilConfig.GovernanceToken,
             Amount = highCouncilConfig.StakeThreshold,
-            Memo = $"Lock for dao announcing election, {daoId.ToHex()}."
+            Memo = $"Lock for dao announcing election."
         });
     }
 

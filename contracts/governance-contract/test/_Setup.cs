@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -17,39 +18,33 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Vote;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
-using TimestampHelper = AElf.Contracts.Election.TimestampHelper;
 
 namespace TomorrowDAO.Contracts.Governance
 {
     // The Module class load the context required for unit testing
-    [DependsOn(typeof(ContractTestModule))]
     public class Module : AElf.Testing.TestBase.ContractTestModule<GovernanceContract>
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<IRefBlockInfoProvider, RefBlockInfoProvider>();
+            context.Services.AddSingleton<ITestTransactionExecutor, TestTransactionExecutor>();
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
+            context.Services.AddSingleton<IContractTesterFactory, ContractTesterFactory>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            //context.Services.Replace(ServiceDescriptor.Transient<IContractTesterFactory, MyContractTesterFactory>());
 
-            //context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
-            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProviderProxy>();
-            // context.Services.Replace(ServiceDescriptor
-            //     .Singleton<IBlockTimeProvider, DelayBlockTimeProvider>());
-            
         }
     }
 
-    public class ResetBlockTimeProviderProxy : IResetBlockTimeProvider
-    {
-        public bool Enabled { get; } = true;
-        public int StepMilliseconds { get; set; }
-    }
-    
     // The TestBase class inherit ContractTestBase class, it defines Stub classes and gets instances required for unit testing
     public class TestBase : AElf.Testing.TestBase.ContractTestBase<Module>
     {
         internal ACS0Container.ACS0Stub GenesisContractStub;
+        internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         
         internal Address GovernanceContractAddress { get; set; }
         // The Stub class for unit testing
@@ -77,10 +72,8 @@ namespace TomorrowDAO.Contracts.Governance
 
         protected TestBase()
         {
-            var blockTimeProvider = Application.Services.GetRequiredService<IBlockTimeProvider>();
-            blockTimeProvider.SetBlockTime(DateTime.UtcNow.AddDays(1).ToTimestamp());
-            
             GenesisContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
+            TokenContractStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
             
             DeployGovernanceContract();
             DeployDaoContract();
@@ -88,21 +81,12 @@ namespace TomorrowDAO.Contracts.Governance
             DeployElectionContract();
         }
         
-        protected override void AfterAddApplication(IServiceCollection services)
-        {
-            base.AfterAddApplication(services);
-            
-            var blockTimeProvider = this.Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-            blockTimeProvider.SetBlockTime(DateTime.UtcNow.AddDays(3).ToTimestamp());
-            // services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProviderProxy>();
-            // context.Services.Replace(ServiceDescriptor
-            //     .Singleton<IBlockTimeProvider, DelayBlockTimeProvider>());
-        }
-
         internal T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)
             where T : ContractStubBase, new()
         {
-            return GetTester<T>(contractAddress, senderKeyPair);
+            var contractTesterFactory = this.Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
+            return contractTesterFactory.Create<T>(contractAddress, senderKeyPair);
+            // return GetTester<T>(contractAddress, senderKeyPair);
         }
         
         private ByteString GenerateContractSignature(byte[] privateKey, ContractOperation contractOperation)

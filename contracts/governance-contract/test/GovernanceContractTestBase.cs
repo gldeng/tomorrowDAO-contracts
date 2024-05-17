@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.CSharp.Core;
 using AElf.Types;
@@ -11,20 +12,24 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using TomorrowDAO.Contracts.DAO;
+using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Vote;
+using HighCouncilConfig = TomorrowDAO.Contracts.DAO.HighCouncilConfig;
 
 namespace TomorrowDAO.Contracts.Governance;
 
 public class GovernanceContractTestBase : TestBase
 {
     protected IBlockTimeProvider BlockTimeProvider;
-    
-    protected IBlockTimeProvider BlockTimeProvider1 = new BlockTimeProvider();
 
-    public GovernanceContractTestBase() : base()
+
+    public GovernanceContractTestBase()
     {
         BlockTimeProvider = Application.ServiceProvider.GetService<IBlockTimeProvider>();
     }
+
+    protected readonly string DefaultGovernanceToken = "ELF";
+    protected readonly long OneElfAmount = 100000000;
 
     protected Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
 
@@ -36,8 +41,6 @@ public class GovernanceContractTestBase : TestBase
         MaximalRejectionThreshold = 2,
         MaximalAbstentionThreshold = 2
     };
-
-    protected readonly string DefaultGovernanceToken = "ELF";
 
     protected Hash DefaultVoteSchemeId = HashHelper.ComputeFrom("DefaultVoteSchemeId");
 
@@ -58,7 +61,8 @@ public class GovernanceContractTestBase : TestBase
         var input = new InitializeInput
         {
             DaoContractAddress = daoAddress ?? DAOContractAddress,
-            VoteContractAddress = voteAddress ?? VoteContractAddress
+            VoteContractAddress = voteAddress ?? VoteContractAddress,
+            ElectionContractAddress = ElectionContractAddress
         };
         await GovernanceContractStub.Initialize.SendAsync(input);
 
@@ -117,26 +121,26 @@ public class GovernanceContractTestBase : TestBase
             GovernanceToken = "ELF",
             GovernanceSchemeThreshold = new DAO.GovernanceSchemeThreshold()
             {
-                MinimalRequiredThreshold = 5,
-                MinimalVoteThreshold = 3,
-                MinimalApproveThreshold = 5,
-                MaximalRejectionThreshold = 5,
-                MaximalAbstentionThreshold = 5
+                MinimalRequiredThreshold = 1,
+                MinimalVoteThreshold = 100000000,
+                MinimalApproveThreshold = 5000,
+                MaximalRejectionThreshold = 2000,
+                MaximalAbstentionThreshold = 2000
             },
             HighCouncilInput = new HighCouncilInput
             {
                 HighCouncilConfig = new HighCouncilConfig
                 {
-                    MaxHighCouncilMemberCount = 10,
+                    MaxHighCouncilMemberCount = 2,
                     MaxHighCouncilCandidateCount = 20,
                     ElectionPeriod = 7,
                     StakingAmount = 100000000
                 },
                 GovernanceSchemeThreshold = new DAO.GovernanceSchemeThreshold
                 {
-                    MinimalRequiredThreshold = 8000,
-                    MinimalVoteThreshold = 10000000000000,
-                    MinimalApproveThreshold = 8000,
+                    MinimalRequiredThreshold = 1,
+                    MinimalVoteThreshold = 1,
+                    MinimalApproveThreshold = 1,
                     MaximalRejectionThreshold = 2000,
                     MaximalAbstentionThreshold = 2000
                 }
@@ -171,7 +175,7 @@ public class GovernanceContractTestBase : TestBase
     private async Task<Hash> GetVoteSchemeId(VoteMechanism voteMechanism)
     {
         return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(VoteContractAddress),
-            HashHelper.ComputeFrom(VoteMechanism.UniqueVote.ToString()));
+            HashHelper.ComputeFrom(voteMechanism.ToString()));
     }
 
     internal async Task<Address> AddGovernanceScheme(Hash daoId = default,
@@ -203,21 +207,17 @@ public class GovernanceContractTestBase : TestBase
         return result.Output;
     }
 
-    internal async Task<Hash> CreateProposal(CreateProposalInput input)
-    {
-        var result = await GovernanceContractStub.CreateProposal.SendAsync(input);
-        return result.Output;
-    }
-
-    internal async Task<IExecutionResult<Hash>> CreateProposalAsync(CreateProposalInput input, bool withException)
+    internal async Task<IExecutionResult<Hash>> CreateProposalAsync(CreateProposalInput input, bool withException,
+        VoteMechanism voteMechanism = VoteMechanism.UniqueVote)
     {
         await InitializeAllContract();
         var daoId = await MockDao();
         var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
         addressList.ShouldNotBeNull();
         addressList.Value.Count.ShouldBe(2);
-        var schemeAddress = addressList.Value.FirstOrDefault();
-        var voteMechanismId = await MockVoteScheme();
+        var schemeAddress = addressList.Value.LastOrDefault();
+        await MockVoteScheme();
+        var voteMechanismId = await GetVoteSchemeId(voteMechanism);
 
         input.ProposalBasicInfo.DaoId = daoId;
         input.ProposalBasicInfo.SchemeAddress = schemeAddress;
@@ -226,6 +226,52 @@ public class GovernanceContractTestBase : TestBase
         return withException
             ? await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input)
             : await GovernanceContractStub.CreateProposal.SendAsync(input);
+    }
+
+    internal async Task<IExecutionResult<Empty>> HighCouncilElection(Hash DaoId)
+    {
+        await TokenContractStub.Approve.SendAsync(new ApproveInput
+        {
+            Spender = ElectionContractAddress,
+            Symbol = "ELF",
+            Amount = 1000000000
+        });
+        
+        await ElectionContractStub.AnnounceElection.SendAsync(new AnnounceElectionInput
+        {
+            DaoId = DaoId,
+            CandidateAdmin = DefaultAddress
+        });
+        await ElectionContractStub.Vote.SendAsync(new VoteHighCouncilInput
+        {
+            DaoId = DaoId,
+            CandidateAddress = DefaultAddress,
+            Amount = 100000000,
+            EndTimestamp = DateTime.UtcNow.AddDays(4).ToTimestamp(),
+            Token = null
+        });
+        return await ElectionContractStub.TakeSnapshot.SendAsync(new TakeElectionSnapshotInput
+        {
+            DaoId = DaoId,
+            TermNumber = 1
+        });
+    }
+
+    internal async Task<IExecutionResult<Empty>> VoteProposalAsync(Hash proposalId, long amount, VoteOption voteOption)
+    {
+        await TokenContractStub.Approve.SendAsync(new ApproveInput
+        {
+            Spender = VoteContractAddress,
+            Symbol = "ELF",
+            Amount = 10000000000
+        });
+
+        return await VoteContractStub.Vote.SendAsync(new VoteInput
+        {
+            VotingItemId = proposalId,
+            VoteOption = VoteOption.Approved,
+            VoteAmount = amount
+        });
     }
 
     internal async Task<IExecutionResult<Hash>> CreateVetoProposalAsync(CreateVetoProposalInput input,

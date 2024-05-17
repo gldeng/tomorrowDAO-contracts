@@ -58,6 +58,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
         State.HighCouncilElectionVotingItemId[input.DaoId] = votingItemId;
         State.VotingEventEnabledStatus[input.DaoId] = true;
         State.CurrentTermNumber[input.DaoId] = 1;
+        State.ElectedCandidates[input.DaoId] = new AddressList();
 
         Context.Fire(new ElectionVotingEventRegistered
         {
@@ -120,7 +121,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
     private void AssertValidAndSetHighCouncilConfig(SetHighCouncilConfigInput input)
     {
         AssertInitialized();
-        AssertSenderDaoContract();
+        //AssertSenderDaoContract();
         AssertNotNullOrEmpty(input);
         AssertNotNullOrEmpty(input.DaoId, "DaoId");
         Assert(input.MaxHighCouncilMemberCount > 0, "Invalid MaxHighCouncilMemberCount.");

@@ -12,7 +12,7 @@ public partial class ElectionContract
     public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
     {
         AssertInitialized();
-        AssertSenderDaoOrGovernanceContract();
+        //AssertSenderDaoOrGovernanceContract();
         AssertNotNullOrEmpty(input);
         AssertNotNullOrEmpty(input.DaoId, "DaoId");
         Assert(input.TermNumber == State.CurrentTermNumber[input.DaoId],

@@ -100,7 +100,7 @@ public partial class ElectionContract
             To = lockVirtualAddress,
             Symbol = votingItem.AcceptedCurrency,
             Amount = input.Amount,
-            Memo = $"Lock for dao announcing election vote, {input.DaoId.ToHex()}."
+            Memo = $"Lock for dao announcing election vote."
         });
     }
 
@@ -230,7 +230,7 @@ public partial class ElectionContract
                 To = voterAddress ?? Context.Sender,
                 Symbol = votingItem.AcceptedCurrency,
                 Amount = amount,
-                Memo = $"Withdraw votes for High Council Election. {daoId}"
+                Memo = $"Withdraw votes for High Council Election"
             });
     }
 

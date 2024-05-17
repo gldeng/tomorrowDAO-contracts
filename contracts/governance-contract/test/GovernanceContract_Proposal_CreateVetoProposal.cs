@@ -1,10 +1,12 @@
 using System;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using AElf.CSharp.Core.Extension;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
+using TomorrowDAO.Contracts.Vote;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,41 +16,33 @@ public class GovernanceContractProposalCreateVetoProposal : GovernanceContractTe
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    // private readonly IResetBlockTimeProvider _resetBlockTime;
-    private readonly ResetBlockTimeProviderProxy _resetBlockTime;
-
-    private readonly IServiceProvider _serviceProvider;
-
     public GovernanceContractProposalCreateVetoProposal(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        // _resetBlockTime = (ResetBlockTimeProviderProxy)resetBlockTime;
-        _resetBlockTime = (ResetBlockTimeProviderProxy)GetRequiredService<IResetBlockTimeProvider>();
     }
 
     protected override void AfterAddApplication(IServiceCollection services)
     {
         base.AfterAddApplication(services);
-        BlockTimeProvider1.SetBlockTime(DateTime.UtcNow.AddDays(3).ToTimestamp());
-        services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
-        // services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProviderProxy>();
-        // context.Services.Replace(ServiceDescriptor
-        //     .Singleton<IBlockTimeProvider, DelayBlockTimeProvider>());
     }
 
     [Fact]
     public async Task CreateVetoProposalTest()
     {
-        var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-        blockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(2));
-        BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(2));
+        BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime());
         var input = MockCreateProposalInput();
-        var executionResult = await CreateProposalAsync(input, false);
+        var executionResult = await CreateProposalAsync(input, false, VoteMechanism.TokenBallot);
         var vetoProposalId = executionResult.Output;
+        
+        //Election
+        await HighCouncilElection(input.ProposalBasicInfo.DaoId);
 
-        //_resetBlockTime.StepMilliseconds = 3600000;
-        BlockTimeProvider.SetBlockTime(3600000);
+        //Vote 10s
+        BlockTimeProvider.SetBlockTime(10000);
+        await VoteProposalAsync(vetoProposalId, OneElfAmount, VoteOption.Approved);
 
+        //add 7d
+        BlockTimeProvider.SetBlockTime(3600 * 24 * 7 * 1000);
         var vetoProposalInput = MockCreateVetoProposalInput();
         vetoProposalInput.VetoProposalId = vetoProposalId;
         var result = await CreateVetoProposalAsync(vetoProposalInput, false);

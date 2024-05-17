@@ -58,7 +58,11 @@ namespace TomorrowDAO.Contracts.Vote
         {
             var daoId = HashHelper.ComputeFrom("daoId");
             await InitializeTest();
-            var result = VoteContractStub.GetVirtualAddress.CallAsync(daoId);
+            var result = await VoteContractStub.GetVirtualAddress.CallAsync(new GetVirtualAddressInput
+            {
+                DaoId = daoId,
+                Voter = DefaultAddress
+            });
             _testOutputHelper.WriteLine("DaoId={id}", DaoId);
         }
     }

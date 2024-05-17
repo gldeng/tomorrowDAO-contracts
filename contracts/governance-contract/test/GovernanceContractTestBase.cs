@@ -236,7 +236,7 @@ public class GovernanceContractTestBase : TestBase
             Symbol = "ELF",
             Amount = 1000000000
         });
-        
+
         await ElectionContractStub.AnnounceElection.SendAsync(new AnnounceElectionInput
         {
             DaoId = DaoId,
@@ -256,7 +256,7 @@ public class GovernanceContractTestBase : TestBase
             TermNumber = 1
         });
     }
-    
+
     internal async Task<IExecutionResult<Empty>> HighCouncilElectionFor(Hash DaoId, Address candidateAddress)
     {
         await TokenContractStub.Approve.SendAsync(new ApproveInput
@@ -265,7 +265,7 @@ public class GovernanceContractTestBase : TestBase
             Symbol = "ELF",
             Amount = 1000000000
         });
-        
+
         await ElectionContractStub.AnnounceElectionFor.SendAsync(new AnnounceElectionForInput
         {
             DaoId = DaoId,
@@ -299,7 +299,7 @@ public class GovernanceContractTestBase : TestBase
         return await VoteContractStub.Vote.SendAsync(new VoteInput
         {
             VotingItemId = proposalId,
-            VoteOption = VoteOption.Approved,
+            VoteOption = (int)VoteOption.Approved,
             VoteAmount = amount
         });
     }
@@ -366,7 +366,7 @@ public class GovernanceContractTestBase : TestBase
         var input = new CreateProposalInput
         {
             ProposalBasicInfo = proposalBasicInfo,
-            ProposalType = ProposalType.Governance,
+            ProposalType = (int)ProposalType.Governance,
             Transaction = executeTransaction
         };
         return input;
@@ -394,7 +394,7 @@ public class GovernanceContractTestBase : TestBase
         var input = new CreateProposalInput
         {
             ProposalBasicInfo = proposalBasicInfo,
-            ProposalType = ProposalType.Governance,
+            ProposalType = (int)ProposalType.Governance,
             Transaction = executeTransaction
         };
         return input;

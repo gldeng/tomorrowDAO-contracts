@@ -15,10 +15,11 @@ public partial class GovernanceContract
     {
         var proposalId = CheckAndGetProposalId(input, input.ProposalBasicInfo, out var scheme);
         Assert(State.Proposals[proposalId] == null, "Proposal already exists.");
-        Assert(input.ProposalType != ProposalType.Unused && input.ProposalType != ProposalType.Veto,
+        var proposalType = (ProposalType) input.ProposalType;
+        Assert(proposalType != ProposalType.Unused && proposalType != ProposalType.Veto,
             "ProposalType cannot be Unused or Veto.");
         var proposal = ValidateAndGetProposalInfo(proposalId, input.ProposalBasicInfo,
-            input.ProposalType, input.Transaction);
+            proposalType, input.Transaction);
         State.Proposals[proposalId] = proposal;
         State.ProposalGovernanceSchemeSnapShot[proposalId] = scheme.SchemeThreshold;
         RegisterVotingItem(proposal, input.ProposalBasicInfo.VoteSchemeId, scheme.GovernanceToken);

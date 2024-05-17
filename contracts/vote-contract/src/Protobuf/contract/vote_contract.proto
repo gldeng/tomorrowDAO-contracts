@@ -239,7 +239,7 @@ message VotingRegisterInput {
 
 message VoteInput {
   aelf.Hash voting_item_id = 1;
-  VoteOption vote_option = 2;
+  int32 vote_option = 2;
   int64 vote_amount = 3; //1a1v -> 1
 }
 

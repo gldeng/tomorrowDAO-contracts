@@ -15,8 +15,7 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     {
         _testOutputHelper = testOutputHelper;
     }
-    
-    
+
 
     [Fact]
     public async Task CreateProposalTest()
@@ -72,11 +71,11 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     public async Task CreateProposalTest_CannotBeUnusedOrVeto()
     {
         var input = MockCreateProposalInput();
-        input.ProposalType = ProposalType.Unused;
+        input.ProposalType = (int)ProposalType.Unused;
         var executionResult = await CreateProposalAsync(input, true);
         executionResult.TransactionResult.Error.ShouldContain("ProposalType cannot be Unused or Veto");
 
-        input.ProposalType = ProposalType.Veto;
+        input.ProposalType = (int)ProposalType.Veto;
         executionResult = await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input);
         executionResult.TransactionResult.Error.ShouldContain("ProposalType cannot be Unused or Veto");
     }
@@ -85,7 +84,7 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     public async Task CreateProposalTest_ExecuteTransactionIsNull()
     {
         var input = MockCreateProposalInput();
-        input.ProposalType = ProposalType.Governance;
+        input.ProposalType = (int)ProposalType.Governance;
         input.Transaction = null;
         var executionResult = await CreateProposalAsync(input, true);
         _testOutputHelper.WriteLine(executionResult.TransactionResult.Error);

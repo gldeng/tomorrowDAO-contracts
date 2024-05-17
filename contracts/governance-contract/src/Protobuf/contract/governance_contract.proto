@@ -204,7 +204,7 @@ message SetGovernanceTokenInput {
 
 message CreateProposalInput {
   ProposalBasicInfo proposal_basic_info = 1;
-  ProposalType proposal_type = 2;
+  int32 proposal_type = 2;
   ExecuteTransaction transaction = 3;
 }
 

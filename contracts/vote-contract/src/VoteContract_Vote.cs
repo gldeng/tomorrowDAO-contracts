@@ -19,6 +19,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         {
             AssertToken(input.AcceptedToken);
         }
+
         var proposalInfo = AssertProposal(input.VotingItemId);
         AssertDaoSubsist(proposalInfo.DaoId);
         var governanceScheme = AssertGovernanceScheme(proposalInfo.SchemeAddress);
@@ -57,12 +58,12 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         });
         return new Empty();
     }
-    
+
     public override Empty Vote(VoteInput input)
     {
         AssertCommon(input);
         var votingItem = AssertVotingItem(input.VotingItemId);
-        Assert(votingItem.StartTimestamp <= Context.CurrentBlockTime,"Vote not begin.");
+        Assert(votingItem.StartTimestamp <= Context.CurrentBlockTime, "Vote not begin.");
         Assert(votingItem.EndTimestamp >= Context.CurrentBlockTime, "Vote ended.");
         var daoInfo = AssertDaoSubsist(votingItem.DaoId);
         AssertVotingRecord(votingItem.VotingItemId, Context.Sender);
@@ -99,7 +100,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             Voter = Context.Sender,
             Amount = input.VoteAmount,
             VoteTimestamp = Context.CurrentBlockTime,
-            Option = input.VoteOption,
+            Option = (VoteOption)input.VoteOption,
             VoteId = voteId,
             DaoId = votingItem.DaoId,
             VoteMechanism = voteScheme.VoteMechanism,
@@ -137,9 +138,10 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     private void AddAmount(VotingItem votingItem, long amount)
     {
         State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] += amount;
-        State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(votingItem.DaoId, votingItem.VotingItemId)] = amount;
+        State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(votingItem.DaoId, votingItem.VotingItemId)] =
+            amount;
     }
-    
+
     private void RemoveAmount(WithdrawInput input)
     {
         State.DaoRemainAmounts[Context.Sender][input.DaoId] -= input.WithdrawAmount;
@@ -159,7 +161,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             Voter = Context.Sender,
             Amount = input.VoteAmount,
             VoteTimestamp = Context.CurrentBlockTime,
-            Option = input.VoteOption,
+            Option = (VoteOption)input.VoteOption,
             VoteId = voteId
         };
         return voteId;
@@ -172,13 +174,13 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         votingResult.TotalVotersCount += 1;
         switch (input.VoteOption)
         {
-            case VoteOption.Approved:
+            case (int)VoteOption.Approved:
                 votingResult.ApproveCounts += input.VoteAmount;
                 break;
-            case VoteOption.Rejected:
+            case (int)VoteOption.Rejected:
                 votingResult.RejectCounts += input.VoteAmount;
                 break;
-            case VoteOption.Abstained:
+            case (int)VoteOption.Abstained:
                 votingResult.AbstainCounts += input.VoteAmount;
                 break;
         }
@@ -199,10 +201,10 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
                 To = virtualAddress
             });
     }
-    
+
     private void TransferOut(Hash virtualAddressHash, Address to, string symbol, long amount)
-    { 
-        State.TokenContract.Transfer.VirtualSend(virtualAddressHash, 
+    {
+        State.TokenContract.Transfer.VirtualSend(virtualAddressHash,
             new TransferInput
             {
                 Symbol = symbol,
@@ -211,8 +213,9 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
                 To = to
             });
     }
-    
+
     #region View
+
     public override VotingItem GetVotingItem(Hash input)
     {
         return State.VotingItems[input] ?? new VotingItem();
@@ -228,7 +231,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         AssertCommon(input);
         return State.VotingRecords[input.VotingItemId][input.Voter] ?? new VotingRecord();
     }
-    
+
     public override Address GetVirtualAddress(GetVirtualAddressInput input)
     {
         return GetVirtualAddress(input.Voter, input.DaoId);
@@ -242,7 +245,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             Amount = State.DaoRemainAmounts[input.Voter][input.DaoId]
         };
     }
-    
+
     public override ProposalRemainAmount GetProposalRemainAmount(GetProposalRemainAmountInput input)
     {
         AssertCommon(input);
@@ -257,7 +260,8 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     public override AddressList GetBPAddresses(Empty input)
     {
         var minerList = State.AEDPoSContract.GetCurrentMinerList.Call(new Empty());
-        var minerAddressList = minerList.Pubkeys.Select(x => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(x.ToHex()))).ToList();
+        var minerAddressList = minerList.Pubkeys
+            .Select(x => Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(x.ToHex()))).ToList();
         return new AddressList
         {
             Value = { minerAddressList }

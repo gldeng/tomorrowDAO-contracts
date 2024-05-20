@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -22,7 +23,7 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task RegisterTest_NoPermission()
         {
-            await InitializeAll();
+            await InitializeAll(false);
             var result = await VoteContractStub.Register.SendWithExceptionAsync(new VotingRegisterInput());
             result.TransactionResult.Error.ShouldContain("No permission.");
         }
@@ -30,7 +31,7 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task RegisterTest()
         {
-            await InitializeAll();
+            await InitializeAll(false);
             // Governance + R + 1a1v
             GovernanceR1A1VProposalId = await CreateProposal(ProposalType.Governance, RSchemeAddress, UniqueVoteVoteSchemeId);
             // Governance + HC + 1a1v
@@ -65,9 +66,31 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task VoteTest()
         {
-            // var result = await VoteContractStub.Vote.SendAsync(new VoteInput
-            // {
-            // });
+            await RegisterTest();
+            var result1 = await VoteContractStub.Vote.SendAsync(new VoteInput { VoteAmount = 1, VoteOption = 0, VotingItemId = GovernanceR1A1VProposalId });
+            result1.TransactionResult.Error.ShouldBe("");
+            
+            var result2 = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput { VoteAmount = 1, VoteOption = 0, VotingItemId = GovernanceHc1A1VProposalId });
+            result2.TransactionResult.Error.ShouldContain("Invalid voter: not HC");
+            
+            await TokenContractStub.Approve.SendAsync(new ApproveInput { Amount = 5_00000000, Symbol = TokenElf, Spender = VoteContractAddress });
+            var result3 = await VoteContractStub.Vote.SendAsync(new VoteInput { VoteAmount = 1_00000000, VoteOption = 0, VotingItemId = GovernanceR1T1VProposalId});
+            result3.TransactionResult.Error.ShouldBe("");
+            
+            var result4 = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput { VoteAmount = 1_00000000, VoteOption = 0, VotingItemId = GovernanceHc1T1VProposalId});
+            result4.TransactionResult.Error.ShouldContain("Invalid voter: not HC");
+            
+            var result5 = await VoteContractStub.Vote.SendAsync(new VoteInput { VoteAmount = 1, VoteOption = 0, VotingItemId = AdvisoryR1A1VProposalId });
+            result5.TransactionResult.Error.ShouldBe("");
+            
+            var result6 = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput { VoteAmount = 1, VoteOption = 0, VotingItemId = AdvisoryHc1A1VProposalId });
+            result6.TransactionResult.Error.ShouldContain("Invalid voter: not HC");
+            
+            var result7 = await VoteContractStub.Vote.SendAsync(new VoteInput { VoteAmount = 1_00000000, VoteOption = 0, VotingItemId = AdvisoryR1T1VProposalId});
+            result7.TransactionResult.Error.ShouldBe("");
+            
+            var result8 = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput { VoteAmount = 1_00000000, VoteOption = 0, VotingItemId = AdvisoryHc1T1VProposalId});
+            result8.TransactionResult.Error.ShouldContain("Invalid voter: not HC");
         }
 
         [Fact]

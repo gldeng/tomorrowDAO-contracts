@@ -80,7 +80,7 @@ public class VoteContractTestBase : TestBase
         });
     }
 
-    public async Task InitializeAll()
+    public async Task InitializeAll(bool isNetworkDao)
     {
         await InitializeGovernance();
         await InitializeDAO();
@@ -88,7 +88,7 @@ public class VoteContractTestBase : TestBase
         await InitializeVote();
         await CreateVoteScheme(VoteMechanism.UniqueVote);
         await CreateVoteScheme(VoteMechanism.TokenBallot);
-        await CreateDao();
+        await CreateDao(isNetworkDao);
     }
 
     private async Task CreateVoteScheme(VoteMechanism voteMechanism)

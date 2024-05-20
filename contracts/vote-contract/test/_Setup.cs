@@ -1,9 +1,11 @@
 ﻿using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Standards.ACS0;
 using AElf.Testing.TestBase;
 using AElf.Types;
@@ -38,6 +40,7 @@ namespace TomorrowDAO.Contracts.Vote
         internal DAOContractContainer.DAOContractStub DAOContractStub;
         internal Address ElectionContractAddress { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub;
+        internal TokenContractContainer.TokenContractStub TokenContractStub;
         private ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
         protected Address DefaultAddress => Accounts[0].Address;
         internal ECKeyPair UserKeyPair => Accounts[1].KeyPair;
@@ -50,6 +53,7 @@ namespace TomorrowDAO.Contracts.Vote
             DeployGovernanceContract();
             DeployDaoContract();
             DeployElectionContract();
+            SetTokenContract();
         }
 
         private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair) where T : ContractStubBase, new()
@@ -139,6 +143,11 @@ namespace TomorrowDAO.Contracts.Vote
                 }));
             ElectionContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
             ElectionContractStub = GetContractStub<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, DefaultKeyPair);
+        }
+
+        private void SetTokenContract()
+        {
+            TokenContractStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
         }
     }
 }

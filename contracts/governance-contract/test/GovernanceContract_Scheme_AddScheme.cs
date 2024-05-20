@@ -9,7 +9,6 @@ public class GovernanceContractSchemeAddScheme : GovernanceContractTestBase
     [Fact]
     public async Task AddGovernanceSchemeTest()
     {
-        await Initialize(DefaultAddress);
         var address = await AddGovernanceScheme();
         address.ShouldNotBeNull();
     }

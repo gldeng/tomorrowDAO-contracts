@@ -20,19 +20,10 @@ namespace TomorrowDAO.Contracts.Governance;
 
 public class GovernanceContractTestBase : TestBase
 {
-    protected IBlockTimeProvider BlockTimeProvider;
-
-
-    public GovernanceContractTestBase()
-    {
-        BlockTimeProvider = Application.ServiceProvider.GetService<IBlockTimeProvider>();
-    }
-
-    protected readonly string DefaultGovernanceToken = "ELF";
-    protected readonly long OneElfAmount = 100000000;
-
-    protected Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
-
+    internal IBlockTimeProvider BlockTimeProvider;
+    internal readonly string DefaultGovernanceToken = "ELF";
+    internal readonly long OneElfAmount = 100000000;
+    internal Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
     internal readonly GovernanceSchemeThreshold DefaultSchemeThreshold = new GovernanceSchemeThreshold
     {
         MinimalRequiredThreshold = 1,
@@ -42,7 +33,12 @@ public class GovernanceContractTestBase : TestBase
         MaximalAbstentionThreshold = 2
     };
 
-    protected Hash DefaultVoteSchemeId = HashHelper.ComputeFrom("DefaultVoteSchemeId");
+    public GovernanceContractTestBase()
+    {
+        BlockTimeProvider = Application.ServiceProvider.GetService<IBlockTimeProvider>();
+    }
+
+    #region Initiate
 
     protected async Task Initialize(Address daoAddress = null, Address voteAddress = null)
     {
@@ -55,7 +51,7 @@ public class GovernanceContractTestBase : TestBase
         await GovernanceContractStub.Initialize.SendAsync(input);
     }
 
-    public async Task InitializeAllContract(Address daoAddress = null, Address voteAddress = null)
+    protected async Task InitializeAllContract(Address daoAddress = null, Address voteAddress = null)
     {
         //init governance contrct
         var input = new InitializeInput
@@ -94,6 +90,10 @@ public class GovernanceContractTestBase : TestBase
             MaximumLockTime = 360000 //s
         });
     }
+
+    #endregion
+
+    #region DAO
 
     /// <summary>
     /// Dependent on the InitializeAllContract method.
@@ -153,60 +153,17 @@ public class GovernanceContractTestBase : TestBase
         return log.DaoId;
     }
 
-    protected async Task<Hash> MockVoteScheme()
-    {
-        await VoteContractStub.CreateVoteScheme.SendAsync(new CreateVoteSchemeInput
-        {
-            VoteMechanism = VoteMechanism.UniqueVote
-        });
-        await VoteContractStub.CreateVoteScheme.SendAsync(new CreateVoteSchemeInput
-        {
-            VoteMechanism = VoteMechanism.TokenBallot
-        });
+    #endregion
 
-        return await GetVoteSchemeId(VoteMechanism.UniqueVote);
-    }
-
-    /// <summary>
-    /// Dependent on the MockVoteScheme method.
-    /// </summary>
-    /// <param name="voteMechanism"></param>
-    /// <returns></returns>
-    private async Task<Hash> GetVoteSchemeId(VoteMechanism voteMechanism)
-    {
-        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(VoteContractAddress),
-            HashHelper.ComputeFrom(voteMechanism.ToString()));
-    }
-
-    internal async Task<Address> AddGovernanceScheme(Hash daoId = default,
-        GovernanceMechanism mechanism = GovernanceMechanism.Referendum, GovernanceSchemeThreshold threshold = null,
-        string governanceToken = null)
-    {
-        var input = new AddGovernanceSchemeInput
-        {
-            DaoId = daoId ?? DefaultDaoId,
-            GovernanceMechanism = mechanism,
-            SchemeThreshold = threshold ?? DefaultSchemeThreshold,
-            GovernanceToken = governanceToken ?? DefaultGovernanceToken
-        };
-
-        var executionResult = await GovernanceContractStub.AddGovernanceScheme.SendAsync(input);
-        return executionResult.Output;
-    }
+    #region Proposal
 
     /// <summary>
     /// Dependent on the InitializeAllContract/MockDao/MockVoteScheme method.
     /// </summary>
-    /// <param name="schemeAddress"></param>
-    /// <param name="voteSchemeId"></param>
+    /// <param name="input"></param>
+    /// <param name="withException"></param>
+    /// <param name="voteMechanism"></param>
     /// <returns></returns>
-    internal async Task<Hash> CreateProposal(Address schemeAddress, Hash voteSchemeId = null, Hash daoId = null)
-    {
-        var input = MockCreateProposalInput(schemeAddress, voteSchemeId, daoId);
-        var result = await GovernanceContractStub.CreateProposal.SendAsync(input);
-        return result.Output;
-    }
-
     internal async Task<IExecutionResult<Hash>> CreateProposalAsync(CreateProposalInput input, bool withException,
         VoteMechanism voteMechanism = VoteMechanism.UniqueVote)
     {
@@ -227,6 +184,10 @@ public class GovernanceContractTestBase : TestBase
             ? await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input)
             : await GovernanceContractStub.CreateProposal.SendAsync(input);
     }
+
+    #endregion
+
+    #region HC
 
     internal async Task<IExecutionResult<Empty>> HighCouncilElection(Hash DaoId)
     {
@@ -287,6 +248,35 @@ public class GovernanceContractTestBase : TestBase
         });
     }
 
+    #endregion
+
+    #region Vote
+
+    protected async Task<Hash> MockVoteScheme()
+    {
+        await VoteContractStub.CreateVoteScheme.SendAsync(new CreateVoteSchemeInput
+        {
+            VoteMechanism = VoteMechanism.UniqueVote
+        });
+        await VoteContractStub.CreateVoteScheme.SendAsync(new CreateVoteSchemeInput
+        {
+            VoteMechanism = VoteMechanism.TokenBallot
+        });
+
+        return await GetVoteSchemeId(VoteMechanism.UniqueVote);
+    }
+
+    /// <summary>
+    /// Dependent on the MockVoteScheme method.
+    /// </summary>
+    /// <param name="voteMechanism"></param>
+    /// <returns></returns>
+    private async Task<Hash> GetVoteSchemeId(VoteMechanism voteMechanism)
+    {
+        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(VoteContractAddress),
+            HashHelper.ComputeFrom(voteMechanism.ToString()));
+    }
+    
     internal async Task<IExecutionResult<Empty>> VoteProposalAsync(Hash proposalId, long amount, VoteOption voteOption)
     {
         await TokenContractStub.Approve.SendAsync(new ApproveInput
@@ -303,7 +293,7 @@ public class GovernanceContractTestBase : TestBase
             VoteAmount = amount
         });
     }
-
+    
     internal async Task<IExecutionResult<Hash>> CreateVetoProposalAsync(CreateVetoProposalInput input,
         bool withException)
     {
@@ -325,25 +315,25 @@ public class GovernanceContractTestBase : TestBase
             : await GovernanceContractStub.CreateVetoProposal.SendAsync(input);
     }
 
-    internal CreateVetoProposalInput MockCreateVetoProposalInput()
-    {
-        var proposalBasicInfo = new ProposalBasicInfo
-        {
-            DaoId = null,
-            ProposalTitle = "VetoProposalTitle",
-            ProposalDescription = "VetoProposalDescription",
-            ForumUrl = "https://www.ForumUrl.com",
-            SchemeAddress = null,
-            VoteSchemeId = null
-        };
-        var proposalInput = new CreateVetoProposalInput
-        {
-            ProposalBasicInfo = proposalBasicInfo,
-            VetoProposalId = null
-        };
-        return proposalInput;
-    }
+    #endregion
 
+    internal async Task<Address> AddGovernanceScheme(Hash daoId = default,
+        GovernanceMechanism mechanism = GovernanceMechanism.Referendum, GovernanceSchemeThreshold threshold = null,
+        string governanceToken = null)
+    {
+        await Initialize(DefaultAddress);
+        
+        var input = new AddGovernanceSchemeInput
+        {
+            DaoId = daoId ?? DefaultDaoId,
+            GovernanceMechanism = mechanism,
+            SchemeThreshold = threshold ?? DefaultSchemeThreshold,
+            GovernanceToken = governanceToken ?? DefaultGovernanceToken
+        };
+
+        var executionResult = await GovernanceContractStub.AddGovernanceScheme.SendAsync(input);
+        return executionResult.Output;
+    }
 
     internal CreateProposalInput MockCreateProposalInput()
     {
@@ -371,33 +361,24 @@ public class GovernanceContractTestBase : TestBase
         };
         return input;
     }
-
-    internal CreateProposalInput MockCreateProposalInput(Address schemeAddress, Hash voteSchemeId = null,
-        Hash daoId = null)
+    
+    internal CreateVetoProposalInput MockCreateVetoProposalInput()
     {
         var proposalBasicInfo = new ProposalBasicInfo
         {
-            DaoId = daoId ?? DefaultDaoId,
-            ProposalTitle = "ProposalTitle",
-            ProposalDescription = "ProposalDescription",
+            DaoId = null,
+            ProposalTitle = "VetoProposalTitle",
+            ProposalDescription = "VetoProposalDescription",
             ForumUrl = "https://www.ForumUrl.com",
-            SchemeAddress = schemeAddress,
-            VoteSchemeId = voteSchemeId ?? DefaultVoteSchemeId
+            SchemeAddress = null,
+            VoteSchemeId = null
         };
-        var executeTransaction = new ExecuteTransaction
-        {
-            ContractMethodName = "ContractMethodName",
-            ToAddress = UserAddress,
-            Params = ByteStringHelper.FromHexString(StringExtensions.GetBytes("Params").ToHex())
-        };
-
-        var input = new CreateProposalInput
+        var proposalInput = new CreateVetoProposalInput
         {
             ProposalBasicInfo = proposalBasicInfo,
-            ProposalType = (int)ProposalType.Governance,
-            Transaction = executeTransaction
+            VetoProposalId = null
         };
-        return input;
+        return proposalInput;
     }
 
     private static T GetLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()

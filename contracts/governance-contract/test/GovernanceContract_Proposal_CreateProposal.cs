@@ -20,15 +20,8 @@ public class GovernanceContractProposalCreateProposal : GovernanceContractTestBa
     [Fact]
     public async Task CreateProposalTest()
     {
-        await InitializeAllContract();
-        var daoId = await MockDao();
-        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
-        addressList.ShouldNotBeNull();
-        addressList.Value.Count.ShouldBe(2);
-        var schemeAddress = addressList.Value.FirstOrDefault();
-        var voteMechanismId = await MockVoteScheme();
-
-        var result = await CreateProposal(schemeAddress, voteMechanismId, daoId);
+        var input = MockCreateProposalInput();
+        var result = await CreateProposalAsync(input, false);
         result.ShouldNotBeNull();
         _testOutputHelper.WriteLine("ProposalId = {0}", result);
     }

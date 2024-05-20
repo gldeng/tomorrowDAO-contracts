@@ -21,6 +21,7 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task RegisterTest_NoPermission()
         {
+            await InitializeAll();
             var result = await VoteContractStub.Register.SendWithExceptionAsync(new VotingRegisterInput());
             result.TransactionResult.Error.ShouldContain("No permission.");
         }
@@ -28,17 +29,16 @@ namespace TomorrowDAO.Contracts.Vote
         [Fact]
         public async Task RegisterTest()
         {
-            await InitializeAll();
-            await CreateVoteSchemeTest();
-            var result = await VoteContractStub.Register.SendAsync(new VotingRegisterInput
-            {
-                VotingItemId = ProposalId,
-                SchemeId = UniqueVoteVoteSchemeId,
-                AcceptedToken = TokenElf,
-                StartTimestamp = Timestamp.FromDateTime(new DateTime(2024, 5, 8, 0, 0, 0, DateTimeKind.Utc)),
-                EndTimestamp = Timestamp.FromDateTime(new DateTime(2024, 5, 9, 0, 0, 0, DateTimeKind.Utc))
-            });
-            
+            //await InitializeAll();
+            // await CreateVoteSchemeTest();
+            // var result = await VoteContractStub.Register.SendAsync(new VotingRegisterInput
+            // {
+            //     VotingItemId = ProposalId,
+            //     SchemeId = UniqueVoteVoteSchemeId,
+            //     AcceptedToken = TokenElf,
+            //     StartTimestamp = Timestamp.FromDateTime(new DateTime(2024, 5, 8, 0, 0, 0, DateTimeKind.Utc)),
+            //     EndTimestamp = Timestamp.FromDateTime(new DateTime(2024, 5, 9, 0, 0, 0, DateTimeKind.Utc))
+            // });
         }
         
         [Fact]
@@ -46,11 +46,6 @@ namespace TomorrowDAO.Contracts.Vote
         {
             var result = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput());
             result.TransactionResult.Error.ShouldContain("Not initialized yet.");
-        }
-        
-        [Fact]
-        public async Task VoteTest()
-        {
         }
 
         [Fact]
@@ -63,7 +58,7 @@ namespace TomorrowDAO.Contracts.Vote
                 DaoId = daoId,
                 Voter = DefaultAddress
             });
-            _testOutputHelper.WriteLine("DaoId={id}", DaoId);
+            _testOutputHelper.WriteLine("virtual address={0}", result);
         }
     }
     

@@ -138,7 +138,7 @@ namespace TomorrowDAO.Contracts.Vote
                     ContractOperation = contractOperation
                 }));
             ElectionContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
-            ElectionContractStub = GetContractStub<ElectionContractContainer.ElectionContractStub>(DAOContractAddress, DefaultKeyPair);
+            ElectionContractStub = GetContractStub<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, DefaultKeyPair);
         }
     }
 }

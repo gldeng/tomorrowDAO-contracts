@@ -3,15 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using TomorrowDAO.Contracts.Governance;
+using TomorrowDAO.Contracts.Vote;
 
 namespace TomorrowDAO.Contracts.DAO;
 
 public partial class DAOContractTests
 {
+    protected readonly string DefaultGovernanceToken = "ELF";
+    protected readonly long OneElfAmount = 100000000;
+
     private T GetLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
     {
         var log = transactionResult.Logs.FirstOrDefault(l => l.Name == typeof(T).Name);
@@ -28,24 +36,41 @@ public partial class DAOContractTests
         var result = await DAOContractStub.Initialize.SendAsync(new InitializeInput
         {
             GovernanceContractAddress = GovernanceContractAddress,
-            ElectionContractAddress = DefaultAddress,
+            ElectionContractAddress = ElectionContractAddress,
             TreasuryContractAddress = DefaultAddress,
-            VoteContractAddress = DefaultAddress,
+            VoteContractAddress = VoteContractAddress,
             TimelockContractAddress = DefaultAddress
         });
 
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-        await GovernanceContractStub.Initialize.SendAsync(new TestContracts.Governance.InitializeInput
+        await GovernanceContractStub.Initialize.SendAsync(new Governance.InitializeInput
         {
-            Referendum = DefaultAddress,
-            HighCouncil = UserAddress
+            DaoContractAddress = DAOContractAddress,
+            VoteContractAddress = VoteContractAddress,
+            ElectionContractAddress = ElectionContractAddress,
+        });
+
+        await ElectionContractStub.Initialize.SendAsync(new Election.InitializeInput
+        {
+            DaoContractAddress = DAOContractAddress,
+            VoteContractAddress = VoteContractAddress,
+            GovernanceContractAddress = GovernanceContractAddress,
+            MinimumLockTime = 10,
+            MaximumLockTime = 100000000
+        });
+
+        await VoteContractStub.Initialize.SendAsync(new Vote.InitializeInput
+        {
+            DaoContractAddress = DAOContractAddress,
+            GovernanceContractAddress = GovernanceContractAddress,
+            ElectionContractAddress = ElectionContractAddress
         });
     }
 
-    private async Task<Hash> CreateDAOAsync()
+    private async Task<Hash> CreateDAOAsync(bool enableHighCouncil = true)
     {
-        var result = await DAOContractStub.CreateDAO.SendAsync(new CreateDAOInput
+        var input = new CreateDAOInput
         {
             Metadata = new Metadata
             {
@@ -65,13 +90,38 @@ public partial class DAOContractTests
                 }
             },
             GovernanceToken = "ELF",
-            GovernanceSchemeThreshold = new GovernanceSchemeThreshold(),
-            HighCouncilInput = new HighCouncilInput
+            GovernanceSchemeThreshold = new GovernanceSchemeThreshold
             {
-                GovernanceSchemeThreshold = new GovernanceSchemeThreshold(),
-                HighCouncilConfig = new HighCouncilConfig()
+                MinimalRequiredThreshold = 1,
+                MinimalVoteThreshold = 1,
+                MinimalApproveThreshold = 1,
+                MaximalRejectionThreshold = 2,
+                MaximalAbstentionThreshold = 2
             }
-        });
+        };
+        if (enableHighCouncil)
+        {
+            input.HighCouncilInput = new HighCouncilInput
+            {
+                GovernanceSchemeThreshold = new GovernanceSchemeThreshold
+                {
+                    MinimalRequiredThreshold = 1,
+                    MinimalVoteThreshold = 1,
+                    MinimalApproveThreshold = 1,
+                    MaximalRejectionThreshold = 2,
+                    MaximalAbstentionThreshold = 2
+                },
+                HighCouncilConfig = new HighCouncilConfig
+                {
+                    MaxHighCouncilMemberCount = 21,
+                    MaxHighCouncilCandidateCount = 105,
+                    ElectionPeriod = 7,
+                    StakingAmount = 100000000
+                }
+            };
+        }
+
+        var result = await DAOContractStub.CreateDAO.SendAsync(input);
 
         result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -135,5 +185,112 @@ public partial class DAOContractTests
             Name = name,
             Url = url
         };
+    }
+
+    private async Task<IExecutionResult<Empty>> CreateProposalAndVote(Hash daoId, ExecuteTransaction executeTransaction)
+    {
+        var executionResult = await CreateProposalAsync(daoId, false, executeTransaction);
+        var proposalId = executionResult.Output;
+
+        //Vote 10s
+        BlockTimeProvider.SetBlockTime(10000);
+        await VoteProposalAsync(proposalId, 1, VoteOption.Approved);
+
+        //add 7d
+        BlockTimeProvider.SetBlockTime(3600 * 24 * 7 * 1000);
+        return await GovernanceContractStub.ExecuteProposal.SendAsync(proposalId);
+    }
+
+    private async Task<IExecutionResult<Hash>> CreateProposalAsync(Hash daoId, bool withException,
+        ExecuteTransaction executeTransaction)
+    {
+        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
+        addressList.ShouldNotBeNull();
+        //addressList.Value.Count.ShouldBe(2);
+        var schemeAddress = addressList.Value.FirstOrDefault();
+        await MockVoteScheme();
+        var voteMechanismId = await GetVoteSchemeId(VoteMechanism.UniqueVote);
+
+        var input = MockCreateProposalInput(executeTransaction);
+
+        input.ProposalBasicInfo.DaoId = daoId;
+        input.ProposalBasicInfo.SchemeAddress = schemeAddress;
+        input.ProposalBasicInfo.VoteSchemeId = voteMechanismId;
+
+        return withException
+            ? await GovernanceContractStub.CreateProposal.SendWithExceptionAsync(input)
+            : await GovernanceContractStub.CreateProposal.SendAsync(input);
+    }
+
+    private async Task MockVoteScheme()
+    {
+        var voteSchemeId = await GetVoteSchemeId(VoteMechanism.UniqueVote);
+        var voteScheme = await VoteContractStub.GetVoteScheme.CallAsync(voteSchemeId);
+        if (voteScheme == null || voteScheme.SchemeId == null)
+        {
+            await VoteContractStub.CreateVoteScheme.SendAsync(new CreateVoteSchemeInput
+            {
+                VoteMechanism = VoteMechanism.UniqueVote
+            });
+        }
+
+        voteSchemeId = await GetVoteSchemeId(VoteMechanism.TokenBallot);
+        voteScheme = await VoteContractStub.GetVoteScheme.CallAsync(voteSchemeId);
+        if (voteScheme == null || voteScheme.SchemeId == null)
+        {
+            await VoteContractStub.CreateVoteScheme.SendAsync(new CreateVoteSchemeInput
+            {
+                VoteMechanism = VoteMechanism.TokenBallot
+            });
+        }
+    }
+
+    /// <summary>
+    /// Dependent on the MockVoteScheme method.
+    /// </summary>
+    /// <param name="voteMechanism"></param>
+    /// <returns></returns>
+    private async Task<Hash> GetVoteSchemeId(VoteMechanism voteMechanism)
+    {
+        return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(VoteContractAddress),
+            HashHelper.ComputeFrom(voteMechanism.ToString()));
+    }
+
+    internal CreateProposalInput MockCreateProposalInput(ExecuteTransaction executeTransaction)
+    {
+        var proposalBasicInfo = new ProposalBasicInfo
+        {
+            DaoId = null,
+            ProposalTitle = "ProposalTitle",
+            ProposalDescription = "ProposalDescription",
+            ForumUrl = "https://www.ForumUrl.com",
+            SchemeAddress = null,
+            VoteSchemeId = null
+        };
+
+        var input = new CreateProposalInput
+        {
+            ProposalBasicInfo = proposalBasicInfo,
+            ProposalType = (int)ProposalType.Governance,
+            Transaction = executeTransaction
+        };
+        return input;
+    }
+
+    private async Task<IExecutionResult<Empty>> VoteProposalAsync(Hash proposalId, long amount, VoteOption voteOption)
+    {
+        await TokenContractStub.Approve.SendAsync(new ApproveInput
+        {
+            Spender = VoteContractAddress,
+            Symbol = "ELF",
+            Amount = 10000000000
+        });
+
+        return await VoteContractStub.Vote.SendAsync(new VoteInput
+        {
+            VotingItemId = proposalId,
+            VoteOption = (int)VoteOption.Approved,
+            VoteAmount = amount
+        });
     }
 }

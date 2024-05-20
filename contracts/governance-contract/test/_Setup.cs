@@ -1,24 +1,18 @@
-﻿using System;
-using System.Diagnostics;
-using AElf;
+﻿using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
-using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Standards.ACS0;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Vote;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 

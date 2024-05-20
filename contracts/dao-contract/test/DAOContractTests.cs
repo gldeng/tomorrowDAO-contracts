@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf;
+using AElf.ContractTestKit;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -157,7 +159,14 @@ public partial class DAOContractTests : TestBase
             {
                 file, file2
             },
-            GovernanceSchemeThreshold = new GovernanceSchemeThreshold()
+            GovernanceSchemeThreshold = new GovernanceSchemeThreshold
+            {
+                MinimalRequiredThreshold = 1,
+                MinimalVoteThreshold = 1,
+                MinimalApproveThreshold = 1,
+                MaximalRejectionThreshold = 2,
+                MaximalAbstentionThreshold = 2
+            }
         });
 
         Hash daoId;
@@ -173,9 +182,9 @@ public partial class DAOContractTests : TestBase
             log.GovernanceToken.ShouldBe("");
             log.Creator.ShouldBe(DefaultAddress);
             log.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
-            log.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
             log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
-            log.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
             log.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
 
             daoId = log.DaoId;
@@ -192,9 +201,9 @@ public partial class DAOContractTests : TestBase
             output.Creator.ShouldBe(DefaultAddress);
             output.SubsistStatus.ShouldBeTrue();
             output.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
-            output.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
             output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
-            output.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
             output.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
             output.DaoId.ShouldBe(daoId);
         }
@@ -247,7 +256,14 @@ public partial class DAOContractTests : TestBase
                 SocialMedia = { socialMedias }
             },
             GovernanceToken = "ELF",
-            GovernanceSchemeThreshold = new GovernanceSchemeThreshold()
+            GovernanceSchemeThreshold = new GovernanceSchemeThreshold
+            {
+                MinimalRequiredThreshold = 1,
+                MinimalVoteThreshold = 1,
+                MinimalApproveThreshold = 1,
+                MaximalRejectionThreshold = 2,
+                MaximalAbstentionThreshold = 2
+            }
         });
 
         {
@@ -261,9 +277,9 @@ public partial class DAOContractTests : TestBase
             log.GovernanceToken.ShouldBe("ELF");
             log.Creator.ShouldBe(DefaultAddress);
             log.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
-            log.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
             log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
-            log.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
             log.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
 
             daoId = log.DaoId;
@@ -273,9 +289,9 @@ public partial class DAOContractTests : TestBase
             output.Creator.ShouldBe(DefaultAddress);
             output.SubsistStatus.ShouldBeTrue();
             output.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
-            output.ContractAddressList.ElectionContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
             output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
-            output.ContractAddressList.VoteContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
             output.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
             output.DaoId.ShouldBe(daoId);
         }
@@ -337,8 +353,36 @@ public partial class DAOContractTests : TestBase
             {
                 Metadata = new Metadata
                 {
-                    Name = "TestDAO"
+                    Name = "TestDAO",
+                    LogoUrl = "logo_url",
+                    Description = "Description",
+                    SocialMedia =
+                    {
+                        new Dictionary<string, string>
+                        {
+                            { "X", "twitter" },
+                            { "Facebook", "facebook" },
+                            { "Telegram", "telegram" },
+                            { "Discord", "discord" },
+                            { "Reddit", "reddit" }
+                        }
+                    }
+                },
+                GovernanceToken = "ELF",
+                GovernanceSchemeThreshold = new GovernanceSchemeThreshold
+                {
+                    MinimalRequiredThreshold = 1,
+                    MinimalVoteThreshold = 1,
+                    MinimalApproveThreshold = 1,
+                    MaximalRejectionThreshold = 2,
+                    MaximalAbstentionThreshold = 2
+                },
+                HighCouncilInput = new HighCouncilInput
+                {
+                    GovernanceSchemeThreshold = new GovernanceSchemeThreshold(),
+                    HighCouncilConfig = new HighCouncilConfig()
                 }
+                
             });
             result.TransactionResult.Error.ShouldContain("DAO name already exists.");
         }
@@ -413,93 +457,5 @@ public partial class DAOContractTests : TestBase
             GovernanceToken = symbol
         });
         result.TransactionResult.Error.ShouldContain(errorMessage);
-    }
-
-    [Fact]
-    public async Task SetSubsistStatusTests()
-    {
-        await InitializeAsync();
-        var daoId = await CreateDAOAsync();
-
-        {
-            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
-            output.Value.ShouldBeTrue();
-        }
-
-        // already subsist
-        {
-            var result = await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
-            {
-                DaoId = daoId,
-                Status = true
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var log = result.TransactionResult.Logs.FirstOrDefault(l => l.Name.Contains("SubsistStatusSet"));
-            log.ShouldBeNull();
-
-            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
-            output.Value.ShouldBeTrue();
-        }
-        {
-            var result = await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
-            {
-                DaoId = daoId,
-                Status = false
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var log = GetLogEvent<SubsistStatusSet>(result.TransactionResult);
-            log.DaoId.ShouldBe(daoId);
-            log.Status.ShouldBeFalse();
-
-            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
-            output.Value.ShouldBeFalse();
-        }
-
-        {
-            var result = await DAOContractStub.SetSubsistStatus.SendAsync(new SetSubsistStatusInput
-            {
-                DaoId = daoId,
-                Status = false
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var log = result.TransactionResult.Logs.FirstOrDefault(l => l.Name.Contains("SubsistStatusSet"));
-            log.ShouldBeNull();
-
-            var output = await DAOContractStub.GetSubsistStatus.CallAsync(daoId);
-            output.Value.ShouldBeFalse();
-        }
-    }
-
-    [Fact]
-    public async Task SetSubsistStatusTests_Fail()
-    {
-        await InitializeAsync();
-
-        {
-            var result = await DAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput());
-            result.TransactionResult.Error.ShouldContain("Invalid input dao id.");
-        }
-        {
-            var result = await DAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput
-            {
-                DaoId = HashHelper.ComputeFrom("test"),
-                Status = false
-            });
-            result.TransactionResult.Error.ShouldContain("DAO not existed.");
-        }
-
-        var daoId = await CreateDAOAsync();
-
-        {
-            var result = await OtherDAOContractStub.SetSubsistStatus.SendWithExceptionAsync(new SetSubsistStatusInput
-            {
-                DaoId = daoId,
-                Status = false
-            });
-            result.TransactionResult.Error.ShouldContain("Permission of SetSubsistStatus is not granted");
-        }
     }
 }

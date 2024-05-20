@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
@@ -14,21 +15,18 @@ public partial class DAOContractTests
     public async Task HashPermissionTests(string methodName, bool referendumPermission, bool highCouncilPermission, bool otherPermission)
     {
         await InitializeAsync();
-        
-        await GovernanceContractStub.Initialize.SendAsync(new TestContracts.Governance.InitializeInput
-        {
-            Referendum = ReferendumAddress,
-            HighCouncil = HighCouncilAddress
-        });
-        
+
         var daoId = await CreateDAOAsync();
+        
+        var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
+        addressList.ShouldNotBeNull();
 
         {
             var result = await DAOContractStub.HasPermission.CallAsync(new HasPermissionInput
             {
                 DaoId = daoId,
                 Where = DAOContractAddress,
-                Who = ReferendumAddress,
+                Who = addressList.Value.FirstOrDefault(),
                 What = methodName
             });
             result.Value.ShouldBe(referendumPermission);
@@ -38,7 +36,7 @@ public partial class DAOContractTests
             {
                 DaoId = daoId,
                 Where = DAOContractAddress,
-                Who = HighCouncilAddress,
+                Who = addressList.Value.LastOrDefault(),
                 What = methodName
             });
             result.Value.ShouldBe(highCouncilPermission);

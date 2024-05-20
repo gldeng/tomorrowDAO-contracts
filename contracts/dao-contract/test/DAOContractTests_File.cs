@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf;
 using AElf.Types;
+using Google.Protobuf;
 using Shouldly;
+using TomorrowDAO.Contracts.Governance;
 using Xunit;
 
 namespace TomorrowDAO.Contracts.DAO;
@@ -110,18 +112,6 @@ public partial class DAOContractTests
         await InitializeAsync();
         var daoId = await CreateDAOAsync();
 
-        await SetSubsistStatusAsync(daoId, false);
-
-        {
-            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
-            {
-                DaoId = daoId
-            });
-            result.TransactionResult.Error.ShouldContain("DAO not subsisted.");
-        }
-
-        await SetSubsistStatusAsync(daoId, true);
-
         {
             var result = await UserDAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
             {
@@ -199,6 +189,25 @@ public partial class DAOContractTests
                 Files = { files }
             });
             result.TransactionResult.Error.ShouldContain("Too many files.");
+        }
+        
+        await CreateProposalAndVote(daoId, new ExecuteTransaction
+        {
+            ContractMethodName = nameof(DAOContractStub.SetSubsistStatus),
+            ToAddress = DAOContractAddress,
+            Params = new SetSubsistStatusInput
+            {
+                DaoId = daoId,
+                Status = false
+            }.ToByteString()
+        });
+
+        {
+            var result = await DAOContractStub.UploadFileInfos.SendWithExceptionAsync(new UploadFileInfosInput
+            {
+                DaoId = daoId
+            });
+            result.TransactionResult.Error.ShouldContain("DAO not subsisted.");
         }
     }
 
@@ -328,18 +337,6 @@ public partial class DAOContractTests
         await InitializeAsync();
         var daoId = await CreateDAOAsync();
 
-        await SetSubsistStatusAsync(daoId, false);
-
-        {
-            var result = await DAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
-            {
-                DaoId = daoId
-            });
-            result.TransactionResult.Error.ShouldContain("DAO not subsisted.");
-        }
-
-        await SetSubsistStatusAsync(daoId, true);
-
         {
             var result = await UserDAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
             {
@@ -389,6 +386,25 @@ public partial class DAOContractTests
                 FileCids = { GenerateRandomString(65) }
             });
             result.TransactionResult.Error.ShouldContain("Invalid input file cid.");
+        }
+        
+        await CreateProposalAndVote(daoId, new ExecuteTransaction
+        {
+            ContractMethodName = nameof(DAOContractStub.SetSubsistStatus),
+            ToAddress = DAOContractAddress,
+            Params = new SetSubsistStatusInput
+            {
+                DaoId = daoId,
+                Status = false
+            }.ToByteString()
+        });
+
+        {
+            var result = await DAOContractStub.RemoveFileInfos.SendWithExceptionAsync(new RemoveFileInfosInput
+            {
+                DaoId = daoId
+            });
+            result.TransactionResult.Error.ShouldContain("DAO not subsisted.");
         }
     }
 

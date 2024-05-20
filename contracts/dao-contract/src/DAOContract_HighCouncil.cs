@@ -10,15 +10,16 @@ public partial class DAOContract
 {
     public override Empty EnableHighCouncil(EnableHighCouncilInput input)
     {
-        // Assert(input != null, "Invalid input.");
-        // Assert(IsHashValid(input.DaoId), "Invalid input dao id.");
-        // Assert(State.HighCouncilEnabledStatusMap[input.DaoId] == false, "High council already enabled.");
-        //
-        // CheckDAOExists(input.DaoId);
-        // CheckDaoSubsistStatus(input.DaoId);
-        // AssertPermission(input.DaoId, nameof(EnableHighCouncil));
-        //
-        // ProcessEnableHighCouncil(input.DaoId, input.HighCouncilConfig, input.ExecutionConfig);
+        Assert(input != null, "Invalid input.");
+        Assert(IsHashValid(input.DaoId), "Invalid input dao id.");
+        Assert(State.HighCouncilEnabledStatusMap[input.DaoId] == false, "High council already enabled.");
+
+        CheckDAOExists(input.DaoId);
+        CheckDaoSubsistStatus(input.DaoId);
+        AssertPermission(input.DaoId, nameof(EnableHighCouncil));
+
+        ProcessEnableHighCouncil(input.DaoId, input.HighCouncilInput.HighCouncilConfig,
+            input.HighCouncilInput.GovernanceSchemeThreshold);
 
         return new Empty();
     }
@@ -68,22 +69,21 @@ public partial class DAOContract
 
     public override Empty DisableHighCouncil(Hash input)
     {
-        // Assert(input != null, "Invalid input.");
-        // Assert(IsHashValid(input), "Invalid input dao id.");
-        // Assert(State.HighCouncilEnabledStatusMap[input] == true, "High council already disabled.");
-        //
-        // CheckDAOExists(input);
-        // CheckDaoSubsistStatus(input);
-        // AssertPermission(input, nameof(EnableHighCouncil));
-        //
-        // State.HighCouncilEnabledStatusMap[input] = false;
-        //
-        // Context.Fire(new HighCouncilDisabled
-        // {
-        //     DaoId = input
-        // });
-        //
-        //
+        Assert(input != null, "Invalid input.");
+        Assert(IsHashValid(input), "Invalid input dao id.");
+        Assert(State.HighCouncilEnabledStatusMap[input] == true, "High council already disabled.");
+        
+        CheckDAOExists(input);
+        CheckDaoSubsistStatus(input);
+        AssertPermission(input, nameof(DisableHighCouncil));
+        
+        State.HighCouncilEnabledStatusMap[input] = false;
+        
+        Context.Fire(new HighCouncilDisabled
+        {
+            DaoId = input
+        });
+
         return new Empty();
     }
 }

@@ -10,7 +10,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     public override Empty CreateVoteScheme(CreateVoteSchemeInput input)
     {
         AssertCommon(input);
-            
+        Assert(State.GenesisContract.GetContractInfo.Call(Context.Self).Deployer == Context.Sender, "No permission.");
         var voteSchemeId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(Context.Self), 
             HashHelper.ComputeFrom(input.VoteMechanism.ToString()));
         Assert(State.VoteSchemes[voteSchemeId] == null, "VoteScheme already exists.");

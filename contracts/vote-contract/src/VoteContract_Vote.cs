@@ -14,6 +14,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
     public override Empty Register(VotingRegisterInput input)
     {
         AssertCommon(input);
+        Assert(Context.Sender == State.GovernanceContract.Value, "No permission.");
         var voteScheme = AssertVoteScheme(input.SchemeId);
         if (VoteMechanism.TokenBallot == voteScheme.VoteMechanism)
         {

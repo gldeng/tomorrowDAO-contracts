@@ -173,7 +173,7 @@ public class VoteContractTestBase : TestBase
         }
     }
 
-    protected async Task<Hash> CreateProposal(Hash DaoId, ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
+    internal async Task<Hash> CreateProposal(Hash DaoId, ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
     {
         var result = await GovernanceContractStub.CreateProposal.SendAsync(GetCreateProposalInput(DaoId, proposalType, schemeAddress, voteSchemeId));
         result.TransactionResult.Error.ShouldBe("");
@@ -181,7 +181,7 @@ public class VoteContractTestBase : TestBase
         return governanceProposalLog.ProposalId;
     }
     
-    protected async Task<Hash> CreateVetoProposal(Hash voteSchemeId)
+    internal async Task<Hash> CreateVetoProposal(Hash voteSchemeId)
     {
         var result = await GovernanceContractStub.CreateVetoProposal.SendAsync(GetCreateVetoProposalInput(voteSchemeId));
         result.TransactionResult.Error.ShouldBe("");
@@ -189,7 +189,7 @@ public class VoteContractTestBase : TestBase
         return governanceProposalLog.ProposalId;
     }
 
-    protected static T GetLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
+    internal static T GetLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
     {
         var log = transactionResult.Logs.FirstOrDefault(l => l.Name == typeof(T).Name);
         log.ShouldNotBeNull();
@@ -213,7 +213,7 @@ public class VoteContractTestBase : TestBase
         return res;
     }
 
-    protected CreateDAOInput GetCreateDAOInput(string daoName, bool isNetworkDao = false)
+    private CreateDAOInput GetCreateDAOInput(string daoName, bool isNetworkDao = false)
     {
         return new CreateDAOInput
         {
@@ -259,7 +259,7 @@ public class VoteContractTestBase : TestBase
         };
     }
 
-    protected CreateProposalInput GetCreateProposalInput(Hash DaoId, ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
+    private CreateProposalInput GetCreateProposalInput(Hash DaoId, ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
     {
         return new CreateProposalInput
         {
@@ -281,8 +281,8 @@ public class VoteContractTestBase : TestBase
             }
         };
     }
-    
-    protected CreateVetoProposalInput GetCreateVetoProposalInput(Hash voteSchemeId)
+
+    private CreateVetoProposalInput GetCreateVetoProposalInput(Hash voteSchemeId)
     {
         return new CreateVetoProposalInput
         {

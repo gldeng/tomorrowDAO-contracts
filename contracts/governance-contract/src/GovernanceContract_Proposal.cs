@@ -401,6 +401,7 @@ public partial class GovernanceContract
     public override Empty SetProposalTimePeriod(SetProposalTimePeriodInput input)
     {
         Assert(State.Initialized.Value, "Not initialized yet.");
+        Assert(Context.Sender == State.DaoContract.Value, "No permission.");
         AssertParams(input, input?.DaoId, input?.ProposalTimePeriod);
         var daoInfo = State.DaoContract.GetDAOInfo.Call(input.DaoId);
         Assert(daoInfo != null && daoInfo.DaoId == input.DaoId && daoInfo.SubsistStatus, "Invalid dao id");

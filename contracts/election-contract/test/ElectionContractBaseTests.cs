@@ -11,8 +11,7 @@ namespace TomorrowDAO.Contracts.Election;
 public class ElectionContractBaseTests : TestBase
 {
     protected readonly Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
-    protected readonly string DefaultGovernanceToken = "ELF";
-    protected readonly Hash DefaultVoteSchemeId = HashHelper.ComputeFrom("DefaultVoteSchemeId");
+    protected const string DefaultGovernanceToken = "ELF";
 
 
     protected async Task Initialize(Address daoAddress = null, Address voteAddress = null,

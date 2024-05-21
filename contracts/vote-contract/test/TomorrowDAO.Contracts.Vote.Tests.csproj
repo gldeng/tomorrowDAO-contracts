@@ -49,6 +49,10 @@
         <ProjectReference Include="..\..\dao-contract\src\TomorrowDAO.Contracts.DAO.csproj" />
         <ProjectReference Include="..\..\election-contract\src\TomorrowDAO.Contracts.Election.csproj" />
         <ProjectReference Include="..\..\governance-contract\src\TomorrowDAO.Contracts.Governance.csproj" />
+        <PackageReference Include="coverlet.collector" Version="3.2.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>

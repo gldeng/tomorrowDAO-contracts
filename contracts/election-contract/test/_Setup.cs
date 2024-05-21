@@ -1,13 +1,15 @@
 ﻿using AElf;
+using AElf.Contracts.MultiToken;
+using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Standards.ACS0;
-using AElf.Testing.TestBase;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Governance;
 using TomorrowDAO.Contracts.Vote;
@@ -17,18 +19,25 @@ using Volo.Abp.Threading;
 namespace TomorrowDAO.Contracts.Election
 {
     // The Module class load the context required for unit testing
-    public class Module : ContractTestModule<ElectionContract>
+    public class Module : AElf.Testing.TestBase.ContractTestModule<ElectionContract>
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<IRefBlockInfoProvider, RefBlockInfoProvider>();
+            context.Services.AddSingleton<ITestTransactionExecutor, TestTransactionExecutor>();
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
+            context.Services.AddSingleton<IContractTesterFactory, ContractTesterFactory>();
+            
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 
     // The TestBase class inherit ContractTestBase class, it defines Stub classes and gets instances required for unit testing
-    public class TestBase : ContractTestBase<Module>
+    public class TestBase : AElf.Testing.TestBase.ContractTestBase<Module>
     {
         internal ACS0Container.ACS0Stub GenesisContractStub { get; set; }
+        internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal Address GovernanceContractAddress { get; set; }
         internal GovernanceContractContainer.GovernanceContractStub GovernanceContractStub { get; set; }
 
@@ -52,6 +61,7 @@ namespace TomorrowDAO.Contracts.Election
         protected TestBase()
         {
             GenesisContractStub = GetContractStub<ACS0Container.ACS0Stub>(BasicContractZeroAddress, DefaultKeyPair);
+            TokenContractStub = GetContractStub<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
 
             DeployElectionContract();
             DeployGovernanceContract();
@@ -62,7 +72,8 @@ namespace TomorrowDAO.Contracts.Election
         private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair)
             where T : ContractStubBase, new()
         {
-            return GetTester<T>(contractAddress, senderKeyPair);
+            var contractTesterFactory = this.Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
+            return contractTesterFactory.Create<T>(contractAddress, senderKeyPair);
         }
         
         private ByteString GenerateContractSignature(byte[] privateKey, ContractOperation contractOperation)
@@ -118,7 +129,6 @@ namespace TomorrowDAO.Contracts.Election
             GovernanceContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
             GovernanceContractStub =
                 GetContractStub<GovernanceContractContainer.GovernanceContractStub>(GovernanceContractAddress, DefaultKeyPair);
-            //GovernanceContractStubOther = GetContractStub<GovernanceContractContainer.GovernanceContractStub>(GovernanceContractAddress, UserKeyPair);
         }
 
         private void DeployDaoContract()

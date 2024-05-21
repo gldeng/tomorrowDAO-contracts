@@ -44,6 +44,9 @@ namespace TomorrowDAO.Contracts.Election
         internal Address ElectionContractAddress { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
         
+        internal Address ElectionContractAddressOther { get; set; }
+        internal ElectionContractContainer.ElectionContractStub ElectionContractStubOther { get; set; }
+        
         internal Address VoteContractAddress { get; set; }
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
         
@@ -105,6 +108,9 @@ namespace TomorrowDAO.Contracts.Election
             ElectionContractAddress = Address.Parser.ParseFrom(result.TransactionResult.ReturnValue);
             ElectionContractStub =
                 GetContractStub<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, DefaultKeyPair);
+            
+            ElectionContractStubOther =
+                GetContractStub<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, UserKeyPair);
         }
 
         private void DeployGovernanceContract()

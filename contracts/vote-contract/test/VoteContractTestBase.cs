@@ -19,10 +19,15 @@ public class VoteContractTestBase : TestBase
     protected Hash TokenBallotVoteSchemeId; //1t1v
     protected string TokenElf = "ELF";
     protected Hash DaoId;
+    protected Hash NetworkDaoId;
     protected Address HCSchemeAddress;
     protected Hash HCSchemeId;
     protected Address RSchemeAddress;
     protected Hash RSchemeId;
+    protected Address NetworkDaoHCSchemeAddress;
+    protected Hash NetworkDaoHCSchemeId;
+    protected Address NetworkDaoRSchemeAddress;
+    protected Hash NetworkDaoRSchemeId;
     
     protected Hash GovernanceR1A1VProposalId;
     protected Hash GovernanceR1T1VProposalId;
@@ -36,6 +41,16 @@ public class VoteContractTestBase : TestBase
 
     protected Hash VetoR1A1VProposalId;
     protected Hash VetoR1T1VProposalId;
+    
+    protected Hash NetworkDaoGovernanceR1A1VProposalId;
+    protected Hash NetworkDaoGovernanceR1T1VProposalId;
+    protected Hash NetworkDaoGovernanceHc1A1VProposalId;
+    protected Hash NetworkDaoGovernanceHc1T1VProposalId;
+    
+    protected Hash NetworkDaoAdvisoryR1A1VProposalId;
+    protected Hash NetworkDaoAdvisoryR1T1VProposalId;
+    protected Hash NetworkDaoAdvisoryHc1A1VProposalId;
+    protected Hash NetworkDaoAdvisoryHc1T1VProposalId;
 
     public async Task<IExecutionResult<Empty>> InitializeVote()
     {
@@ -80,7 +95,7 @@ public class VoteContractTestBase : TestBase
         });
     }
 
-    public async Task InitializeAll(bool isNetworkDao)
+    public async Task InitializeAll()
     {
         await InitializeGovernance();
         await InitializeDAO();
@@ -88,7 +103,8 @@ public class VoteContractTestBase : TestBase
         await InitializeVote();
         await CreateVoteScheme(VoteMechanism.UniqueVote);
         await CreateVoteScheme(VoteMechanism.TokenBallot);
-        await CreateDao(isNetworkDao);
+        await CreateDao("DAO", true);
+        await CreateDao("NetworkDAO");
     }
 
     private async Task CreateVoteScheme(VoteMechanism voteMechanism)
@@ -110,32 +126,56 @@ public class VoteContractTestBase : TestBase
         } 
     }
 
-    public async Task CreateDao(bool isNetworkDao = false)
+    public async Task CreateDao(string daoName, bool isNetworkDao = false)
     {
-        var result = await DAOContractStub.CreateDAO.SendAsync(GetCreateDAOInput(isNetworkDao));
-
+        var result = await DAOContractStub.CreateDAO.SendAsync(GetCreateDAOInput(daoName, isNetworkDao));
         var dAOCreatedLog = GetLogEvent<DAOCreated>(result.TransactionResult);
-        DaoId = dAOCreatedLog.DaoId;
-
+        if (isNetworkDao)
+        {
+            NetworkDaoId = dAOCreatedLog.DaoId;
+        }
+        else
+        {
+            DaoId = dAOCreatedLog.DaoId;
+        }
+        
         var governanceSchemeAddedLogs = GetMultiLogEvent<GovernanceSchemeAdded>(result.TransactionResult);
         foreach (var governanceSchemeAddedLog in governanceSchemeAddedLogs)
         {
             if (governanceSchemeAddedLog.GovernanceMechanism == (Governance.GovernanceMechanism)GovernanceMechanism.HighCouncil)
             {
-                HCSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
-                HCSchemeId = governanceSchemeAddedLog.SchemeId;
+                if (isNetworkDao)
+                {
+                    NetworkDaoHCSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
+                    NetworkDaoHCSchemeId = governanceSchemeAddedLog.SchemeId;
+                }
+                else
+                {
+                    HCSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
+                    HCSchemeId = governanceSchemeAddedLog.SchemeId;
+                }
             }
             else
             {
-                RSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
-                RSchemeId = governanceSchemeAddedLog.SchemeId;
+                if (isNetworkDao)
+                {
+                    NetworkDaoRSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
+                    NetworkDaoRSchemeId = governanceSchemeAddedLog.SchemeId;
+                }
+                else
+                {
+                    RSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
+                    RSchemeId = governanceSchemeAddedLog.SchemeId;
+                }
+
+                
             }
         }
     }
 
-    protected async Task<Hash> CreateProposal(ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
+    protected async Task<Hash> CreateProposal(Hash DaoId, ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
     {
-        var result = await GovernanceContractStub.CreateProposal.SendAsync(GetCreateProposalInput(proposalType, schemeAddress, voteSchemeId));
+        var result = await GovernanceContractStub.CreateProposal.SendAsync(GetCreateProposalInput(DaoId, proposalType, schemeAddress, voteSchemeId));
         result.TransactionResult.Error.ShouldBe("");
         var governanceProposalLog = GetLogEvent<ProposalCreated>(result.TransactionResult);
         return governanceProposalLog.ProposalId;
@@ -173,13 +213,13 @@ public class VoteContractTestBase : TestBase
         return res;
     }
 
-    protected CreateDAOInput GetCreateDAOInput(bool isNetworkDao = false)
+    protected CreateDAOInput GetCreateDAOInput(string daoName, bool isNetworkDao = false)
     {
         return new CreateDAOInput
         {
             Metadata = new Metadata
             {
-                Name = "DaoName",
+                Name = daoName,
                 LogoUrl = "www.logo.com",
                 Description = "Dao Description",
                 SocialMedia =
@@ -219,7 +259,7 @@ public class VoteContractTestBase : TestBase
         };
     }
 
-    protected CreateProposalInput GetCreateProposalInput(ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
+    protected CreateProposalInput GetCreateProposalInput(Hash DaoId, ProposalType proposalType, Address schemeAddress, Hash voteSchemeId)
     {
         return new CreateProposalInput
         {

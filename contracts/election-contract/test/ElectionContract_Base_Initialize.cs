@@ -4,7 +4,7 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Election;
 
-public class ElectionContractBaseBaseInitialize : ElectionContractBaseTests
+public class ElectionContractTestBaseInitialize : ElectionContractTestBase
 {
     [Fact]
     public async Task InitializeTest()

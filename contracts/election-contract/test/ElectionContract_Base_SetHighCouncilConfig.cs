@@ -4,7 +4,7 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Election;
 
-public class ElectionContractBaseBaseSetHighCouncilConfig : ElectionContractBaseTests
+public class ElectionContractTestBaseSetHighCouncilConfig : ElectionContractTestBase
 {
     [Fact]
     public async Task SetHighCouncilConfigTest()

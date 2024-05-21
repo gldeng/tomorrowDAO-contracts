@@ -192,6 +192,7 @@ message CandidateAdded {
   aelf.Address candidate = 2;
   aelf.Address sponsor = 3;
   int64 amount = 4;
+  aelf.Address candidateAdmin = 5;
 }
 
 message AddressList {

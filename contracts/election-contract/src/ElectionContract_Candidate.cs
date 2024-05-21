@@ -14,7 +14,7 @@ public partial class ElectionContract
         AssertNotNullOrEmpty(input.CandidateAdmin, "CandidateAdmin");
         AssertNotNullOrEmpty(input.DaoId, "DaoId");
         var highCouncilConfig = State.HighCouncilConfig[input.DaoId];
-        Assert(highCouncilConfig != null, "HighCouncilConfig not initialize");
+        Assert(highCouncilConfig != null, "HighCouncilConfig not exists");
         Assert(State.ManagedCandidateMap[input.DaoId][Context.Sender] == null, "Candidate cannot be others' admin.");
 
         AnnounceElection(input.DaoId, Context.Sender, input.CandidateAdmin);
@@ -26,6 +26,7 @@ public partial class ElectionContract
         {
             DaoId = input.DaoId,
             Candidate = Context.Sender,
+            CandidateAdmin = input.CandidateAdmin,
             Amount = highCouncilConfig!.StakeThreshold
         });
 
@@ -39,7 +40,7 @@ public partial class ElectionContract
         AssertNotNullOrEmpty(input.CandidateAdmin, "CandidateAdmin");
         AssertNotNullOrEmpty(input.DaoId, "DaoId");
         var highCouncilConfig = State.HighCouncilConfig[input.DaoId];
-        Assert(highCouncilConfig != null, "HighCouncilConfig not initialize");
+        Assert(highCouncilConfig != null, "HighCouncilConfig not exists");
         Assert(State.ManagedCandidateMap[input.DaoId][input.Candidate] == null, "Candidate cannot be others' admin.");
 
         AnnounceElection(input.DaoId, input.Candidate, input.CandidateAdmin);
@@ -53,6 +54,7 @@ public partial class ElectionContract
         {
             DaoId = input.DaoId,
             Candidate = input.Candidate,
+            CandidateAdmin = input.CandidateAdmin,
             Sponsor = Context.Sender,
             Amount = highCouncilConfig!.StakeThreshold
         });
@@ -68,7 +70,6 @@ public partial class ElectionContract
 
         // Unlock candidate's native token.
         var lockId = candidateInformation.AnnouncementTransactionId;
-        // var lockVirtualAddress = Context.ConvertVirtualAddressToContractAddress(lockId);
         State.TokenContract.Transfer.VirtualSend(lockId, 
             new TransferInput
             {
@@ -198,10 +199,10 @@ public partial class ElectionContract
     {
         AssertNotNullOrEmpty(input);
         AssertNotNullOrEmpty(input.Candidate, "Candidate");
+        Assert(State.Candidates[input.DaoId].Value.Contains(input.Candidate), "Target is not a candidate.");
         var managedCandidates = State.CandidateAdmins[input.DaoId][input.Candidate];
         Assert(Context.Sender == managedCandidates, "Only admin can quit election.");
-
-        Assert(State.Candidates[input.DaoId].Value.Contains(input.Candidate), "Target is not a candidate.");
+        
         State.Candidates[input.DaoId].Value.Remove(input.Candidate);
     }
 }

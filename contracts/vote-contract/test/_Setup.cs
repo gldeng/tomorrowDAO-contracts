@@ -1,5 +1,6 @@
 ﻿using AElf;
 using AElf.Contracts.MultiToken;
+using AElf.ContractTestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -7,9 +8,9 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Standards.ACS0;
-using AElf.Testing.TestBase;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using TomorrowDAO.Contracts.DAO;
 using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Governance;
@@ -19,16 +20,21 @@ using Volo.Abp.Threading;
 namespace TomorrowDAO.Contracts.Vote
 {
     // The Module class load the context required for unit testing
-    public class Module : ContractTestModule<VoteContract>
+    public class Module : AElf.Testing.TestBase.ContractTestModule<VoteContract>
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<IRefBlockInfoProvider, RefBlockInfoProvider>();
+            context.Services.AddSingleton<ITestTransactionExecutor, TestTransactionExecutor>();
+            context.Services.AddSingleton<IResetBlockTimeProvider, ResetBlockTimeProvider>();
+            context.Services.AddSingleton<IContractTesterFactory, ContractTesterFactory>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
     
     // The TestBase class inherit ContractTestBase class, it defines Stub classes and gets instances required for unit testing
-    public class TestBase : ContractTestBase<Module>
+    public class TestBase : AElf.Testing.TestBase.ContractTestBase<Module>
     {
         internal ACS0Container.ACS0Stub GenesisContractStub;
         public static Address VoteContractAddress { get; set; }
@@ -58,7 +64,9 @@ namespace TomorrowDAO.Contracts.Vote
 
         private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair) where T : ContractStubBase, new()
         {
-            return GetTester<T>(contractAddress, senderKeyPair);
+            var contractTesterFactory = this.Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
+            return contractTesterFactory.Create<T>(contractAddress, senderKeyPair);
+            // return GetTester<T>(contractAddress, senderKeyPair);
         }
         
         private ByteString GenerateContractSignature(byte[] privateKey, ContractOperation contractOperation)

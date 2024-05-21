@@ -3,29 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf;
+using AElf.Contracts.MultiToken;
+using AElf.ContractTestKit;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using TomorrowDAO.Contracts.DAO;
+using TomorrowDAO.Contracts.Election;
 using TomorrowDAO.Contracts.Governance;
+using HighCouncilConfig = TomorrowDAO.Contracts.DAO.HighCouncilConfig;
 
 namespace TomorrowDAO.Contracts.Vote;
 
 public class VoteContractTestBase : TestBase
 {
+    internal IBlockTimeProvider BlockTimeProvider;
+    
+    public const int UniqueVoteVoteAmount = 1;
+    public const long OneElf = 1_00000000;
     protected Hash UniqueVoteVoteSchemeId; //1a1v
     protected Hash TokenBallotVoteSchemeId; //1t1v
     protected string TokenElf = "ELF";
     protected Hash DaoId;
     protected Hash NetworkDaoId;
-    protected Address HCSchemeAddress;
-    protected Hash HCSchemeId;
+    protected Address HcSchemeAddress;
+    protected Hash HcSchemeId;
     protected Address RSchemeAddress;
     protected Hash RSchemeId;
-    protected Address NetworkDaoHCSchemeAddress;
-    protected Hash NetworkDaoHCSchemeId;
+    protected Address NetworkDaoHcSchemeAddress;
+    protected Hash NetworkDaoHcSchemeId;
     protected Address NetworkDaoRSchemeAddress;
     protected Hash NetworkDaoRSchemeId;
     
@@ -52,6 +61,11 @@ public class VoteContractTestBase : TestBase
     protected Hash NetworkDaoAdvisoryHc1A1VProposalId;
     protected Hash NetworkDaoAdvisoryHc1T1VProposalId;
 
+    public VoteContractTestBase()
+    {
+        BlockTimeProvider = Application.ServiceProvider.GetService<IBlockTimeProvider>();
+    }
+    
     public async Task<IExecutionResult<Empty>> InitializeVote()
     {
         return await VoteContractStub.Initialize.SendAsync(new InitializeInput
@@ -79,7 +93,8 @@ public class VoteContractTestBase : TestBase
         return await GovernanceContractStub.Initialize.SendAsync(new Governance.InitializeInput
         {
             DaoContractAddress = DAOContractAddress,
-            VoteContractAddress = VoteContractAddress
+            VoteContractAddress = VoteContractAddress,
+            ElectionContractAddress = ElectionContractAddress
         });
     }
 
@@ -146,13 +161,13 @@ public class VoteContractTestBase : TestBase
             {
                 if (isNetworkDao)
                 {
-                    NetworkDaoHCSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
-                    NetworkDaoHCSchemeId = governanceSchemeAddedLog.SchemeId;
+                    NetworkDaoHcSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
+                    NetworkDaoHcSchemeId = governanceSchemeAddedLog.SchemeId;
                 }
                 else
                 {
-                    HCSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
-                    HCSchemeId = governanceSchemeAddedLog.SchemeId;
+                    HcSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
+                    HcSchemeId = governanceSchemeAddedLog.SchemeId;
                 }
             }
             else
@@ -167,8 +182,6 @@ public class VoteContractTestBase : TestBase
                     RSchemeAddress = governanceSchemeAddedLog.SchemeAddress;
                     RSchemeId = governanceSchemeAddedLog.SchemeId;
                 }
-
-                
             }
         }
     }
@@ -181,9 +194,76 @@ public class VoteContractTestBase : TestBase
         return governanceProposalLog.ProposalId;
     }
     
-    internal async Task<Hash> CreateVetoProposal(Hash voteSchemeId)
+    protected async Task<IExecutionResult<Empty>> HighCouncilElection(Hash daoId)
     {
-        var result = await GovernanceContractStub.CreateVetoProposal.SendAsync(GetCreateVetoProposalInput(voteSchemeId));
+        await ApproveElf(OneElf * 100, ElectionContractAddress);;
+        await ElectionContractStub.AnnounceElection.SendAsync(new AnnounceElectionInput
+        {
+            DaoId = daoId,
+            CandidateAdmin = DefaultAddress
+        });
+        await ElectionVote(DefaultAddress);
+        var result = await TakeSnapshot(DaoId, 1);
+        (await ElectionContractStub.GetVictories.CallAsync(DaoId)).Value.ShouldContain(DefaultAddress);
+        return result;
+    }
+    
+    protected async Task<IExecutionResult<Empty>> HighCouncilElectionFor(Hash daoId, Address candidateAddress)
+    {
+        await ApproveElf(OneElf * 100, ElectionContractAddress);
+        await ElectionContractStub.AnnounceElectionFor.SendAsync(new AnnounceElectionForInput
+        {
+            DaoId = daoId, Candidate = candidateAddress, CandidateAdmin = DefaultAddress
+        });
+        await ElectionVote(candidateAddress);
+        var result = await TakeSnapshot(DaoId, 2);
+        (await ElectionContractStub.GetVictories.CallAsync(DaoId)).Value.ShouldContain(candidateAddress);
+        return result;
+    }
+
+    protected async Task ApproveElf(long amount, Address spender)
+    {
+        await TokenContractStub.Approve.SendAsync(new ApproveInput { Spender = spender, Symbol = TokenElf, Amount = amount });
+    }
+
+    protected async Task<IExecutionResult<Hash>> ElectionVote(Address candidateAddress)
+    {
+        return await ElectionContractStub.Vote.SendAsync(new VoteHighCouncilInput
+        {
+            DaoId = DaoId, CandidateAddress = candidateAddress, Amount = OneElf * 10,
+            EndTimestamp = DateTime.UtcNow.AddDays(4).ToTimestamp(), Token = null
+        });
+    }
+
+    protected async Task<IExecutionResult<Empty>> TakeSnapshot(Hash daoId, long termNumber)
+    {
+        return await ElectionContractStub.TakeSnapshot.SendAsync(new TakeElectionSnapshotInput { DaoId = daoId, TermNumber = termNumber });
+    }
+
+    protected async Task<IExecutionResult<Empty>> Vote(long amount, VoteOption voteOption, Hash votingItemId)
+    {
+        var result = await VoteContractStub.Vote.SendAsync(new VoteInput { VoteAmount = amount, VoteOption = (int)voteOption, VotingItemId = votingItemId });
+        result.TransactionResult.Error.ShouldBe("");
+        return result;
+    }
+
+    protected async Task<IExecutionResult<Empty>> Withdraw(Hash daoId, VotingItemIdList list, long withdrawAmount)
+    {
+        var result = await VoteContractStub.Withdraw.SendAsync(new WithdrawInput { DaoId = daoId, VotingItemIdList = list, WithdrawAmount = withdrawAmount });
+        result.TransactionResult.Error.ShouldBe("");
+        return result;
+    }
+
+    protected async Task<IExecutionResult<Empty>> VoteException(long amount, VoteOption voteOption, Hash votingItemId, string error)
+    {
+        var result = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput { VoteAmount = amount, VoteOption = (int)voteOption, VotingItemId = votingItemId });
+        result.TransactionResult.Error.ShouldContain(error);
+        return result;
+    }
+
+    protected async Task<Hash> CreateVetoProposal(Address schemeAddress, Hash voteSchemeId, Hash vetoProposalId)
+    {
+        var result = await GovernanceContractStub.CreateVetoProposal.SendAsync(GetCreateVetoProposalInput(schemeAddress, voteSchemeId, vetoProposalId));
         result.TransactionResult.Error.ShouldBe("");
         var governanceProposalLog = GetLogEvent<ProposalCreated>(result.TransactionResult);
         return governanceProposalLog.ProposalId;
@@ -281,8 +361,8 @@ public class VoteContractTestBase : TestBase
             }
         };
     }
-
-    private CreateVetoProposalInput GetCreateVetoProposalInput(Hash voteSchemeId)
+    
+    protected CreateVetoProposalInput GetCreateVetoProposalInput(Address schemeAddress, Hash voteSchemeId, Hash vetoProposalId)
     {
         return new CreateVetoProposalInput
         {
@@ -292,10 +372,10 @@ public class VoteContractTestBase : TestBase
                 ProposalTitle = "ProposalTitle",
                 ProposalDescription = "ProposalDescription",
                 ForumUrl = "https://www.ForumUrl.com",
-                SchemeAddress = RSchemeAddress,
+                SchemeAddress = schemeAddress,
                 VoteSchemeId = voteSchemeId
             },
-            VetoProposalId = GovernanceHc1T1VProposalId
+            VetoProposalId = vetoProposalId
         };
     }
 }

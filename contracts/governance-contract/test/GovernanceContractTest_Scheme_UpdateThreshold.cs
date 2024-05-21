@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ContractTestKit;
 using Shouldly;
@@ -5,10 +6,10 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractSchemeSetToken : GovernanceContractTestBase
+public class GovernanceContractTestSchemeUpdateThreshold : GovernanceContractTestBase
 {
     [Fact]
-    public async Task SetGovernanceTokenTest()
+    public async Task UpdateSchemeThresholdTest()
     {
         var address =  ((MethodStubFactory)GovernanceContractStub.__factory).Sender;
         await InitializeAllContract();
@@ -17,12 +18,13 @@ public class GovernanceContractSchemeSetToken : GovernanceContractTestBase
         addressList.ShouldNotBeNull();
         addressList.Value.Count.ShouldBe(2);
         
-        var inpute = new SetGovernanceTokenInput
+        var inpute = new UpdateGovernanceSchemeThresholdInput
         {
-            DaoId = daoId,
-            GovernanceToken = "CPU"
+            DaoId = DefaultDaoId,
+            SchemeAddress = addressList.Value.LastOrDefault(),
+            SchemeThreshold = null
         };
 
-        //await GovernanceContractStub.SetGovernanceToken.SendAsync(inpute);
+        //await GovernanceContractStub.UpdateGovernanceSchemeThreshold.SendAsync(inpute);
     }
 }

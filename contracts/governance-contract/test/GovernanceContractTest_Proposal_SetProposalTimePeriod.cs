@@ -5,7 +5,7 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractProposalSetProposalTimePeriod : GovernanceContractTestBase
+public class GovernanceContractTestProposalSetProposalTimePeriod : GovernanceContractTestBase
 {
     [Fact]
     public async Task SetProposalTimePeriodTest()

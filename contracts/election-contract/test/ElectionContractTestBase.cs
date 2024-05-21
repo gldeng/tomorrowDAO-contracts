@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using TomorrowDAO.Contracts.DAO;
 
@@ -15,11 +17,20 @@ namespace TomorrowDAO.Contracts.Election;
 
 public class ElectionContractTestBase : TestBase
 {
+    internal IBlockTimeProvider BlockTimeProvider;
+    
     protected readonly Hash DefaultDaoId = HashHelper.ComputeFrom("DaoId");
     protected const string DefaultGovernanceToken = "ELF";
     protected const long StakeAmount = 1_000_00000000;
     protected const long VotingAmount = 1_0_00000000;
+    protected const long MinimumLockTime = 3600;
+    protected const long MaximumLockTime = 3600 * 24 * 7;
 
+    public ElectionContractTestBase()
+    {
+        BlockTimeProvider = Application.ServiceProvider.GetService<IBlockTimeProvider>();
+    }
+    
     #region Initiate
 
     protected async Task Initialize(Address daoAddress = null, Address voteAddress = null,
@@ -71,8 +82,8 @@ public class ElectionContractTestBase : TestBase
             DaoContractAddress = DAOContractAddress,
             VoteContractAddress = VoteContractAddress,
             GovernanceContractAddress = GovernanceContractAddress,
-            MinimumLockTime = 3600, //s
-            MaximumLockTime = 360000 //s
+            MinimumLockTime = MinimumLockTime, //s
+            MaximumLockTime = MaximumLockTime //s
         });
     }
 
@@ -200,6 +211,36 @@ public class ElectionContractTestBase : TestBase
         return withException
             ? await ElectionContractStub.QuitElection.SendWithExceptionAsync(input)
             : await ElectionContractStub.QuitElection.SendAsync(input);
+    }
+
+    #endregion
+
+    #region Vote
+
+    internal async Task<IExecutionResult<Hash>> Vote(Hash daoId, Address candidateAddress, bool withException = false)
+    {
+        await TokenContractStub.Approve.SendAsync(new ApproveInput
+        {
+            Spender = ElectionContractAddress,
+            Symbol = DefaultGovernanceToken,
+            Amount = VotingAmount
+        });
+        
+        var result = await ElectionContractStub.Vote.SendAsync(new VoteHighCouncilInput
+        {
+            DaoId = daoId,
+            CandidateAddress = candidateAddress,
+            Amount = VotingAmount,
+            EndTimestamp = DateTime.UtcNow.AddSeconds(MinimumLockTime).AddHours(1).ToTimestamp(),
+            Token = null
+        });
+        result.ShouldNotBeNull();
+
+        var transferred = GetLogEvent<Transferred>(result.TransactionResult);
+        transferred.ShouldNotBeNull();
+        transferred.Amount.ShouldBe(VotingAmount);
+
+        return result;
     }
 
     #endregion

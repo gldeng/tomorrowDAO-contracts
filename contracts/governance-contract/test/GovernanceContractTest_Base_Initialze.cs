@@ -5,7 +5,7 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractSchemeInitialize : GovernanceContractTestBase
+public class GovernanceContractTestSchemeInitialize : GovernanceContractTestBase
 {
 
     [Fact]

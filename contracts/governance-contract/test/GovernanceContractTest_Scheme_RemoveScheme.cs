@@ -4,7 +4,7 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractSchemeRemoveScheme : GovernanceContractTestBase
+public class GovernanceContractTestSchemeRemoveScheme : GovernanceContractTestBase
 {
     [Fact]
     public async Task RemoveSchemeTest()

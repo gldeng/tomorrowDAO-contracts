@@ -132,7 +132,7 @@ public partial class ElectionContract
             State.ManagedCandidateMap[input.DaoId][input.NewAdmin] = newAdminManagedCandidates;
         }
 
-        return base.SetCandidateAdmin(input);
+        return new Empty();
     }
 
     private void AnnounceElection(Hash daoId, Address candidateAddress, Address candidateAdmin)
@@ -191,7 +191,7 @@ public partial class ElectionContract
             To = lockVirtualAddress,
             Symbol = highCouncilConfig.GovernanceToken,
             Amount = highCouncilConfig.StakeThreshold,
-            Memo = $"Lock for dao announcing election."
+            Memo = "Lock for dao announcing election."
         });
     }
 

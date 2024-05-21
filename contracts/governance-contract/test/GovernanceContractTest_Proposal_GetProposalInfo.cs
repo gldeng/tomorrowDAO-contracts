@@ -4,7 +4,7 @@ using Xunit;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractProposalGetProposalInfo : GovernanceContractTestBase
+public class GovernanceContractTestProposalGetProposalInfo : GovernanceContractTestBase
 {
     [Fact]
     public async Task GetProposalInfoTest()

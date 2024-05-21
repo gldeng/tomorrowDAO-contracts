@@ -8,11 +8,11 @@ using Xunit.Abstractions;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractProposalCreateVetoProposal : GovernanceContractTestBase
+public class GovernanceContractTestProposalCreateVetoProposal : GovernanceContractTestBase
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    public GovernanceContractProposalCreateVetoProposal(ITestOutputHelper testOutputHelper)
+    public GovernanceContractTestProposalCreateVetoProposal(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }

@@ -7,11 +7,11 @@ using Xunit.Abstractions;
 
 namespace TomorrowDAO.Contracts.Governance;
 
-public class GovernanceContractProposalCreateProposal : GovernanceContractTestBase
+public class GovernanceContractTestProposalCreateProposal : GovernanceContractTestBase
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    public GovernanceContractProposalCreateProposal(ITestOutputHelper testOutputHelper)
+    public GovernanceContractTestProposalCreateProposal(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }

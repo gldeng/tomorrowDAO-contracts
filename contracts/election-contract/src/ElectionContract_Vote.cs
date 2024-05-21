@@ -18,10 +18,6 @@ public partial class ElectionContract
         Assert(votingItemId != null, "Voting item not exists");
         var votingItem = State.VotingItems[votingItemId];
         Assert(votingItem != null, "Voting item not exists");
-        var highCouncilConfig = GetAndValidateHighCouncilConfig(input.DaoId);
-        ;
-        Assert(input.Amount >= highCouncilConfig!.StakeThreshold,
-            $"Amount must be greater than {highCouncilConfig.StakeThreshold}");
 
         var targetInformation = State.CandidateInformationMap[input.DaoId][input.CandidateAddress];
         AssertValidCandidateInformation(targetInformation);
@@ -77,11 +73,10 @@ public partial class ElectionContract
         Assert(candidateVote != null, "Candidate vote record not found");
         candidateVote.ObtainedActiveVotingRecordIds.Remove(input);
         candidateVote.ObtainedWithdrawnVotingRecordIds.Add(input);
-        candidateVote.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+        candidateVote.ObtainedActiveVotedVotesAmount = candidateVote.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
         State.CandidateVotes[votingRecord.DaoId][votingRecord.Candidate] = candidateVote;
 
-        UnlockTokensOfVoter(votingRecord.DaoId, input, votingRecord.Amount, votingItem, votingRecord.Voter);
-        RetrieveTokensFromVoter(votingRecord.DaoId, input, votingRecord.Amount, highCouncilConfig, votingRecord.Voter);
+        UnlockTokensOfVoter(input, votingRecord.Amount, votingItem, votingRecord.Voter);
 
         return new Empty();
     }
@@ -100,7 +95,7 @@ public partial class ElectionContract
             To = lockVirtualAddress,
             Symbol = votingItem.AcceptedCurrency,
             Amount = input.Amount,
-            Memo = $"Lock for dao announcing election vote."
+            Memo = "Lock for dao announcing election vote."
         });
     }
 
@@ -217,7 +212,7 @@ public partial class ElectionContract
         State.VotingResults[votingResultHash] = votingResult;
     }
 
-    private void UnlockTokensOfVoter(Hash daoId, Hash voteId, long amount, VotingItem votingItem,
+    private void UnlockTokensOfVoter(Hash voteId, long amount, VotingItem votingItem,
         Address voterAddress = null)
     {
         if (!votingItem.IsLockToken) return;
@@ -230,20 +225,7 @@ public partial class ElectionContract
                 To = voterAddress ?? Context.Sender,
                 Symbol = votingItem.AcceptedCurrency,
                 Amount = amount,
-                Memo = $"Withdraw votes for High Council Election"
+                Memo = "Withdraw votes for High Council Election"
             });
-    }
-
-    private void RetrieveTokensFromVoter(Hash daoId, Hash input, long amount, HighCouncilConfig highCouncilConfig,
-        Address voterAddress = null)
-    {
-        State.TokenContract.TransferFrom.Send(new TransferFromInput
-        {
-            From = voterAddress ?? Context.Sender,
-            To = Context.Self,
-            Amount = amount,
-            Symbol = highCouncilConfig.GovernanceToken,
-            Memo = $"Return {highCouncilConfig.GovernanceToken} tokens."
-        });
     }
 }

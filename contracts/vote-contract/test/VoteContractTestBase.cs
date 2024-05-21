@@ -240,28 +240,28 @@ public class VoteContractTestBase : TestBase
         return await ElectionContractStub.TakeSnapshot.SendAsync(new TakeElectionSnapshotInput { DaoId = daoId, TermNumber = termNumber });
     }
 
-    protected async Task<IExecutionResult<Empty>> Vote(long amount, VoteOption voteOption, Hash votingItemId)
+    internal async Task<IExecutionResult<Empty>> Vote(long amount, VoteOption voteOption, Hash votingItemId)
     {
         var result = await VoteContractStub.Vote.SendAsync(new VoteInput { VoteAmount = amount, VoteOption = (int)voteOption, VotingItemId = votingItemId });
         result.TransactionResult.Error.ShouldBe("");
         return result;
     }
 
-    protected async Task<IExecutionResult<Empty>> Withdraw(Hash daoId, VotingItemIdList list, long withdrawAmount)
+    internal async Task<IExecutionResult<Empty>> Withdraw(Hash daoId, VotingItemIdList list, long withdrawAmount)
     {
         var result = await VoteContractStub.Withdraw.SendAsync(new WithdrawInput { DaoId = daoId, VotingItemIdList = list, WithdrawAmount = withdrawAmount });
         result.TransactionResult.Error.ShouldBe("");
         return result;
     }
 
-    protected async Task<IExecutionResult<Empty>> VoteException(long amount, VoteOption voteOption, Hash votingItemId, string error)
+    internal async Task<IExecutionResult<Empty>> VoteException(long amount, VoteOption voteOption, Hash votingItemId, string error)
     {
         var result = await VoteContractStub.Vote.SendWithExceptionAsync(new VoteInput { VoteAmount = amount, VoteOption = (int)voteOption, VotingItemId = votingItemId });
         result.TransactionResult.Error.ShouldContain(error);
         return result;
     }
 
-    protected async Task<Hash> CreateVetoProposal(Address schemeAddress, Hash voteSchemeId, Hash vetoProposalId)
+    internal async Task<Hash> CreateVetoProposal(Address schemeAddress, Hash voteSchemeId, Hash vetoProposalId)
     {
         var result = await GovernanceContractStub.CreateVetoProposal.SendAsync(GetCreateVetoProposalInput(schemeAddress, voteSchemeId, vetoProposalId));
         result.TransactionResult.Error.ShouldBe("");
@@ -280,7 +280,7 @@ public class VoteContractTestBase : TestBase
         return logEvent;
     }
 
-    protected static List<T> GetMultiLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
+    private static List<T> GetMultiLogEvent<T>(TransactionResult transactionResult) where T : IEvent<T>, new()
     {
         var res = new List<T>();
         foreach (var log in transactionResult.Logs.Where(log => log.Name == typeof(T).Name))
@@ -361,8 +361,8 @@ public class VoteContractTestBase : TestBase
             }
         };
     }
-    
-    protected CreateVetoProposalInput GetCreateVetoProposalInput(Address schemeAddress, Hash voteSchemeId, Hash vetoProposalId)
+
+    private CreateVetoProposalInput GetCreateVetoProposalInput(Address schemeAddress, Hash voteSchemeId, Hash vetoProposalId)
     {
         return new CreateVetoProposalInput
         {

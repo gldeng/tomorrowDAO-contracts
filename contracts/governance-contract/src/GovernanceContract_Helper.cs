@@ -100,7 +100,8 @@ public partial class GovernanceContract
         // todo temporary use int.MaxValue to make hc can not approve
         // Assert(addressList != null && addressList.Value.Count > 0,
         //     "The 'High Council' elections have not taken place yet.");
-        return addressList?.Value.Count ?? int.MaxValue;
+        var count = addressList?.Value.Count ?? 0;
+        return count == 0 ? int.MaxValue : count;
     }
 
     private int CallAndCheckBpCount()

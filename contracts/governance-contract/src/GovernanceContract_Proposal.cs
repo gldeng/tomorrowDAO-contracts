@@ -174,7 +174,7 @@ public partial class GovernanceContract
         Assert(HasPendingStatus(input.VetoProposalId),
             "Not a governance proposal of the High Council type or the challenge period has passed.");
         var proposalStatusOutput = GetProposalStatus(vetoProposal);
-        Assert(proposalStatusOutput.ProposalStage != ProposalStage.Pending,
+        Assert(proposalStatusOutput.ProposalStage == ProposalStage.Pending,
             "The proposal is not in the challenge period.");
 
         vetoProposal!.ProposalStatus = ProposalStatus.Vetoed;

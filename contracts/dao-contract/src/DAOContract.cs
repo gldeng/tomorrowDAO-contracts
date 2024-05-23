@@ -37,7 +37,7 @@ public partial class DAOContract : DAOContractContainer.DAOContractBase
         Assert(IsAddressValid(input.ElectionContractAddress), "Invalid election contract address.");
         State.ElectionContract.Value = input.ElectionContractAddress;
 
-        // do not have TimelockContract and TreasuryContract this version, so remove check and assignment temporarily
+        // todo do not have TimelockContract and TreasuryContract this version, so remove check and assignment temporarily
         
         // Assert(IsAddressValid(input.TimelockContractAddress), "Invalid timelock contract address.");
         // State.TimelockContract.Value = input.TimelockContractAddress;

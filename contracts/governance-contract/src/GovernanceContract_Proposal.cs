@@ -300,22 +300,22 @@ public partial class GovernanceContract
             }
         }
 
-        var isReject = (rejectVote / totalVote) * GovernanceContractConstants.AbstractVoteTotal >
-                       threshold.MaximalRejectionThreshold;
+        var isReject = rejectVote * GovernanceContractConstants.AbstractVoteTotal >
+                       threshold.MaximalRejectionThreshold * totalVote;
         if (isReject)
         {
             return CreateProposalStatusOutput(ProposalStatus.Rejected, ProposalStage.Finished);
         }
 
-        var isAbstained = abstainVote / totalVote * GovernanceContractConstants.AbstractVoteTotal >
-                          threshold.MaximalAbstentionThreshold;
+        var isAbstained = abstainVote  * GovernanceContractConstants.AbstractVoteTotal >
+                          threshold.MaximalAbstentionThreshold * totalVote;
         if (isAbstained)
         {
             return CreateProposalStatusOutput(ProposalStatus.Abstained, ProposalStage.Finished);
         }
 
-        var isApproved = approveVote / totalVote * GovernanceContractConstants.AbstractVoteTotal >
-                         threshold.MinimalApproveThreshold;
+        var isApproved = approveVote  * GovernanceContractConstants.AbstractVoteTotal >
+                         threshold.MinimalApproveThreshold * totalVote;
         if (!isApproved)
         {
             return CreateProposalStatusOutput(ProposalStatus.BelowThreshold, ProposalStage.Finished);

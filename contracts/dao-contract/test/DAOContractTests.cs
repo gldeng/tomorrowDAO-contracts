@@ -29,9 +29,9 @@ public partial class DAOContractTests : TestBase
         var output = await DAOContractStub.GetInitializedContracts.CallAsync(new Empty());
         output.GovernanceContractAddress.ShouldBe(DefaultAddress);
         output.ElectionContractAddress.ShouldBe(DefaultAddress);
-        output.TreasuryContractAddress.ShouldBe(DefaultAddress);
+        output.TreasuryContractAddress.ShouldBe(null);
         output.VoteContractAddress.ShouldBe(DefaultAddress);
-        output.TimelockContractAddress.ShouldBe(DefaultAddress);
+        output.TimelockContractAddress.ShouldBe(null);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public partial class DAOContractTests : TestBase
                 GovernanceContractAddress = DefaultAddress,
                 ElectionContractAddress = DefaultAddress
             });
-            result.TransactionResult.Error.ShouldContain("Invalid timelock contract address.");
+            result.TransactionResult.Error.ShouldContain("Invalid vote contract address.");
         }
         {
             var result = await DAOContractStub.Initialize.SendWithExceptionAsync(new InitializeInput
@@ -82,7 +82,7 @@ public partial class DAOContractTests : TestBase
                 ElectionContractAddress = DefaultAddress,
                 TimelockContractAddress = new Address()
             });
-            result.TransactionResult.Error.ShouldContain("Invalid timelock contract address.");
+            result.TransactionResult.Error.ShouldContain("Invalid vote contract address.");
         }
         {
             var result = await DAOContractStub.Initialize.SendWithExceptionAsync(new InitializeInput
@@ -91,7 +91,7 @@ public partial class DAOContractTests : TestBase
                 ElectionContractAddress = DefaultAddress,
                 TimelockContractAddress = DefaultAddress
             });
-            result.TransactionResult.Error.ShouldContain("Invalid treasury contract address.");
+            result.TransactionResult.Error.ShouldContain("Invalid vote contract address.");
         }
         {
             var result = await DAOContractStub.Initialize.SendWithExceptionAsync(new InitializeInput
@@ -101,7 +101,7 @@ public partial class DAOContractTests : TestBase
                 TimelockContractAddress = DefaultAddress,
                 TreasuryContractAddress = new Address()
             });
-            result.TransactionResult.Error.ShouldContain("Invalid treasury contract address.");
+            result.TransactionResult.Error.ShouldContain("Invalid vote contract address.");
         }
         {
             var result = await DAOContractStub.Initialize.SendWithExceptionAsync(new InitializeInput
@@ -183,9 +183,9 @@ public partial class DAOContractTests : TestBase
             log.Creator.ShouldBe(DefaultAddress);
             log.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             log.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
-            log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TreasuryContractAddress.ShouldBe(null);
             log.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
-            log.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TimelockContractAddress.ShouldBe(null);
 
             daoId = log.DaoId;
         }
@@ -202,9 +202,9 @@ public partial class DAOContractTests : TestBase
             output.SubsistStatus.ShouldBeTrue();
             output.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             output.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
-            output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TreasuryContractAddress.ShouldBe(null);
             output.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
-            output.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TimelockContractAddress.ShouldBe(null);
             output.DaoId.ShouldBe(daoId);
         }
         {
@@ -278,9 +278,9 @@ public partial class DAOContractTests : TestBase
             log.Creator.ShouldBe(DefaultAddress);
             log.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             log.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
-            log.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TreasuryContractAddress.ShouldBe(null);
             log.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
-            log.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
+            log.ContractAddressList.TimelockContractAddress.ShouldBe(null);
 
             daoId = log.DaoId;
         }
@@ -290,9 +290,9 @@ public partial class DAOContractTests : TestBase
             output.SubsistStatus.ShouldBeTrue();
             output.ContractAddressList.GovernanceContractAddress.ShouldBe(GovernanceContractAddress);
             output.ContractAddressList.ElectionContractAddress.ShouldBe(ElectionContractAddress);
-            output.ContractAddressList.TreasuryContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TreasuryContractAddress.ShouldBe(null);
             output.ContractAddressList.VoteContractAddress.ShouldBe(VoteContractAddress);
-            output.ContractAddressList.TimelockContractAddress.ShouldBe(DefaultAddress);
+            output.ContractAddressList.TimelockContractAddress.ShouldBe(null);
             output.DaoId.ShouldBe(daoId);
         }
         {

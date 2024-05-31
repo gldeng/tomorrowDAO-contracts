@@ -92,6 +92,7 @@ message GovernanceSchemeThreshold {
   int64 minimal_approve_threshold = 3; // percentage
   int64 maximal_rejection_threshold = 4; // percentage
   int64 maximal_abstention_threshold = 5; // percentage
+  int64 proposal_threshold = 6;
 }
 message AddressList {
   repeated aelf.Address value = 1;

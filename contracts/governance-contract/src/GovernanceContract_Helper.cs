@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -11,6 +12,16 @@ namespace TomorrowDAO.Contracts.Governance;
 
 public partial class GovernanceContract
 {
+    private void AssertTokenBalance(Address owner, string token, long threshold)
+    {
+        var tokenBalance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+        {
+            Owner = owner,
+            Symbol = token
+        });
+        Assert(tokenBalance != null && tokenBalance.Balance >= threshold, "Token balance not enough.");
+    }
+
     private void AssertParams(params object[] parameters)
     {
         foreach (var p in parameters)
@@ -63,7 +74,8 @@ public partial class GovernanceContract
                threshold.MaximalAbstentionThreshold +
                threshold.MinimalApproveThreshold <= GovernanceContractConstants.AbstractVoteTotal &&
                threshold.MaximalRejectionThreshold +
-               threshold.MinimalApproveThreshold <= GovernanceContractConstants.AbstractVoteTotal;
+               threshold.MinimalApproveThreshold <= GovernanceContractConstants.AbstractVoteTotal &&
+               threshold.ProposalThreshold >= 0;
     }
 
     private Hash GenerateId<T>(T input, Hash token) where T : IMessage<T>

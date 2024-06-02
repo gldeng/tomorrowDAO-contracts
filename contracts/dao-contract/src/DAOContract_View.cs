@@ -37,6 +37,13 @@ public partial class DAOContract
 
     public override BoolValue GetSubsistStatus(Hash input)
     {
+        if (State.DAOInfoMap[input] == null)
+        {
+            return new BoolValue
+            {
+                Value = false
+            };
+        }
         return new BoolValue
         {
             Value = State.DAOInfoMap[input].SubsistStatus

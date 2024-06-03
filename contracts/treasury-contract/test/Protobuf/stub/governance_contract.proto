@@ -206,6 +206,7 @@ message CreateProposalInput {
   ProposalBasicInfo proposal_basic_info = 1;
   int32 proposal_type = 2;
   ExecuteTransaction transaction = 3;
+  aelf.Hash token = 4;
 }
 
 message CreateVetoProposalInput {

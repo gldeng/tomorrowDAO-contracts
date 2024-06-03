@@ -9,11 +9,9 @@ public partial class TreasuryContract
     public override Empty CreateTreasury(CreateTreasuryInput input)
     {
         AssertNotNullOrEmpty(input);
-        AssertSenderDaoContract();
         AssertDaoSubsists(input.DaoId);
         AssertSymbolList(input.Symbols);
-        var daoInfo = State.DaoContract.GetDAOInfo.Call(input.DaoId);
-
+        var daoInfo = AssertSenderIsDaoContractOrDaoAdmin(input.DaoId);
         if (!string.IsNullOrWhiteSpace(daoInfo.GovernanceToken))
         {
             Assert(input.Symbols.Data.Contains(daoInfo.GovernanceToken), "Symbols must be include governance token.");
@@ -51,8 +49,8 @@ public partial class TreasuryContract
     public override Empty AddSupportedStakingTokens(AddSupportedStakingTokensInput input)
     {
         AssertNotNullOrEmpty(input);
-        AssertSenderDaoContract();
         AssertSymbolList(input.Symbols);
+        AssertSenderIsDaoContractOrDaoAdmin(input.DaoId);
         var treasuryInfo = AssertDaoSubsistAndTreasuryStatus(input.DaoId);
         treasuryInfo.SupportedStakingTokens.Data.AddRange(input.Symbols.Data);
         Assert(treasuryInfo.SupportedStakingTokens.Data.Count <= TreasuryContractConstants.MaxStakingTokenLimit,
@@ -72,7 +70,7 @@ public partial class TreasuryContract
     public override Empty RemoveSupportedStakingTokens(RemoveSupportedStakingTokensInput input)
     {
         AssertNotNullOrEmpty(input);
-        AssertSenderDaoContract();
+        AssertSenderIsDaoContractOrDaoAdmin(input.DaoId);
         AssertSymbolList(input.Symbols);
         var treasuryInfo = AssertDaoSubsistAndTreasuryStatus(input.DaoId);
         

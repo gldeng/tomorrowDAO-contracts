@@ -44,6 +44,10 @@ service TreasuryContract {
     option (aelf.is_view) = true;
   }
 
+  rpc GetTreasuryInfo(aelf.Hash) returns (TreasuryInfo) {
+    option (aelf.is_view) = true;
+  }
+
   // treasury_account_address
   rpc GetDAOIdByTreasuryAccountAddress (aelf.Address) returns (aelf.Hash) {
     option (aelf.is_view) = true;
@@ -57,11 +61,11 @@ service TreasuryContract {
     option (aelf.is_view) = true;
   }
 
-  rpc GetTotoalFundInfo (GetTotoalFundInfoInput) returns (FundInfo) {
+  rpc GetTotalFundInfo (GetTotalFundInfoInput) returns (FundInfo) {
     option (aelf.is_view) = true;
   }
 
-  rpc GetLockInfo (aelf.Hash) returns (LockInfo) {
+  rpc GetLockInfo (LockInfoInput) returns (LockInfo) {
     option (aelf.is_view) = true;
   }
 
@@ -161,6 +165,7 @@ message TokenStaked {
   string symbol = 3;
   aelf.Address account = 4;
   google.protobuf.Timestamp staked_time = 5;
+  aelf.Address treasury_address = 6;
 }
 
 message RequestTransferInput {
@@ -179,11 +184,18 @@ message ProposalInfo {
   aelf.Hash vote_scheme_id = 6;
 }
 
-message LockInfo {
+message LockInfoInput {
   aelf.Hash proposal_id = 1;
-  string symbol = 2;
-  int64 amount = 3;
-  google.protobuf.Timestamp lock_ddl = 4;
+  aelf.Hash lock_id = 2;
+}
+
+message LockInfo {
+  aelf.Hash dao_id = 1;
+  aelf.Address treasury_address = 2;
+  string symbol = 3;
+  int64 amount = 4;
+  aelf.Hash proposal_id = 5;
+  aelf.Hash lock_id = 6;
 }
 
 message TreasuryTokenLocked {
@@ -199,25 +211,26 @@ message ReleaseTransferInput {
   string symbol = 3;
   aelf.Address recipient = 4;
   string memo = 5;
-  aelf.Hash proposal_id = 6;
+  aelf.Hash lock_id = 6;
 }
 
 message TreasuryTransferReleased {
   option (aelf.is_event) = true;
   aelf.Hash dao_id = 1;
-  int64 amount = 2;
-  string symbol = 3;
-  aelf.Address recipient = 4;
-  string memo = 5;
-  aelf.Address executor = 6;
-  aelf.Hash proposal_id = 7;
+  aelf.Address treasury_address = 2;
+  int64 amount = 3;
+  string symbol = 4;
+  aelf.Address recipient = 5;
+  string memo = 6;
+  aelf.Address executor = 7;
+  aelf.Hash proposal_id = 8;
+  aelf.Hash lock_id = 9;
 }
 
 message TreasuryTokenUnlocked {
   option (aelf.is_event) = true;
-  aelf.Hash dao_id = 1;
-  LockInfo lock_info = 2;
-  aelf.Address executor = 3;
+  LockInfo lock_info = 1;
+  aelf.Address executor = 2;
 }
 
 message GetFundInfoInput {
@@ -225,7 +238,7 @@ message GetFundInfoInput {
   string symbol = 2;
 }
 
-message GetTotoalFundInfoInput {
+message GetTotalFundInfoInput {
   string symbol = 1;
 }
 

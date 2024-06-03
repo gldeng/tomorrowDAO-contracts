@@ -31,7 +31,7 @@ public partial class TreasuryContract : TreasuryContractContainer.TreasuryContra
         var treasuryInfo = State.TreasuryInfoMap[input];
         Assert(treasuryInfo != null, "Treasury has not bean created yet.");
         
-        var daoTreasuryPaused = State.DaoTreasuryPaused[treasuryInfo!.TreasuryAddress];
+        var daoTreasuryPaused = State.TreasuryPausedMap[treasuryInfo!.TreasuryAddress];
         Assert(!daoTreasuryPaused, "Treasury has bean paused.");
         
         var daoInfo = State.DaoContract.GetDAOInfo.Call(input);
@@ -41,7 +41,7 @@ public partial class TreasuryContract : TreasuryContractContainer.TreasuryContra
         var pausedAll = false;
         if (daoInfo.Creator == Context.Sender)
         {
-            State.DaoTreasuryPaused[treasuryInfo.TreasuryAddress] = true;
+            State.TreasuryPausedMap[treasuryInfo.TreasuryAddress] = true;
         }
         else if (contractInfo.Deployer == Context.Sender)
         {
@@ -64,7 +64,7 @@ public partial class TreasuryContract : TreasuryContractContainer.TreasuryContra
         var treasuryInfo = State.TreasuryInfoMap[input];
         Assert(treasuryInfo != null, "Treasury has not bean created yet.");
         
-        var daoTreasuryPaused = State.DaoTreasuryPaused[treasuryInfo!.TreasuryAddress];
+        var daoTreasuryPaused = State.TreasuryPausedMap[treasuryInfo!.TreasuryAddress];
         Assert(State.IsPaused.Value || daoTreasuryPaused, "Treasury is not paused.");
         
         var daoInfo = State.DaoContract.GetDAOInfo.Call(input);
@@ -74,7 +74,7 @@ public partial class TreasuryContract : TreasuryContractContainer.TreasuryContra
         var unpausedAll = false;
         if (daoInfo.Creator == Context.Sender)
         {
-            State.DaoTreasuryPaused.Remove(treasuryInfo.TreasuryAddress);
+            State.TreasuryPausedMap.Remove(treasuryInfo.TreasuryAddress);
         }
         else if (contractInfo.Deployer == Context.Sender)
         {
@@ -90,46 +90,5 @@ public partial class TreasuryContract : TreasuryContractContainer.TreasuryContra
             UnpausedAll = unpausedAll
         });
         return new Empty();
-    }
-
-
-    public override Empty StakeToken(StakeTokenInput input)
-    {
-        return base.StakeToken(input);
-    }
-
-    public override Empty RequestTransfer(RequestTransferInput input)
-    {
-        return base.RequestTransfer(input);
-    }
-
-    public override Empty ReleaseTransfer(ReleaseTransferInput input)
-    {
-        return base.ReleaseTransfer(input);
-    }
-
-    public override Empty UnlockToken(Hash input)
-    {
-        return base.UnlockToken(input);
-    }
-
-    public override Empty TransferInEmergency(TransferInEmergencyInput input)
-    {
-        return base.TransferInEmergency(input);
-    }
-
-    public override FundInfo GetFundInfo(GetFundInfoInput input)
-    {
-        return base.GetFundInfo(input);
-    }
-
-    public override FundInfo GetTotoalFundInfo(GetTotoalFundInfoInput input)
-    {
-        return base.GetTotoalFundInfo(input);
-    }
-
-    public override LockInfo GetLockInfo(Hash input)
-    {
-        return base.GetLockInfo(input);
     }
 }

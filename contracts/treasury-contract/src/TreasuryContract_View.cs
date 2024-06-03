@@ -1,3 +1,4 @@
+using AElf;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -9,6 +10,11 @@ public partial class TreasuryContract
     {
         var treasuryInfo = State.TreasuryInfoMap[input];
         return treasuryInfo?.TreasuryAddress;
+    }
+
+    public override TreasuryInfo GetTreasuryInfo(Hash input)
+    {
+        return State.TreasuryInfoMap[input] ?? new TreasuryInfo();
     }
 
     public override Hash GetDAOIdByTreasuryAccountAddress(Address input)
@@ -36,7 +42,44 @@ public partial class TreasuryContract
 
         var treasuryInfo = State.TreasuryInfoMap[input];
         Assert(treasuryInfo != null, "Treasury has not bean created yet.");
-        boolValue.Value = State.DaoTreasuryPaused[treasuryInfo!.TreasuryAddress];
+        boolValue.Value = State.TreasuryPausedMap[treasuryInfo!.TreasuryAddress];
         return boolValue;
+    }
+
+    public override FundInfo GetFundInfo(GetFundInfoInput input)
+    {
+        var treasuryInfo = State.TreasuryInfoMap[input.DaoId];
+        if (treasuryInfo == null)
+        {
+            return new FundInfo();
+        }
+
+        var fundInfo = State.FundInfoMap[treasuryInfo.TreasuryAddress][input.Symbol] ?? new FundInfo();
+        fundInfo.DaoId = input.DaoId;
+        fundInfo.Symbol = input.Symbol;
+        fundInfo.TreasuryAddress = treasuryInfo.TreasuryAddress;
+        return fundInfo;
+    }
+
+    public override FundInfo GetTotalFundInfo(GetTotalFundInfoInput input)
+    {
+        var totalFundInfo = State.TotalFundInfoMap[input.Symbol] ?? new FundInfo();
+        totalFundInfo.Symbol = input.Symbol;
+        return totalFundInfo;
+    }
+
+    public override LockInfo GetLockInfo(LockInfoInput input)
+    {
+        var lockInfo = State.LockInfoMap[input.LockId ?? Hash.Empty];
+        if (lockInfo == null)
+        {
+            var lockId = State.ProposalLockMap[input.ProposalId ?? Hash.Empty];
+            if (lockId != input.LockId)
+            {
+                lockInfo = State.LockInfoMap[lockId];
+            }
+        }
+
+        return lockInfo ?? new LockInfo();
     }
 }

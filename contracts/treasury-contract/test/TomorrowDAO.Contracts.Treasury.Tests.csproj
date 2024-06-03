@@ -42,41 +42,6 @@
         <Protobuf Include="Protobuf/stub/*.proto">
             <ContractOutputOptions>stub</ContractOutputOptions>
         </Protobuf>
-        <Protobuf Update="Protobuf\stub\governance_contract.proto">
-          <Access>Public</Access>
-          <ProtoCompile>True</ProtoCompile>
-          <CompileOutputs>True</CompileOutputs>
-          <OutputDir>obj\Debug/net6.0/</OutputDir>
-          <Generator>MSBuild:Compile</Generator>
-        </Protobuf>
-        <Protobuf Update="Protobuf\stub\token_contract.proto">
-          <Access>Public</Access>
-          <ProtoCompile>True</ProtoCompile>
-          <CompileOutputs>True</CompileOutputs>
-          <OutputDir>obj\Debug/net6.0/</OutputDir>
-          <Generator>MSBuild:Compile</Generator>
-        </Protobuf>
-        <Protobuf Update="Protobuf\stub\dao_contract.proto">
-          <Access>Public</Access>
-          <ProtoCompile>True</ProtoCompile>
-          <CompileOutputs>True</CompileOutputs>
-          <OutputDir>obj\Debug/net6.0/</OutputDir>
-          <Generator>MSBuild:Compile</Generator>
-        </Protobuf>
-        <Protobuf Update="Protobuf\stub\acs0.proto">
-          <Access>Public</Access>
-          <ProtoCompile>True</ProtoCompile>
-          <CompileOutputs>True</CompileOutputs>
-          <OutputDir>obj\Debug/net6.0/</OutputDir>
-          <Generator>MSBuild:Compile</Generator>
-        </Protobuf>
-        <Protobuf Update="Protobuf\base\acs12.proto">
-          <Access>Public</Access>
-          <ProtoCompile>True</ProtoCompile>
-          <CompileOutputs>True</CompileOutputs>
-          <OutputDir>obj\Debug/net6.0/</OutputDir>
-          <Generator>MSBuild:Compile</Generator>
-        </Protobuf>
     </ItemGroup>
 
     <ItemGroup>
@@ -85,6 +50,10 @@
 
     <ItemGroup>
         <ProjectReference Include="../src/TomorrowDAO.Contracts.Treasury.csproj" />
+        <ProjectReference Include="..\..\dao-contract\src\TomorrowDAO.Contracts.DAO.csproj" />
+        <ProjectReference Include="..\..\election-contract\src\TomorrowDAO.Contracts.Election.csproj" />
+        <ProjectReference Include="..\..\governance-contract\src\TomorrowDAO.Contracts.Governance.csproj" />
+        <ProjectReference Include="..\..\vote-contract\src\TomorrowDAO.Contracts.Vote.csproj" />
     </ItemGroup>
     
 </Project>

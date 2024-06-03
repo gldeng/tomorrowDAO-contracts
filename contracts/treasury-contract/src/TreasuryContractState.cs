@@ -7,12 +7,12 @@ namespace TomorrowDAO.Contracts.Treasury;
 public partial class TreasuryContractState : ContractState
 {
     public BoolState Initialized { get; set; }
-    
+
     public BoolState IsPaused { get; set; }
-    
+
     //<treasury address, is paused>
-    public MappedState<Address, bool> DaoTreasuryPaused { get; set; }
-    
+    public MappedState<Address, bool> TreasuryPausedMap { get; set; }
+
     //<DAO id -> TreasuryInfo>
     public MappedState<Hash, TreasuryInfo> TreasuryInfoMap { get; set; }
 
@@ -30,4 +30,10 @@ public partial class TreasuryContractState : ContractState
 
     //<symbol -> account -> FundInfo>
     public MappedState<string, string, FundInfo> PledgedAmountMap { get; set; }
+
+    //<proposal id -> lock id>
+    public MappedState<Hash, Hash> ProposalLockMap { get; set; }
+
+    //<lock id -> LockInfo>
+    public MappedState<Hash, LockInfo> LockInfoMap { get; set; }
 }

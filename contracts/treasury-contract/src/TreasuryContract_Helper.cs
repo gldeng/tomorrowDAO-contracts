@@ -41,6 +41,8 @@ public partial class TreasuryContract
             symbols != null && symbols.Data != null &&
             symbols.Data.Count <= TreasuryContractConstants.MaxStakingTokenLimit,
             $"The staked token cannot be empty or exceed {TreasuryContractConstants.MaxStakingTokenLimit} types");
+        Assert(!symbols!.Data!.Any(symbol => symbol.Length > TreasuryContractConstants.MaxSymbolNameLength),
+            $"Symbol Name length exceeds {TreasuryContractConstants.MaxSymbolNameLength}.");
     }
 
     private void AssertNotNullOrEmpty(object input, string message = null)

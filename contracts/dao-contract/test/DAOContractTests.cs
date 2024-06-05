@@ -11,7 +11,7 @@ using Xunit;
 namespace TomorrowDAO.Contracts.DAO;
 
 // This class is unit test class, and it inherit TestBase. Write your unit test code inside it
-public partial class DAOContractTests : TestBase
+public partial class DAOContractTests : DAOContractTestBase
 {
     [Fact]
     public async Task InitializeTests()

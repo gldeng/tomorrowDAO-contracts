@@ -86,4 +86,11 @@ public partial class DAOContract
 
         return new Empty();
     }
+    
+    private void ProcessHighCouncil(Hash daoId, HighCouncilInput input)
+    {
+        if (input == null || !IsStringValid(State.DAOInfoMap[daoId].GovernanceToken)) return;
+
+        ProcessEnableHighCouncil(daoId, input.HighCouncilConfig, input.GovernanceSchemeThreshold);
+    }
 }

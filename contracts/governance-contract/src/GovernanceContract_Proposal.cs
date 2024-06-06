@@ -76,6 +76,7 @@ public partial class GovernanceContract
         Assert(
             scheme != null && schemeAddressList != null && schemeAddressList.Value.Count > 0 &&
             schemeAddressList.Value.Contains(proposalBasicInfo.SchemeAddress), "Invalid scheme address.");
+        AssertTokenBalance(Context.Sender, scheme!.GovernanceToken, scheme.SchemeThreshold.ProposalThreshold);
         var proposalId = GenerateId(input, token == null ? Context.TransactionId : token);
         return proposalId;
     }

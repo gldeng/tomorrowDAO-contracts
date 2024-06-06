@@ -1,4 +1,6 @@
+using System.Linq;
 using AElf;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 
 namespace TomorrowDAO.Contracts.DAO;
@@ -27,6 +29,7 @@ public partial class DAOContract
 
     private void CheckDAOExists(Hash input)
     {
+        Assert(IsHashValid(input), "Invalid input dao id.");
         Assert(State.DAOInfoMap[input] != null, "DAO not existed.");
     }
 
@@ -45,6 +48,18 @@ public partial class DAOContract
     {
         return character >= 'A' && character <= 'Z';
     }
+    
+    private TokenInfo AssertToken(string token)
+    {
+        Assert(!string.IsNullOrEmpty(token), "Token is null.");
+        Assert(token!.Length <= DAOContractConstants.SymbolMaxLength && token.All(IsValidTokenChar), "Invalid token symbol.");
+        var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+        {
+            Symbol = token
+        });
+        Assert(!string.IsNullOrEmpty(tokenInfo.Symbol), "Token not found.");
+        return tokenInfo;
+    }
 
     private Governance.GovernanceSchemeThreshold ConvertToGovernanceSchemeThreshold(GovernanceSchemeThreshold input)
     {
@@ -54,7 +69,20 @@ public partial class DAOContract
             MinimalRequiredThreshold = input.MinimalRequiredThreshold,
             MinimalApproveThreshold = input.MinimalApproveThreshold,
             MaximalAbstentionThreshold = input.MaximalAbstentionThreshold,
-            MaximalRejectionThreshold = input.MaximalRejectionThreshold
+            MaximalRejectionThreshold = input.MaximalRejectionThreshold,
+            ProposalThreshold = input.ProposalThreshold
+        };
+    }
+    
+    private Governance.DaoProposalTimePeriod ConvertToProposalTimePeriod(DaoProposalTimePeriod input)
+    {
+        return new Governance.DaoProposalTimePeriod
+        {
+            ActiveTimePeriod = input.ActiveTimePeriod,
+            VetoActiveTimePeriod = input.VetoActiveTimePeriod,
+            PendingTimePeriod = input.PendingTimePeriod,
+            ExecuteTimePeriod = input.ExecuteTimePeriod,
+            VetoExecuteTimePeriod = input.VetoExecuteTimePeriod,
         };
     }
 }

@@ -24,4 +24,5 @@ public static class DAOContractConstants
     // permission
     public const string UploadFileInfos = "uploadfileinfos";
     public const string RemoveFileInfos = "removefileinfos";
+    public const string UpdateMetadata = "updatemetadata";
 }

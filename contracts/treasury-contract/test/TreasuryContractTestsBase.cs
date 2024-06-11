@@ -90,6 +90,7 @@ public class TreasuryContractTestsBase : TestBase
             TimelockContractAddress = DefaultAddress,
             TreasuryContractAddress = DefaultAddress
         });
+        await DAOContractStub.SetTreasuryContractAddress.SendAsync(TreasuryContractAddress);
 
         //init election contract
         await ElectionContractStub.Initialize.SendAsync(new Election.InitializeInput
@@ -110,7 +111,7 @@ public class TreasuryContractTestsBase : TestBase
     /// Dependent on the InitializeAllContract method.
     /// </summary>
     /// <returns>DaoId</returns>
-    internal async Task<Hash> MockDao(bool isNetworkDao = false)
+    internal async Task<Hash> MockDao(bool isNetworkDao = false, bool isTreasuryNeeded = false)
     {
         var result = await DAOContractStub.CreateDAO.SendAsync(new CreateDAOInput
         {
@@ -156,7 +157,7 @@ public class TreasuryContractTestsBase : TestBase
                     MaximalAbstentionThreshold = 2000
                 }
             },
-            IsTreasuryContractNeeded = false,
+            IsTreasuryNeeded = isTreasuryNeeded,
             IsNetworkDao = isNetworkDao
         });
 
@@ -349,11 +350,7 @@ public class TreasuryContractTestsBase : TestBase
     {
         var createTreasuryInput = new CreateTreasuryInput
         {
-            DaoId = daoId,
-            Symbols = new SymbolList
-            {
-                Data = { DefaultGovernanceToken, "USDT" }
-            }
+            DaoId = daoId
         };
         return withException
             ? await TreasuryContractStub.CreateTreasury.SendWithExceptionAsync(createTreasuryInput)
@@ -361,57 +358,42 @@ public class TreasuryContractTestsBase : TestBase
     }
 
     internal async Task CreateTreasuryAddDonateAndStaking(Hash daoId,
-        long donate = 100000000 * 10, long staking = 100000000 * 10, bool withException = false)
+        long deposit = 100000000 * 10, bool withException = false)
     {
         var createTreasuryInput = new CreateTreasuryInput
         {
-            DaoId = daoId,
-            Symbols = new SymbolList
-            {
-                Data = { DefaultGovernanceToken, "USDT" }
-            }
+            DaoId = daoId
         };
         await TreasuryContractStub.CreateTreasury.SendAsync(createTreasuryInput);
+        var treasuryAddress = await TreasuryContractStub.GetTreasuryAccountAddress.CallAsync(daoId);
 
-        var executionResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
+        var executionResult = await TokenContractStub.Transfer.SendAsync(new AElf.Contracts.MultiToken.TransferInput
         {
-            Spender = TreasuryContractAddress,
+            To = treasuryAddress,
             Symbol = DefaultGovernanceToken,
-            Amount = OneElfAmount * 10 * 2
-        });
-
-        var result = await TreasuryContractStub.Donate.SendAsync(new DonateInput
-        {
-            DaoId = daoId,
-            Amount = OneElfAmount * 10,
-            Symbol = DefaultGovernanceToken
-        });
-
-        result = await TreasuryContractStub.StakeToken.SendAsync(new StakeTokenInput()
-        {
-            DaoId = daoId,
-            Amount = OneElfAmount * 10,
-            Symbol = DefaultGovernanceToken
+            Amount = deposit,
+            Memo = "deposit"
         });
     }
 
-    internal async Task<Hash> RequestTransferAndVote(Hash daoId, bool vote = true)
+    internal async Task<Hash> RequestTransferAndVote(Hash daoId, long transferAmount,bool vote = true)
     {
         var addressList = await GovernanceContractStub.GetDaoGovernanceSchemeAddressList.CallAsync(daoId);
         addressList.ShouldNotBeNull();
         addressList.Value.Count.ShouldBe(2);
         var schemeAddress = addressList.Value.FirstOrDefault();
         await MockVoteScheme();
-        var voteMechanismId = await GetVoteSchemeId(VoteMechanism.UniqueVote);
+        var voteMechanismId = await GetVoteSchemeId(VoteMechanism.TokenBallot);
 
-        var result = await TreasuryContractStub.RequestTransfer.SendAsync(new RequestTransferInput
+        var result = await GovernanceContractStub.CreateTransferProposal.SendAsync(new CreateTransferProposalInput
         {
-            DaoId = daoId,
-            Amount = OneElfAmount * 5,
+            Amount = transferAmount,
             Symbol = DefaultGovernanceToken,
             Recipient = UserAddress,
-            ProposalInfo = new ProposalInfo
+            Memo = "Transfer Test",
+            ProposalBasicInfo = new ProposalBasicInfo
             {
+                DaoId = daoId,
                 ProposalTitle = "ProposalTitle",
                 ProposalDescription = "ProposalDescription",
                 ForumUrl = "http://121.id",
@@ -420,15 +402,14 @@ public class TreasuryContractTestsBase : TestBase
             }
         });
 
-        var treasuryTokenLocked = GetLogEvent<TreasuryTokenLocked>(result.TransactionResult);
-        var proposalId = treasuryTokenLocked.LockInfo.ProposalId;
-        var lockId = treasuryTokenLocked.LockInfo.LockId;
+        var proposalCreated = GetLogEvent<ProposalCreated>(result.TransactionResult);
+        var proposalId = proposalCreated.ProposalId;
 
         if (!vote) return proposalId;
         
         //Vote 10s
         BlockTimeProvider.SetBlockTime(10000);
-        await VoteProposalAsync(proposalId, 1, VoteOption.Approved);
+        await VoteProposalAsync(proposalId, OneElfAmount, VoteOption.Approved);
 
         return proposalId;
     }

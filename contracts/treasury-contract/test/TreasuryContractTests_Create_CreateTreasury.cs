@@ -14,11 +14,7 @@ public class TreasuryContractTestsCreateCreateTreasury : TreasuryContractTestsBa
 
         var result = await TreasuryContractStub.CreateTreasury.SendAsync(new CreateTreasuryInput
         {
-            DaoId = daoId,
-            Symbols = new SymbolList
-            {
-                Data = { DefaultGovernanceToken, "USDT" }
-            }
+            DaoId = daoId
         });
         result.ShouldNotBeNull();
 
@@ -27,28 +23,19 @@ public class TreasuryContractTestsCreateCreateTreasury : TreasuryContractTestsBa
 
         var treasuryInfo = await TreasuryContractStub.GetTreasuryInfo.CallAsync(daoId);
         treasuryInfo.ShouldNotBeNull();
-        treasuryInfo.SupportedStakingTokens.Data.ShouldContain(DefaultGovernanceToken);
     }
 
     [Fact]
-    public async Task CreateTreasuryTest_InvalidSymbol()
+    public async Task CreateTreasuryTest_Exists()
     {
         await InitializeAllContract();
-        var daoId = await MockDao();
+        var daoId = await MockDao(isTreasuryNeeded: true);
 
         var result = await TreasuryContractStub.CreateTreasury.SendWithExceptionAsync(new CreateTreasuryInput
         {
-            DaoId = daoId,
-            Symbols = new SymbolList
-            {
-                Data =
-                {
-                    DefaultGovernanceToken,
-                    "USDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTTUSDTT"
-                }
-            }
+            DaoId = daoId
         });
         result.ShouldNotBeNull();
-        result.TransactionResult.Error.ShouldContain("Symbol Name length exceeds");
+        result.TransactionResult.Error.ShouldContain("treasury has been created");
     }
 }

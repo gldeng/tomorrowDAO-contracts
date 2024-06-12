@@ -22,10 +22,10 @@ public partial class TreasuryContract
 
         treasuryInfo = new TreasuryInfo
         {
-            TreasuryAddress = treasuryAddress,
+            TreasuryAddress = treasuryAddress
         };
         State.TreasuryInfoMap[input.DaoId] = treasuryInfo;
-        State.TreasuryAccountMap[treasuryAddress] = daoId;
+        State.TreasuryAccountMap[treasuryAddress] = input.DaoId;
 
         Context.Fire(new TreasuryCreated
         {

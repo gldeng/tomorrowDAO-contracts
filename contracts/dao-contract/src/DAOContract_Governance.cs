@@ -77,7 +77,7 @@ public partial class DAOContract
     {
         Assert(input is { ProposalTimePeriod: not null }, "Invalid input.");
         CheckDAOExistsAndSubsist(input!.DaoId);
-        AssertPermission(input.DaoId, nameof(SetGovernanceToken));
+        AssertPermission(input.DaoId, nameof(SetProposalTimePeriod));
         
         State.GovernanceContract.SetProposalTimePeriod.Send(new Governance.SetProposalTimePeriodInput
         {

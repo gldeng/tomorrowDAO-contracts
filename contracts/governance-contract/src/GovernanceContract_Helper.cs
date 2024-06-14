@@ -14,6 +14,10 @@ public partial class GovernanceContract
 {
     private void AssertTokenBalance(Address owner, string token, long threshold)
     {
+        if (string.IsNullOrEmpty(token))
+        {
+            return;
+        }
         var tokenBalance = State.TokenContract.GetBalance.Call(new GetBalanceInput
         {
             Owner = owner,

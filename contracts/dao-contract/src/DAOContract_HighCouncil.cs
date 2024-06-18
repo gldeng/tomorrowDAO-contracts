@@ -18,15 +18,16 @@ public partial class DAOContract
         CheckDaoSubsistStatus(input.DaoId);
         AssertPermission(input.DaoId, nameof(EnableHighCouncil));
 
-        ProcessEnableHighCouncil(input.DaoId, input.HighCouncilInput.HighCouncilConfig,
-            input.HighCouncilInput.GovernanceSchemeThreshold);
+        ProcessEnableHighCouncil(input.DaoId, input.HighCouncilInput);
 
         return new Empty();
     }
 
-    private void ProcessEnableHighCouncil(Hash daoId, HighCouncilConfig highCouncilConfig,
-        GovernanceSchemeThreshold threshold)
+    private void ProcessEnableHighCouncil(Hash daoId, HighCouncilInput highCouncilInput)
     {
+        HighCouncilConfig highCouncilConfig = highCouncilInput.HighCouncilConfig;
+        GovernanceSchemeThreshold threshold = highCouncilInput.GovernanceSchemeThreshold;
+        
         State.HighCouncilEnabledStatusMap[daoId] = true;
 
         var governanceSchemeThreshold = ConvertToGovernanceSchemeThreshold(threshold);
@@ -46,16 +47,29 @@ public partial class DAOContract
                 GovernanceMechanism = TomorrowDAO.Contracts.Governance.GovernanceMechanism.HighCouncil
             });
 
-        State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput
+        if (highCouncilInput.HighCouncilMembers != null && highCouncilInput.HighCouncilMembers.Value.Count > 0)
         {
-            DaoId = daoId,
-            ElectionPeriod = highCouncilConfig.ElectionPeriod,
-            GovernanceToken = State.DAOInfoMap[daoId].GovernanceToken,
-            StakeThreshold = highCouncilConfig.StakingAmount,
-            MaxHighCouncilCandidateCount = highCouncilConfig.MaxHighCouncilCandidateCount,
-            MaxHighCouncilMemberCount = highCouncilConfig.MaxHighCouncilMemberCount
-        });
-
+            State.ElectionContract.AddHighCouncil.Send(new AddHighCouncilInput
+            {
+                DaoId = daoId,
+                AddHighCouncils = new Election.AddressList()
+                {
+                    Value = { highCouncilInput.HighCouncilMembers.Value }
+                }
+            });
+        }
+        if (!highCouncilInput.IsHighCouncilElectionClose)
+        {
+            State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput
+            {
+                DaoId = daoId,
+                ElectionPeriod = highCouncilConfig.ElectionPeriod,
+                GovernanceToken = State.DAOInfoMap[daoId].GovernanceToken,
+                StakeThreshold = highCouncilConfig.StakingAmount,
+                MaxHighCouncilCandidateCount = highCouncilConfig.MaxHighCouncilCandidateCount,
+                MaxHighCouncilMemberCount = highCouncilConfig.MaxHighCouncilMemberCount
+            });
+        }
         Context.Fire(new HighCouncilEnabled
         {
             DaoId = daoId,
@@ -91,6 +105,6 @@ public partial class DAOContract
     {
         if (input == null || !IsStringValid(State.DAOInfoMap[daoId].GovernanceToken)) return;
 
-        ProcessEnableHighCouncil(daoId, input.HighCouncilConfig, input.GovernanceSchemeThreshold);
+        ProcessEnableHighCouncil(daoId, input);
     }
 }

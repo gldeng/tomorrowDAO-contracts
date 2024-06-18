@@ -2,6 +2,7 @@ using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.Types;
+using TomorrowDAO.Contracts.DAO;
 
 namespace TomorrowDAO.Contracts.Election;
 
@@ -17,11 +18,22 @@ public partial class ElectionContract
     {
         Assert(State.DaoContract.Value == Context.Sender, "No permission.");
     }
-
-    private void AssertSenderDaoOrGovernanceContract()
+    
+    private void AssertDaoSubsists(Hash daoId)
     {
-        Assert(State.DaoContract.Value == Context.Sender || State.GovernanceContract.Value == Context.Sender,
-            "No permission.");
+        AssertNotNullOrEmpty(daoId, "DaoId");
+        var boolValue = State.DaoContract.GetSubsistStatus.Call(daoId);
+        
+    }
+    private DAOInfo AssertSenderIsDaoContractOrProposal(Hash daoId)
+    {
+        var daoInfo = State.DaoContract.GetDAOInfo.Call(daoId);
+        Assert(daoId != null, $"Dao {daoId} not exist.");
+        Assert(daoInfo.SubsistStatus, "DAO is not in subsistence.");
+        var referendumAddress = State.DaoContract.GetReferendumAddress.Call(daoId);
+        var highCouncilAddress = State.DaoContract.GetHighCouncilAddress.Call(daoId);
+        Assert(State.DaoContract.Value == Context.Sender || Context.Sender == referendumAddress || Context.Sender == highCouncilAddress, "No permission.");
+        return daoInfo;
     }
 
     private void AssertNotNullOrEmpty(object input, string message = null)

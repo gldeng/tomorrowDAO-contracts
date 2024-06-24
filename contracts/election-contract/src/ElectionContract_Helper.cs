@@ -13,18 +13,12 @@ public partial class ElectionContract
     {
         Assert(State.Initialized.Value, "Contract not initialized.");
     }
-    
+
     private void AssertSenderDaoContract()
     {
         Assert(State.DaoContract.Value == Context.Sender, "No permission.");
     }
-    
-    private void AssertDaoSubsists(Hash daoId)
-    {
-        AssertNotNullOrEmpty(daoId, "DaoId");
-        var boolValue = State.DaoContract.GetSubsistStatus.Call(daoId);
-        
-    }
+
     private DAOInfo AssertSenderIsDaoContractOrProposal(Hash daoId)
     {
         var daoInfo = State.DaoContract.GetDAOInfo.Call(daoId);
@@ -32,7 +26,9 @@ public partial class ElectionContract
         Assert(daoInfo.SubsistStatus, "DAO is not in subsistence.");
         var referendumAddress = State.DaoContract.GetReferendumAddress.Call(daoId);
         var highCouncilAddress = State.DaoContract.GetHighCouncilAddress.Call(daoId);
-        Assert(State.DaoContract.Value == Context.Sender || Context.Sender == referendumAddress || Context.Sender == highCouncilAddress, "No permission.");
+        Assert(
+            State.DaoContract.Value == Context.Sender || Context.Sender == referendumAddress ||
+            Context.Sender == highCouncilAddress, "No permission.");
         return daoInfo;
     }
 
@@ -53,8 +49,9 @@ public partial class ElectionContract
                 break;
         }
     }
-    
-    private HighCouncilConfig GetAndValidateHighCouncilConfig(Hash daoId) {
+
+    private HighCouncilConfig GetAndValidateHighCouncilConfig(Hash daoId)
+    {
         var hCouncilConfig = State.HighCouncilConfig[daoId];
         Assert(hCouncilConfig != null, $"Dao {daoId} High Council Config not exists.");
         return hCouncilConfig;
@@ -75,12 +72,13 @@ public partial class ElectionContract
         Assert(votingItem != null, "Voting item not exists");
         return votingItem;
     }
-    
+
     //Generate Hash
     private static Hash GetVotingItemHash(Hash daoId, Address sponsorAddress)
     {
         return HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(daoId), HashHelper.ComputeFrom(sponsorAddress));
     }
+
     private Hash GetVotingResultHash(Hash votingItemId, long snapshotNumber)
     {
         return new VotingResult
@@ -89,7 +87,7 @@ public partial class ElectionContract
             SnapshotNumber = snapshotNumber
         }.GetHash();
     }
-    
+
     private TokenInfo GetTokenInfo(string symbol)
     {
         return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput

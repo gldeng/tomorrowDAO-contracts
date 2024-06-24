@@ -88,7 +88,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
         }
 
         State.InitialHighCouncilMembers[input.DaoId] = addressList;
-        
+
         Context.Fire(new HighCouncilAdded
         {
             DaoId = input.DaoId,
@@ -104,7 +104,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
         AssertNotNullOrEmpty(input.DaoId);
         Assert(input.RemoveHighCouncils.Value is { Count: > 0 }, "Invalid input.");
         AssertSenderIsDaoContractOrProposal(input.DaoId);
-        
+
         var validAddressList = new AddressList();
         var addressList = State.InitialHighCouncilMembers[input.DaoId] ?? new AddressList();
         foreach (var address in input.RemoveHighCouncils.Value)
@@ -124,7 +124,7 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
         {
             State.InitialHighCouncilMembers[input.DaoId] = addressList;
         }
-        
+
         Context.Fire(new HighCouncilRemoved
         {
             DaoId = input.DaoId,

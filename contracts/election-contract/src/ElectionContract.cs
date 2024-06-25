@@ -87,6 +87,9 @@ public partial class ElectionContract : ElectionContractContainer.ElectionContra
             }
         }
 
+        Assert(addressList.Value.Count > ElectionContractConstants.MaxInitialHighCouncilMemberCount,
+            $"The number of High Council members cannot exceed {ElectionContractConstants.MaxInitialHighCouncilMemberCount}.");
+
         State.InitialHighCouncilMembers[input.DaoId] = addressList;
 
         Context.Fire(new HighCouncilAdded

@@ -98,4 +98,14 @@ public partial class DAOContract
     {
         return State.TreasuryContract.GetTreasuryAccountAddress.Call(input);
     }
+
+    public override BoolValue GetIsMember(GetIsMemberInput input)
+    {
+        return new BoolValue { Value = State.OrganizationMemberMap[input.DaoId][input.Member] };
+    }
+
+    public override Int64Value GetMemberCount(Hash input)
+    {
+        return new Int64Value{ Value = State.OrganizationMemberCountMap[input]};
+    }
 }

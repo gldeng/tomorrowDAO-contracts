@@ -35,15 +35,11 @@ public partial class GovernanceContract
             "Invalid memo size.");
         var daoInfo = AssertDaoSubsistAndTreasuryStatus(input.ProposalBasicInfo.DaoId, input.Symbol, input.Amount, input.Recipient);
 
-        var voteScheme = State.VoteContract.GetVoteScheme.Call(input.ProposalBasicInfo.VoteSchemeId);
-        Assert(voteScheme != null && voteScheme.VoteMechanism == VoteMechanism.TokenBallot,
-            "Not support non-token voting.");
-
         var transaction = new ExecuteTransaction
         {
             ContractMethodName = GovernanceContractConstants.TransferMethodName,
             ToAddress = daoInfo.ContractAddressList.TreasuryContractAddress,
-            Params = new TomorrowDAO.Contracts.Treasury.TransferInput
+            Params = new Treasury.TransferInput
             {
                 DaoId = input.ProposalBasicInfo.DaoId,
                 Amount = input.Amount,
@@ -111,6 +107,8 @@ public partial class GovernanceContract
             scheme != null && schemeAddressList != null && schemeAddressList.Value.Count > 0 &&
             schemeAddressList.Value.Contains(proposalBasicInfo.SchemeAddress), "Invalid scheme address.");
         AssertTokenBalance(Context.Sender, scheme!.GovernanceToken, scheme.SchemeThreshold.ProposalThreshold);
+        AssertVoteMechanism(scheme.GovernanceMechanism, proposalBasicInfo.VoteSchemeId);
+        AssertProposer(scheme.GovernanceMechanism, Context.Sender, proposalBasicInfo.DaoId);
         var proposalId = GenerateId(input, token == null ? Context.TransactionId : token);
         return proposalId;
     }
@@ -408,19 +406,28 @@ public partial class GovernanceContract
         var schemeAddress = proposalInfo.ProposalBasicInfo.SchemeAddress;
         var governanceScheme = State.GovernanceSchemeMap[schemeAddress];
         Assert(governanceScheme != null, $"Governance Scheme {schemeAddress} not exists.");
+        if (governanceScheme!.GovernanceMechanism == GovernanceMechanism.Referendum)
+        {
+            return threshold.MinimalRequiredThreshold;
+        }
+        
+        var daoId = proposalInfo.ProposalBasicInfo.DaoId;
+        var daoInfo = CallAndCheckDaoInfo(daoId);
+        long convertCount;
         if (governanceScheme!.GovernanceMechanism == GovernanceMechanism.HighCouncil)
         {
-            var daoId = proposalInfo.ProposalBasicInfo.DaoId;
-            var daoInfo = CallAndCheckDaoInfo(daoId);
-            var highCouncilCount = daoInfo.IsNetworkDao ? CallAndCheckBpCount() : CallAndCheckHighCouncilCount(daoId);
-            var realMinimalRequiredThreshold = threshold.MinimalRequiredThreshold * highCouncilCount;
-            realMinimalRequiredThreshold =
-                realMinimalRequiredThreshold / GovernanceContractConstants.AbstractVoteTotal +
-                (realMinimalRequiredThreshold % GovernanceContractConstants.AbstractVoteTotal == 0 ? 0 : 1);
-            return realMinimalRequiredThreshold;
+            convertCount = daoInfo.IsNetworkDao ? CallAndCheckBpCount() : CallAndCheckHighCouncilCount(daoId);
+        }
+        else
+        {
+            convertCount = CallAndCheckMemberCount(daoId);
         }
 
-        return threshold.MinimalRequiredThreshold;
+        var realMinimalRequiredThreshold = threshold.MinimalRequiredThreshold * convertCount;
+        realMinimalRequiredThreshold =
+            realMinimalRequiredThreshold / GovernanceContractConstants.AbstractVoteTotal +
+            (realMinimalRequiredThreshold % GovernanceContractConstants.AbstractVoteTotal == 0 ? 0 : 1);
+        return realMinimalRequiredThreshold;
     }
 
     private bool HasPendingStatus(Hash proposalId)

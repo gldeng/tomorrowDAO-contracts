@@ -89,8 +89,14 @@ public partial class VoteContract
 
     private void AssertHighCouncil(Hash daoId, Address voter)
     {
-        var addressList = State.ElectionContract.GetVictories.Call(daoId);
+        var addressList = State.ElectionContract.GetHighCouncilMembers.Call(daoId);
         Assert(addressList.Value.Contains(voter), "Invalid voter: not HC.");
+    }
+    
+    private void AssertOrganizationMember(Hash daoId, Address voter)
+    {
+        var isMember = State.DaoContract.GetIsMember.Call(new GetIsMemberInput { DaoId = daoId, Member = voter }).Value;
+        Assert(isMember, "Invalid voter: not member.");
     }
     
     private void AssertBP(Address voter)

@@ -17,11 +17,11 @@ public partial class DAOContract
     {
         Assert(threshold != null, "Invalid input governance scheme threshold.");
 
-        var governanceSchemeThreshold = ConvertToOrganizationGovernanceSchemeThreshold(threshold);
+        var governanceSchemeThreshold = ConvertToGovernanceSchemeThreshold(threshold);
         State.GovernanceContract.AddGovernanceScheme.Send(new AddGovernanceSchemeInput
         {
             DaoId = daoId,
-            GovernanceMechanism = TomorrowDAO.Contracts.Governance.GovernanceMechanism.Oragnization,
+            GovernanceMechanism = TomorrowDAO.Contracts.Governance.GovernanceMechanism.Organization,
             SchemeThreshold = governanceSchemeThreshold,
         });
 
@@ -29,7 +29,7 @@ public partial class DAOContract
             new CalculateGovernanceSchemeAddressInput
             {
                 DaoId = daoId,
-                GovernanceMechanism = TomorrowDAO.Contracts.Governance.GovernanceMechanism.Oragnization
+                GovernanceMechanism = TomorrowDAO.Contracts.Governance.GovernanceMechanism.Organization
             });
     }
 

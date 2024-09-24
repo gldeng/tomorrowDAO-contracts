@@ -38,6 +38,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Contracts.Timel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Contracts.Timelock.Tests", "contracts\timelock-contract\test\TomorrowDAO.Contracts.Timelock.Tests.csproj", "{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "merkletree", "merkletree", "{D470CD14-6ECB-4174-97DA-C5F98857AE2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory", "contracts\merkletree\src\MerkleTreeWithHistory.csproj", "{5D90F2BF-A1A9-444D-B48A-0BFD9795848D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory.Tests", "contracts\merkletree\test\MerkleTreeWithHistory.Tests.csproj", "{0520015B-B157-42DC-B8FF-B8A572F136B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +68,9 @@ Global
 		{F6BB56CD-DD5B-45BF-9A28-F86BD139A92C} = {17F9524A-91B2-4C35-ACE2-7F4CF165E8DA}
 		{2A832919-E81E-4189-9083-0C2E3BD3C6A5} = {F6BB56CD-DD5B-45BF-9A28-F86BD139A92C}
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D} = {F6BB56CD-DD5B-45BF-9A28-F86BD139A92C}
+		{D470CD14-6ECB-4174-97DA-C5F98857AE2B} = {17F9524A-91B2-4C35-ACE2-7F4CF165E8DA}
+		{5D90F2BF-A1A9-444D-B48A-0BFD9795848D} = {D470CD14-6ECB-4174-97DA-C5F98857AE2B}
+		{0520015B-B157-42DC-B8FF-B8A572F136B4} = {D470CD14-6ECB-4174-97DA-C5F98857AE2B}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{70CA14BC-A034-4586-AA59-BF7AC722E04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -112,5 +121,13 @@ Global
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E74EA37-D9E7-4BA1-8C64-BFF5F93E882D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D90F2BF-A1A9-444D-B48A-0BFD9795848D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D90F2BF-A1A9-444D-B48A-0BFD9795848D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D90F2BF-A1A9-444D-B48A-0BFD9795848D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D90F2BF-A1A9-444D-B48A-0BFD9795848D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

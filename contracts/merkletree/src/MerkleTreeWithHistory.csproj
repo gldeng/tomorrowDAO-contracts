@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <RootNamespace>TomorrowDAO.Contracts.Vote</RootNamespace>
+        <RootNamespace>MainNamespace</RootNamespace>
         <IsContract>true</IsContract>
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
@@ -24,7 +24,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Protobuf\base\" />
+        <Folder Include="Protobuf\" />
+        <Folder Include="Protobuf\message\" />
+        <Folder Include="Protobuf\reference\" />
     </ItemGroup>
 
 </Project>

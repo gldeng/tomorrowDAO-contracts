@@ -1,6 +1,7 @@
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AnonymousVoteAdmin;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Groth16Verifier;
 using MerkleTreeWithHistory;
@@ -9,12 +10,6 @@ namespace TomorrowDAO.Contracts.Vote;
 
 public partial class VoteContract
 {
-
-    private void AnonymousVote()
-    {
-        
-    }
-    
     private void Commit(Hash proposalId, Hash commitment)
     {
         Assert(!GetAnonymousVotingState().Commitments[proposalId][commitment], "Commitment already exists.");
@@ -36,20 +31,20 @@ public partial class VoteContract
         });
     }
 
-    private void Nullify(Hash proposalId, Hash nullifier, Hash root, VerifyProofInput.Types.Proof proof)
+    private Hash GetMerkleTreeRoot(Hash proposalId)
+    {
+       return GetAnonymousVotingState().MerkleTreeWithHistoryContract.GetLastRoot.Call(proposalId);
+    }
+
+    private void Nullify(Hash proposalId, Hash nullifier, VoteInput.Types.Proof proof)
     {
         Assert(!GetAnonymousVotingState().Nullifiers[proposalId][nullifier], "Nullifier already exists.");
-        var isKnownRoot = GetAnonymousVotingState().MerkleTreeWithHistoryContract.IsKnownRoot.Call(
-            new IsKnownRootInput()
-            {
-                TreeId = proposalId,
-                Root = root
-            });
-        Assert(isKnownRoot.Value, "Merkle tree root is invalid.");
+
+        var root = GetMerkleTreeRoot(proposalId);
 
         var verified = GetAnonymousVotingState().Groth16VerifierContract.VerifyProof.Call(new VerifyProofInput()
         {
-            Proof = proof,
+            Proof = VerifyProofInput.Types.Proof.Parser.ParseFrom(proof.ToByteArray()),
             Input =
             {
                 BigIntValue.FromBigEndianBytes(nullifier.Value.ToByteArray()).Value,

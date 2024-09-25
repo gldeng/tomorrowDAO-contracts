@@ -70,7 +70,7 @@ public partial class VoteContract
         return State.VotingItems[votingItemId];
     }
 
-    private void AssertVotingRecord(Hash votingItemId, Address voter, VoteScheme voteScheme, VoteInput input)
+    private void AssertVotingRecord(Hash votingItemId, Address voter, VoteScheme voteScheme)
     {
         Assert(IsHashValid(votingItemId), "Invalid votingItemId.");
         var votingRecord = State.VotingRecords[votingItemId][voter];

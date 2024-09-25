@@ -3,7 +3,9 @@ using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using AnonymousVote;
 using Google.Protobuf.WellKnownTypes;
+using TomorrowDAO.Contracts.DAO;
 
 namespace TomorrowDAO.Contracts.Vote;
 
@@ -14,6 +16,23 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         AssertCommon(input);
         Assert(Context.Sender == State.GovernanceContract.Value, "No permission.");
         var voteScheme = AssertVoteScheme(input.SchemeId);
+        {
+            Assert(input.StartTimestamp < input.EndTimestamp, "Invalid voting time.");
+            if (input.AnonymousVotingInfo != null)
+            {
+                Assert(
+                    input.AnonymousVotingInfo.CommitmentRegistrationStartTimestamp <
+                    input.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp,
+                    "Invalid commitment registration time.");
+                Assert(input.StartTimestamp > input.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp,
+                    "Anonymous voting time can only start after commitment registration.");
+                Assert(input.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp < Context.CurrentBlockTime,
+                    "Commitment registration has ended.");
+            }
+
+            Assert(input.EndTimestamp > Context.CurrentBlockTime, "Voting has ended.");
+        }
+
         if (VoteMechanism.TokenBallot == voteScheme.VoteMechanism)
         {
             AssertToken(input.AcceptedToken);
@@ -32,7 +51,8 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             RegisterTimestamp = Context.CurrentBlockTime,
             StartTimestamp = input.StartTimestamp,
             EndTimestamp = input.EndTimestamp,
-            GovernanceMechanism = governanceScheme.GovernanceMechanism.ToString()
+            GovernanceMechanism = governanceScheme.GovernanceMechanism.ToString(),
+            AnonymousVotingInfo = input.AnonymousVotingInfo
         };
         State.VotingResults[input.VotingItemId] = new VotingResult
         {
@@ -43,7 +63,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             VotesAmount = 0,
             TotalVotersCount = 0,
             StartTimestamp = input.StartTimestamp,
-            EndTimestamp = input.EndTimestamp
+            EndTimestamp = input.EndTimestamp,
         };
         Context.Fire(new VotingItemRegistered
         {
@@ -53,8 +73,35 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             AcceptedCurrency = input.AcceptedToken,
             RegisterTimestamp = Context.CurrentBlockTime,
             StartTimestamp = input.StartTimestamp,
-            EndTimestamp = input.EndTimestamp
+            EndTimestamp = input.EndTimestamp,
+            AnonymousVotingInfo = input.AnonymousVotingInfo
         });
+        return new Empty();
+    }
+
+    /// <summary>
+    /// Register commitment for anonymous voting.
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    public override Empty RegisterCommitment(RegisterCommitmentInput input)
+    {
+        Assert(input.VotingItemId != null, "Invalid voting item id.");
+        Assert(input.Commitment != null, "Invalid commitment.");
+
+        AssertCommon(input);
+        var votingItem = AssertVotingItem(input.VotingItemId);
+        Assert(votingItem.AnonymousVotingInfo != null, "Not an anonymous voting.");
+        Assert(votingItem.AnonymousVotingInfo!.CommitmentRegistrationStartTimestamp <= Context.CurrentBlockTime,
+            "Commitment registration has not started.");
+        Assert(votingItem.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp >= Context.CurrentBlockTime,
+            "Commitment registration has ended.");
+
+        var daoInfo = AssertDaoSubsist(votingItem.DaoId);
+        var voteScheme = AssertVoteScheme(votingItem.SchemeId);
+        AssertEligibleVoter(daoInfo, voteScheme, votingItem, input.VoteAmount);
+        
+        Commit(input.VotingItemId, input.Commitment);
         return new Empty();
     }
 
@@ -66,38 +113,20 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         Assert(votingItem.EndTimestamp >= Context.CurrentBlockTime, "Vote ended.");
         var daoInfo = AssertDaoSubsist(votingItem.DaoId);
         var voteScheme = AssertVoteScheme(votingItem.SchemeId);
-        AssertVotingRecord(votingItem.VotingItemId, Context.Sender, voteScheme, input);
-
-        if (GovernanceMechanism.HighCouncil.ToString() == votingItem.GovernanceMechanism)
+        AssertEligibleVoter(daoInfo, voteScheme, votingItem, input.VoteAmount);
+        if (votingItem.AnonymousVotingInfo != null)
         {
-            if (daoInfo.IsNetworkDao)
-            {
-                AssertBP(Context.Sender);
-            }
-            else
-            {
-                AssertHighCouncil(daoInfo.DaoId, Context.Sender);
-            }
-        }else if (GovernanceMechanism.Organization.ToString() == votingItem.GovernanceMechanism)
+            Nullify(input.VotingItemId, input.AnonymousVoteExtraInfo.Nullifier, input.AnonymousVoteExtraInfo.Proof);
+        }
+        else
         {
-            AssertOrganizationMember(daoInfo.DaoId, Context.Sender);
+            AssertVotingRecord(votingItem.VotingItemId, Context.Sender, voteScheme);            
         }
 
-        switch (voteScheme.VoteMechanism)
-        {
-            case VoteMechanism.TokenBallot: // 1t1v
-                TokenBallotTransfer(votingItem, input, voteScheme);
-                AddAmount(votingItem, input.VoteAmount, voteScheme);
-                break;
-            case VoteMechanism.UniqueVote: // 1a1v
-                Assert(input.VoteAmount == VoteContractConstants.UniqueVoteVoteAmount, "Invalid vote amount");
-                break;
-        }
-
-        var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), HashHelper.ComputeFrom(Context.Sender), 
+        var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), HashHelper.ComputeFrom(Context.Sender),
             Context.TransactionId);
         var newVoter = AddVotingRecords(input, voteId);
-        UpdateVotingResults(input, newVoter? 1 : 0);
+        UpdateVotingResults(input, newVoter ? 1 : 0);
         Context.Fire(new Voted
         {
             VotingItemId = votingItem.VotingItemId,
@@ -134,16 +163,46 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         return new Empty();
     }
 
-    private void TokenBallotTransfer(VotingItem votingItem, VoteInput input, VoteScheme voteScheme)
+    private void AssertEligibleVoter(DAOInfo daoInfo, VoteScheme voteScheme, VotingItem votingItem, long voteAmount)
+    {
+        if (GovernanceMechanism.HighCouncil.ToString() == votingItem.GovernanceMechanism)
+        {
+            if (daoInfo.IsNetworkDao)
+            {
+                AssertBP(Context.Sender);
+            }
+            else
+            {
+                AssertHighCouncil(daoInfo.DaoId, Context.Sender);
+            }
+        }
+        else if (GovernanceMechanism.Organization.ToString() == votingItem.GovernanceMechanism)
+        {
+            AssertOrganizationMember(daoInfo.DaoId, Context.Sender);
+        }
+
+        switch (voteScheme.VoteMechanism)
+        {
+            case VoteMechanism.TokenBallot: // 1t1v
+                TokenBallotTransfer(votingItem, voteAmount, voteScheme);
+                AddAmount(votingItem, voteAmount, voteScheme);
+                break;
+            case VoteMechanism.UniqueVote: // 1a1v
+                Assert(voteAmount == VoteContractConstants.UniqueVoteVoteAmount, "Invalid vote amount");
+                break;
+        }
+    }
+
+    private void TokenBallotTransfer(VotingItem votingItem, long voteAmount, VoteScheme voteScheme)
     {
         if (voteScheme.WithoutLockToken)
         {
-            AssertTokenBalance(Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount);
+            AssertTokenBalance(Context.Sender, votingItem.AcceptedSymbol, voteAmount);
         }
         else
         {
             var virtualAddress = GetVirtualAddress(Context.Sender, votingItem.DaoId);
-            TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, input.VoteAmount);
+            TransferIn(virtualAddress, Context.Sender, votingItem.AcceptedSymbol, voteAmount);
         }
     }
 
@@ -153,6 +212,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         {
             return;
         }
+
         State.DaoRemainAmounts[Context.Sender][votingItem.DaoId] += amount;
         State.DaoProposalRemainAmounts[Context.Sender][GetDaoProposalId(votingItem.DaoId, votingItem.VotingItemId)] =
             amount;

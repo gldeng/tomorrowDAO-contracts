@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package anonymous_vote;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service anonymous_vote {
+  rpc RegisterCommitment (RegisterCommitmentInput) returns (google.protobuf.Empty) {}
+}
+
+message RegisterCommitmentInput {
+  aelf.Hash voting_item_id = 1;
+  aelf.Hash commitment = 2;
+  int64 vote_amount = 3;
+}

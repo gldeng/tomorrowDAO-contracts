@@ -7,6 +7,7 @@ import "google/protobuf/wrappers.proto";
 import public "google/protobuf/timestamp.proto";
 import "Protobuf/base/acs12.proto";
 import "Protobuf/base/anonymous_vote_admin.proto";
+import "Protobuf/base/anonymous_vote.proto";
 
 // The namespace of this class
 option csharp_namespace = "TomorrowDAO.Contracts.Vote";
@@ -15,6 +16,7 @@ service VoteContract {
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Vote.VoteContractState";
   option (aelf.base) = "Protobuf/base/acs12.proto";
   option (aelf.base) = "Protobuf/base/anonymous_vote_admin.proto";
+  option (aelf.base) = "Protobuf/base/anonymous_vote.proto";
 
   rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
   }
@@ -90,6 +92,7 @@ message VotingItem {
   // The end time of the voting.
   google.protobuf.Timestamp end_timestamp = 7;
   string governance_mechanism = 8;
+  AnonymousVotingInfo anonymous_voting_info = 9;
 }
 
 message VotingRecord {
@@ -189,13 +192,39 @@ message VotingRegisterInput {
   google.protobuf.Timestamp start_timestamp = 4;
   // The end time of the voting.
   google.protobuf.Timestamp end_timestamp = 5;
+  AnonymousVotingInfo anonymous_voting_info = 6;
 }
 
 message VoteInput {
+  message G1Point {
+    string x = 1;
+    string y = 2;
+  }
+
+  message Fp2 {
+    string first = 1;
+    string second = 2;
+  }
+
+  message G2Point {
+    Fp2 x = 1;
+    Fp2 y = 2;
+  }
+
+  message Proof {
+    G1Point a = 1;
+    G2Point b = 2;
+    G1Point c = 3;
+  }
+  message AnonymousVoteExtraInfo {
+    aelf.Hash nullifier = 1;
+    Proof proof = 2;
+  }
   aelf.Hash voting_item_id = 1;
   int32 vote_option = 2;
   int64 vote_amount = 3; //1a1v -> 1
   string memo = 4;
+  AnonymousVoteExtraInfo anonymous_vote_extra_info = 5;
 }
 
 message WithdrawInput {
@@ -263,6 +292,7 @@ message VotingItemRegistered {
   google.protobuf.Timestamp start_timestamp = 6;
   // The end time of the voting.
   google.protobuf.Timestamp end_timestamp = 7;
+  AnonymousVotingInfo anonymous_voting_info = 8;
 }
 
 message Voted {
@@ -338,4 +368,9 @@ message MaxVotingPowersSet {
   int64 max_voting_power = 3;
 }
 
-
+message AnonymousVotingInfo {
+  // The start time of the commitment registration phase.
+  google.protobuf.Timestamp commitment_registration_start_timestamp = 6;
+  // The end time of the commitment registration phase.
+  google.protobuf.Timestamp commitment_registration_end_timestamp = 7;
+}

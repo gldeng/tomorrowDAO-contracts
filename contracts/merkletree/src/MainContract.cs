@@ -109,6 +109,17 @@ namespace MainNamespace
             };
         }
 
+        public override UInt32Value GetNextIndex(Hash input)
+        {
+            Assert(input != null, "TreeId is required.");
+            var treeInfo = State.TreeInfos[input];
+            Assert(treeInfo != null, "Tree not found.");
+            return new UInt32Value()
+            {
+                Value = treeInfo!.NextIndex
+            };
+        }
+
         public override Hash GetLastRoot(Hash input)
         {
             Assert(input != null, "TreeId is required.");

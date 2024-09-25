@@ -6,6 +6,7 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import public "google/protobuf/timestamp.proto";
 import "Protobuf/base/acs12.proto";
+import "Protobuf/base/anonymous_vote_admin.proto";
 
 // The namespace of this class
 option csharp_namespace = "TomorrowDAO.Contracts.Vote";
@@ -13,6 +14,7 @@ option csharp_namespace = "TomorrowDAO.Contracts.Vote";
 service VoteContract {
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Vote.VoteContractState";
   option (aelf.base) = "Protobuf/base/acs12.proto";
+  option (aelf.base) = "Protobuf/base/anonymous_vote_admin.proto";
 
   rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
   }

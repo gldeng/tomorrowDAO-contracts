@@ -1,0 +1,81 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>TomorrowDAO.Pipelines.InitialDeployment</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AElf.Script" Version="1.0.0-preview.5"/>
+        <PackageReference Include="AElf.Tools" Version="$(AelfToolsVersion)">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="$(ObjPath)Protobuf/**/*.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="Protobuf\base\acs12.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>nocontract</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf\stub\dao_contract.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf\stub\election_contract.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf\stub\governance_contract.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf\stub\token_contract.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf\stub\treasury_contract.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+        <Protobuf Include="Protobuf\stub\vote_contract.proto">
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug/net8.0/</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+            <ContractOutputOptions>stub</ContractOutputOptions>
+        </Protobuf>
+    </ItemGroup>
+
+</Project>

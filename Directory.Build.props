@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <AelfVersion>1.7.0-preview.32</AelfVersion>
+        <AelfVersion>1.7.0-preview.33</AelfVersion>
         <TestingBaseVersion>1.2.0-preview.2</TestingBaseVersion>
-        <AelfToolsVersion>1.0.1-preview.18</AelfToolsVersion>
-        <Bn254Version>0.1.0-preview.3</Bn254Version>
+        <AelfToolsVersion>1.0.1-preview.20</AelfToolsVersion>
+        <Bn254Version>0.1.0</Bn254Version>
     </PropertyGroup>
 </Project> 

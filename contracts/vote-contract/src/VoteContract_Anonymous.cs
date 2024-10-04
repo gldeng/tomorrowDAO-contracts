@@ -1,6 +1,6 @@
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using AnonymousVoteAdmin;
+using AnonymousVote;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Groth16Verifier;
@@ -10,6 +10,16 @@ namespace TomorrowDAO.Contracts.Vote;
 
 public partial class VoteContract
 {
+    private void OnNewAnonymousVotingItemAdded(VotingItem votingItem)
+    {
+        GetAnonymousVotingState().MerkleTreeWithHistoryContract.CreateTree.Send(new CreateTreeInput()
+        {
+            Levels = 20,
+            Owner = Context.Self,
+            TreeId = votingItem.VotingItemId
+        });
+    }
+    
     private void Commit(Hash proposalId, Hash commitment)
     {
         Assert(!GetAnonymousVotingState().Commitments[proposalId][commitment], "Commitment already exists.");
@@ -33,24 +43,29 @@ public partial class VoteContract
 
     private Hash GetMerkleTreeRoot(Hash proposalId)
     {
-       return GetAnonymousVotingState().MerkleTreeWithHistoryContract.GetLastRoot.Call(proposalId);
+        return GetAnonymousVotingState().MerkleTreeWithHistoryContract.GetLastRoot.Call(proposalId);
     }
 
-    private void Nullify(Hash proposalId, Hash nullifier, VoteInput.Types.Proof proof)
+    private void Nullify(Hash proposalId, int voteOption, Hash nullifier, VoteInput.Types.Proof proof)
     {
         Assert(!GetAnonymousVotingState().Nullifiers[proposalId][nullifier], "Nullifier already exists.");
 
         var root = GetMerkleTreeRoot(proposalId);
-
-        var verified = GetAnonymousVotingState().Groth16VerifierContract.VerifyProof.Call(new VerifyProofInput()
+        var input = new VerifyProofInput()
         {
             Proof = VerifyProofInput.Types.Proof.Parser.ParseFrom(proof.ToByteArray()),
             Input =
             {
+                BigIntValue.FromBigEndianBytes(root.Value.ToByteArray()).Value,
                 BigIntValue.FromBigEndianBytes(nullifier.Value.ToByteArray()).Value,
-                BigIntValue.FromBigEndianBytes(root.Value.ToByteArray()).Value
+                voteOption.ToString(),
+                "0",
+                "0",
+                "0"
             }
-        });
+        };
+
+        var verified = GetAnonymousVotingState().Groth16VerifierContract.VerifyProof.Call(input);
         Assert(verified.Value, "Proof is invalid.");
         GetAnonymousVotingState().Nullifiers[proposalId][nullifier] = true;
     }
@@ -60,15 +75,16 @@ public partial class VoteContract
         return State.AnonymousVoting;
     }
 
-    private void AssertPerformedByGovernanceContract()
+    private void AssertPerformedByDeployer()
     {
-        Assert(Context.Sender == State.GovernanceContract.Value,
-            "Operation can only be performed via governance contract.");
+        // TODO: Should this be changed to governance contract
+        Assert(State.GenesisContract.GetContractInfo.Call(Context.Self).Deployer == Context.Sender,
+            "Operation can only be performed by the deployer.");
     }
 
     public override Empty SetGroth16VerifierAddress(Address input)
     {
-        AssertPerformedByGovernanceContract();
+        AssertPerformedByDeployer();
         GetAnonymousVotingState().Groth16VerifierContract.Value = input;
         return new Empty();
     }
@@ -80,7 +96,8 @@ public partial class VoteContract
 
     public override Empty SetMerkleTreeHistoryContractAddress(Address input)
     {
-        AssertPerformedByGovernanceContract();
+        AssertPerformedByDeployer();
+        GetAnonymousVotingState().MerkleTreeWithHistoryContract.Value = input;
         return new Empty();
     }
 

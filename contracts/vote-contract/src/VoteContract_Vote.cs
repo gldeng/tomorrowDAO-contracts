@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using AElf;
 using AElf.Contracts.MultiToken;
+using AElf.CSharp.Core.Extension;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AnonymousVote;
@@ -16,22 +18,6 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         AssertCommon(input);
         Assert(Context.Sender == State.GovernanceContract.Value, "No permission.");
         var voteScheme = AssertVoteScheme(input.SchemeId);
-        {
-            Assert(input.StartTimestamp < input.EndTimestamp, "Invalid voting time.");
-            if (input.AnonymousVotingInfo != null)
-            {
-                Assert(
-                    input.AnonymousVotingInfo.CommitmentRegistrationStartTimestamp <
-                    input.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp,
-                    "Invalid commitment registration time.");
-                Assert(input.StartTimestamp > input.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp,
-                    "Anonymous voting time can only start after commitment registration.");
-                Assert(input.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp < Context.CurrentBlockTime,
-                    "Commitment registration has ended.");
-            }
-
-            Assert(input.EndTimestamp > Context.CurrentBlockTime, "Voting has ended.");
-        }
 
         if (VoteMechanism.TokenBallot == voteScheme.VoteMechanism)
         {
@@ -52,7 +38,7 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             StartTimestamp = input.StartTimestamp,
             EndTimestamp = input.EndTimestamp,
             GovernanceMechanism = governanceScheme.GovernanceMechanism.ToString(),
-            AnonymousVotingInfo = input.AnonymousVotingInfo
+            IsAnonymous = input.IsAnonymous
         };
         State.VotingResults[input.VotingItemId] = new VotingResult
         {
@@ -74,8 +60,12 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             RegisterTimestamp = Context.CurrentBlockTime,
             StartTimestamp = input.StartTimestamp,
             EndTimestamp = input.EndTimestamp,
-            AnonymousVotingInfo = input.AnonymousVotingInfo
+            IsAnonymous = input.IsAnonymous
         });
+        if (input.IsAnonymous)
+        {
+            OnNewAnonymousVotingItemAdded(State.VotingItems[input.VotingItemId]);
+        }
         return new Empty();
     }
 
@@ -91,10 +81,10 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
 
         AssertCommon(input);
         var votingItem = AssertVotingItem(input.VotingItemId);
-        Assert(votingItem.AnonymousVotingInfo != null, "Not an anonymous voting.");
-        Assert(votingItem.AnonymousVotingInfo!.CommitmentRegistrationStartTimestamp <= Context.CurrentBlockTime,
+        Assert(votingItem.IsAnonymous, "Not an anonymous voting.");
+        Assert(votingItem.StartTimestamp <= Context.CurrentBlockTime,
             "Commitment registration has not started.");
-        Assert(votingItem.AnonymousVotingInfo.CommitmentRegistrationEndTimestamp >= Context.CurrentBlockTime,
+        Assert(CommitmentDeadline(votingItem) >= Context.CurrentBlockTime,
             "Commitment registration has ended.");
 
         var daoInfo = AssertDaoSubsist(votingItem.DaoId);
@@ -113,20 +103,23 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         Assert(votingItem.EndTimestamp >= Context.CurrentBlockTime, "Vote ended.");
         var daoInfo = AssertDaoSubsist(votingItem.DaoId);
         var voteScheme = AssertVoteScheme(votingItem.SchemeId);
-        AssertEligibleVoter(daoInfo, voteScheme, votingItem, input.VoteAmount);
-        if (votingItem.AnonymousVotingInfo != null)
+        var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), HashHelper.ComputeFrom(Context.Sender),
+            Context.TransactionId);
+        if (votingItem.IsAnonymous)
         {
-            Nullify(input.VotingItemId, input.AnonymousVoteExtraInfo.Nullifier, input.AnonymousVoteExtraInfo.Proof);
+            Assert(CommitmentDeadline(votingItem) < Context.CurrentBlockTime, "Anonymous vote has not started.");
+            Nullify(input.VotingItemId, input.VoteOption, input.AnonymousVoteExtraInfo.Nullifier, input.AnonymousVoteExtraInfo.Proof);
+            // Disucssion: Currently we don't record voting record for anonymous voting. Is it needed?
+            UpdateVotingResultsForAnonymousVoting(input);
         }
         else
         {
-            AssertVotingRecord(votingItem.VotingItemId, Context.Sender, voteScheme);            
+            AssertEligibleVoter(daoInfo, voteScheme, votingItem, input.VoteAmount);
+            AssertVotingRecord(votingItem.VotingItemId, Context.Sender, voteScheme);      
+            var newVoter = AddVotingRecords(input, voteId);
+            UpdateVotingResults(input, newVoter ? 1 : 0);
         }
 
-        var voteId = HashHelper.ConcatAndCompute(HashHelper.ComputeFrom(input), HashHelper.ComputeFrom(Context.Sender),
-            Context.TransactionId);
-        var newVoter = AddVotingRecords(input, voteId);
-        UpdateVotingResults(input, newVoter ? 1 : 0);
         Context.Fire(new Voted
         {
             VotingItemId = votingItem.VotingItemId,
@@ -275,6 +268,25 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
         State.VotingResults[input.VotingItemId] = votingResult;
     }
 
+    private void UpdateVotingResultsForAnonymousVoting(VoteInput input)
+    {
+        var votingResult = State.VotingResults[input.VotingItemId];
+        votingResult.TotalVotersCount += 1;
+        switch (input.VoteOption)
+        {
+            case (int)VoteOption.Approved:
+                votingResult.ApproveCounts += 1;
+                break;
+            case (int)VoteOption.Rejected:
+                votingResult.RejectCounts += 1;
+                break;
+            case (int)VoteOption.Abstained:
+                votingResult.AbstainCounts += 1;
+                break;
+        }
+
+        State.VotingResults[input.VotingItemId] = votingResult;
+    }
 
     private void TransferIn(Address virtualAddress, Address from, string symbol, long amount)
     {
@@ -301,6 +313,16 @@ public partial class VoteContract : VoteContractContainer.VoteContractBase
             });
     }
 
+    private Timestamp CommitmentDeadline(VotingItem votingItem)
+    {
+       var duration = votingItem.EndTimestamp - votingItem.StartTimestamp;
+       var halfWay = new Duration()
+       {
+           Seconds = duration.Seconds / 2
+       };
+       return votingItem.StartTimestamp + halfWay;
+    }
+    
     #region View
 
     public override VotingItem GetVotingItem(Hash input)

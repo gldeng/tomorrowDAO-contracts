@@ -92,7 +92,7 @@ message VotingItem {
   // The end time of the voting.
   google.protobuf.Timestamp end_timestamp = 7;
   string governance_mechanism = 8;
-  AnonymousVotingInfo anonymous_voting_info = 9;
+  bool is_anonymous = 9;
 }
 
 message VotingRecord {
@@ -192,7 +192,7 @@ message VotingRegisterInput {
   google.protobuf.Timestamp start_timestamp = 4;
   // The end time of the voting.
   google.protobuf.Timestamp end_timestamp = 5;
-  AnonymousVotingInfo anonymous_voting_info = 6;
+  bool is_anonymous = 6;
 }
 
 message VoteInput {
@@ -292,7 +292,7 @@ message VotingItemRegistered {
   google.protobuf.Timestamp start_timestamp = 6;
   // The end time of the voting.
   google.protobuf.Timestamp end_timestamp = 7;
-  AnonymousVotingInfo anonymous_voting_info = 8;
+  bool is_anonymous = 8;
 }
 
 message Voted {
@@ -366,11 +366,4 @@ message MaxVotingPowersSet {
   aelf.Hash dao_id = 1;
   string token_symbol = 2;
   int64 max_voting_power = 3;
-}
-
-message AnonymousVotingInfo {
-  // The start time of the commitment registration phase.
-  google.protobuf.Timestamp commitment_registration_start_timestamp = 6;
-  // The end time of the commitment registration phase.
-  google.protobuf.Timestamp commitment_registration_end_timestamp = 7;
 }

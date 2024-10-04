@@ -142,7 +142,8 @@ public partial class GovernanceContract
             Proposer = Context.Sender,
             Transaction = executeTransaction,
             VetoProposalId = vetoProposalId,
-            ForumUrl = proposalBasicInfo.ForumUrl
+            ForumUrl = proposalBasicInfo.ForumUrl,
+            IsAnonymous = proposalBasicInfo.IsAnonymous
         };
         return proposal;
     }
@@ -169,7 +170,8 @@ public partial class GovernanceContract
             SchemeId = voteSchemeId,
             StartTimestamp = proposal.ProposalTime.ActiveStartTime,
             EndTimestamp = proposal.ProposalTime.ActiveEndTime,
-            AcceptedToken = governanceToken
+            AcceptedToken = governanceToken,
+            IsAnonymous = proposal.IsAnonymous
         });
     }
 

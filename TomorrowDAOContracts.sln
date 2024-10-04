@@ -44,6 +44,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory", "co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory.Tests", "contracts\merkletree\test\MerkleTreeWithHistory.Tests.csproj", "{0520015B-B157-42DC-B8FF-B8A572F136B4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deployment", "deployment", "{085993A1-1D1B-4D8D-B2ED-E1F942060969}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.InitialDeployment", "TomorrowDAO.Pipelines.InitialDeployment\TomorrowDAO.Pipelines.InitialDeployment.csproj", "{6F8088E7-A204-4F2E-963A-84059A8E35F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployTomorrowDaoSuite", "DeployTomorrowDaoSuite\DeployTomorrowDaoSuite.csproj", "{F6604723-F46A-45BB-97AA-C875B264D7C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +77,8 @@ Global
 		{D470CD14-6ECB-4174-97DA-C5F98857AE2B} = {17F9524A-91B2-4C35-ACE2-7F4CF165E8DA}
 		{5D90F2BF-A1A9-444D-B48A-0BFD9795848D} = {D470CD14-6ECB-4174-97DA-C5F98857AE2B}
 		{0520015B-B157-42DC-B8FF-B8A572F136B4} = {D470CD14-6ECB-4174-97DA-C5F98857AE2B}
+		{6F8088E7-A204-4F2E-963A-84059A8E35F9} = {085993A1-1D1B-4D8D-B2ED-E1F942060969}
+		{F6604723-F46A-45BB-97AA-C875B264D7C3} = {085993A1-1D1B-4D8D-B2ED-E1F942060969}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{70CA14BC-A034-4586-AA59-BF7AC722E04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -129,5 +137,13 @@ Global
 		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0520015B-B157-42DC-B8FF-B8A572F136B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F8088E7-A204-4F2E-963A-84059A8E35F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F8088E7-A204-4F2E-963A-84059A8E35F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F8088E7-A204-4F2E-963A-84059A8E35F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F8088E7-A204-4F2E-963A-84059A8E35F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6604723-F46A-45BB-97AA-C875B264D7C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6604723-F46A-45BB-97AA-C875B264D7C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6604723-F46A-45BB-97AA-C875B264D7C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6604723-F46A-45BB-97AA-C875B264D7C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

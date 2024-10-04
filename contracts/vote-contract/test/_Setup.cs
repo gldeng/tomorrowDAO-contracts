@@ -1,4 +1,6 @@
-﻿using AElf;
+﻿using System;
+using System.Buffers.Text;
+using AElf;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.Cryptography;
@@ -51,8 +53,9 @@ namespace TomorrowDAO.Contracts.Vote
         
         internal Address ElectionContractAddress { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub;
+        
         internal TokenContractContainer.TokenContractStub TokenContractStub;
-        private ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
+        protected ECKeyPair DefaultKeyPair => Accounts[0].KeyPair;
         protected Address DefaultAddress => Accounts[0].Address;
         internal ECKeyPair UserKeyPair => Accounts[1].KeyPair;
         internal Address UserAddress => Accounts[1].Address;
@@ -68,21 +71,21 @@ namespace TomorrowDAO.Contracts.Vote
             DeployTreasuryContract();
         }
 
-        private T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair) where T : ContractStubBase, new()
+        protected T GetContractStub<T>(Address contractAddress, ECKeyPair senderKeyPair) where T : ContractStubBase, new()
         {
             var contractTesterFactory = this.Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return contractTesterFactory.Create<T>(contractAddress, senderKeyPair);
             // return GetTester<T>(contractAddress, senderKeyPair);
         }
         
-        private ByteString GenerateContractSignature(byte[] privateKey, ContractOperation contractOperation)
+        internal ByteString GenerateContractSignature(byte[] privateKey, ContractOperation contractOperation)
         {
             var dataHash = HashHelper.ComputeFrom(contractOperation);
             var signature = CryptoHelper.SignWithPrivateKey(privateKey, dataHash.ToByteArray());
             return ByteStringHelper.FromHexString(signature.ToHex());
         }
 
-        private ContractOperation GetContractOperation(byte[] code, string saltStr)
+        internal ContractOperation GetContractOperation(byte[] code, string saltStr)
         {
             return new ContractOperation
             {

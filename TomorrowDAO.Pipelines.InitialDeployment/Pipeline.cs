@@ -69,7 +69,6 @@ public class Pipeline : Script
         await DeployTreasury.RunAsync();
         NextSalt = HashHelper.ComputeFrom("tmrdao.timelock");
         await DeployTimelock.RunAsync();
-        NextSalt = HashHelper.ComputeFrom("tmrdao.merkletree");
 
         Logger.LogInformation($"Deployed Governance at: {DeployGovernance.DeployedAddress}");
         Logger.LogInformation($"Deployed Dao        at: {DeployDao.DeployedAddress}");
@@ -116,6 +115,7 @@ public class Pipeline : Script
             VoteContractAddress = DeployVote.DeployedAddress,
             TimelockContractAddress = DeployTimelock.DeployedAddress
         });
+        await DaoContractStub.SetTreasuryContractAddress.SendAsync(DeployTreasury.DeployedAddress);
         Logger.LogTrace("Initialized dao.");
     }
 

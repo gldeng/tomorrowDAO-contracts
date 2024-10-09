@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package anonymous_vote_admin;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service AnonymousVoteAdminContract {
+  rpc SetGroth16VerifierAddress (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc GetGroth16VerifierAddress (google.protobuf.Empty) returns (aelf.Address) {
+    option (aelf.is_view) = true;
+  }
+  rpc SetMerkleTreeHistoryContractAddress (aelf.Address) returns (google.protobuf.Empty) {}
+  rpc GetMerkleTreeHistoryContractAddress (google.protobuf.Empty) returns (aelf.Address) {
+    option (aelf.is_view) = true;
+  }
+}

@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>TomorrowDAO.Pipelines.AnonymousVoteDeployment</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AElf.Script" Version="$(AelfScriptVerion)"/>
+        <PackageReference Include="AElf.Tools" Version="$(AelfToolsVersion)">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="YamlDotNet" Version="16.1.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="$(ObjPath)Protobuf/**/*.cs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="Protobuf\stub\anonymous_vote_admin.proto">
+        <Access>Public</Access>
+        <ProtoCompile>True</ProtoCompile>
+        <CompileOutputs>True</CompileOutputs>
+        <OutputDir>obj\Debug/net8.0/</OutputDir>
+        <Generator>MSBuild:Compile</Generator>
+        <ContractOutputOptions>stub</ContractOutputOptions>
+      </Protobuf>
+    </ItemGroup>
+
+
+</Project>

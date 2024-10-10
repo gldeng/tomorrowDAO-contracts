@@ -1,6 +1,5 @@
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using AnonymousVote;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Groth16Verifier;
@@ -20,7 +19,7 @@ public partial class VoteContract
         });
     }
     
-    private void Commit(Hash proposalId, Hash commitment)
+    private uint Commit(Hash proposalId, Hash commitment)
     {
         Assert(!GetAnonymousVotingState().Commitments[proposalId][commitment], "Commitment already exists.");
         GetAnonymousVotingState().Commitments[proposalId][commitment] = true;
@@ -32,13 +31,7 @@ public partial class VoteContract
             TreeId = proposalId,
             Leaf = commitment.Value
         });
-        Context.Fire(new Commit()
-        {
-            ProposalId = proposalId,
-            Commitment = commitment,
-            LeafIndex = leafIndex.Value,
-            Timestamp = Context.CurrentBlockTime
-        });
+        return leafIndex.Value;
     }
 
     private Hash GetMerkleTreeRoot(Hash proposalId)

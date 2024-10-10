@@ -7,7 +7,6 @@ import "google/protobuf/wrappers.proto";
 import public "google/protobuf/timestamp.proto";
 import "Protobuf/base/acs12.proto";
 import "Protobuf/base/anonymous_vote_admin.proto";
-import "Protobuf/base/anonymous_vote.proto";
 
 // The namespace of this class
 option csharp_namespace = "TomorrowDAO.Contracts.Vote";
@@ -16,7 +15,6 @@ service VoteContract {
   option (aelf.csharp_state) = "TomorrowDAO.Contracts.Vote.VoteContractState";
   option (aelf.base) = "Protobuf/base/acs12.proto";
   option (aelf.base) = "Protobuf/base/anonymous_vote_admin.proto";
-  option (aelf.base) = "Protobuf/base/anonymous_vote.proto";
 
   rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
   }
@@ -24,6 +22,7 @@ service VoteContract {
   }
   rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
   }
+  rpc RegisterCommitment (RegisterCommitmentInput) returns (google.protobuf.Empty) {}
   rpc Vote (VoteInput) returns (google.protobuf.Empty) {
   }
   rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
@@ -366,4 +365,20 @@ message MaxVotingPowersSet {
   aelf.Hash dao_id = 1;
   string token_symbol = 2;
   int64 max_voting_power = 3;
+}
+
+message RegisterCommitmentInput {
+  aelf.Hash voting_item_id = 1;
+  aelf.Hash commitment = 2;
+  int64 vote_amount = 3;
+}
+
+message Committed {
+  option (aelf.is_event) = true;
+
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
+  aelf.Hash commitment = 3;
+  uint32 leaf_index = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }

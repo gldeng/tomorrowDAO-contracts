@@ -324,6 +324,7 @@ message ProposalCreated {
   aelf.Hash vote_scheme_id = 16;
   aelf.Hash veto_proposal_id = 17;
   int64 active_time_period = 18;
+  bool is_anonymous = 19;
 }
 message ProposalVetoed {
   option (aelf.is_event) = true;

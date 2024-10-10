@@ -198,8 +198,8 @@ public partial class GovernanceContract
             Proposer = proposal.Proposer,
             VetoProposalId = proposal.VetoProposalId,
             ActiveTimePeriod = basicInfo.ActiveTimePeriod,
-            ForumUrl = proposal.ForumUrl
-
+            ForumUrl = proposal.ForumUrl,
+            IsAnonymous = proposal.IsAnonymous
         });
     }
 

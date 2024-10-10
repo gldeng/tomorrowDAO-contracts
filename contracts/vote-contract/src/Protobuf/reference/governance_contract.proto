@@ -118,6 +118,7 @@ message ProposalInfo {
   // for veto proposal
   aelf.Hash veto_proposal_id = 9;
   string forum_url = 10;
+  bool is_anonymous = 11;
 }
 
 message ProposalBasicInfo {
@@ -128,8 +129,9 @@ message ProposalBasicInfo {
   aelf.Address scheme_address = 5;
   aelf.Hash vote_scheme_id = 6;
   int64 active_time_period = 7; //day
-  google.protobuf.Timestamp active_start_time = 8;
-  google.protobuf.Timestamp active_end_time = 9;
+  int64 active_start_time = 8;
+  int64 active_end_time = 9;
+  bool is_anonymous = 10;
 }
 
 message ProposalTime {
@@ -322,6 +324,7 @@ message ProposalCreated {
   aelf.Hash vote_scheme_id = 16;
   aelf.Hash veto_proposal_id = 17;
   int64 active_time_period = 18;
+  bool is_anonymous = 19;
 }
 message ProposalVetoed {
   option (aelf.is_event) = true;

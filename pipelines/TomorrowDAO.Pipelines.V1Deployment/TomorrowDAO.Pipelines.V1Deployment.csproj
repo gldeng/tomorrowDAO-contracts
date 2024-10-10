@@ -5,6 +5,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RootNamespace>TomorrowDAO.Pipelines.InitialDeployment</RootNamespace>
+        <PackageId>TomorrowDAO.Pipelines.V1Deployment</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>TomorrowDAO</Authors>
+        <Company>TomorrowDAO</Company>
+        <Description>V1 deployment pipeline for TomorrowDAO</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/TomorrowDAOProject/TomorrowDAO</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/TomorrowDAOProject/TomorrowDAO.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>tomorrowdao;blockchain;deployment</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
@@ -76,6 +86,37 @@
             <Generator>MSBuild:Compile</Generator>
             <ContractOutputOptions>stub</ContractOutputOptions>
         </Protobuf>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\contracts\dao-contract\src\TomorrowDAO.Contracts.DAO.csproj">
+            <Private>true</Private>
+            <CopyLocal>true</CopyLocal>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contracts\election-contract\src\TomorrowDAO.Contracts.Election.csproj">
+            <Private>true</Private>
+            <CopyLocal>true</CopyLocal>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contracts\governance-contract\src\TomorrowDAO.Contracts.Governance.csproj">
+            <Private>true</Private>
+            <CopyLocal>true</CopyLocal>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contracts\timelock-contract\src\TomorrowDAO.Contracts.Timelock.csproj">
+            <Private>true</Private>
+            <CopyLocal>true</CopyLocal>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contracts\treasury-contract\src\TomorrowDAO.Contracts.Treasury.csproj">
+            <Private>true</Private>
+            <CopyLocal>true</CopyLocal>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contracts\vote-contract\src\TomorrowDAO.Contracts.Vote.csproj">
+            <Private>true</Private>
+            <CopyLocal>true</CopyLocal>
+        </ProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="obj\" />
     </ItemGroup>
 
 </Project>

@@ -11,7 +11,7 @@ using InitializeInput = TomorrowDAO.Contracts.Governance.InitializeInput;
 
 namespace TomorrowDAO.Pipelines.InitialDeployment;
 
-public class Pipeline : Script
+public class V1Deployment : Script
 {
     // TODO: Reference the assemblies instead of using the path
     public DeployContractScript DeployVote = new(

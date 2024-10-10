@@ -7,4 +7,21 @@
         <AelfScriptVerion>1.0.0-preview.18</AelfScriptVerion>
         <Bn254Version>0.1.0</Bn254Version>
     </PropertyGroup>
-</Project> 
+
+    <!-- <ItemGroup>
+        <None Include="$(OutputPath)*.dll.patched" Pack="true">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <Link>$(FileName)$(Extension)</Link>
+        </None>
+    </ItemGroup>
+
+
+    <Target Name="IncludePatchedDllInBuildOutputs" AfterTargets="Build">
+        <ItemGroup>
+            <BuildOutputInPackage Include="$(OutputPath)*.dll.patched">
+                <TargetPath>lib\$(TargetFramework)\%(Filename)%(Extension)</TargetPath>
+            </BuildOutputInPackage>
+        </ItemGroup>
+    </Target> -->
+
+</Project>

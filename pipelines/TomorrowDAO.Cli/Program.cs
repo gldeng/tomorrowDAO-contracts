@@ -10,7 +10,7 @@ Environment.SetEnvironmentVariable(EnvVarNames.DEPLOYER_PRIVATE_KEY.ToString(),
 {
     await new InitScript().RunAsync();
 
-    var deploy = new Pipeline();
+    var deploy = new V1Deployment();
     await deploy.RunAsync();
 
     Console.WriteLine($"Deployed Governance at: {deploy.DeployGovernance.DeployedAddress}");

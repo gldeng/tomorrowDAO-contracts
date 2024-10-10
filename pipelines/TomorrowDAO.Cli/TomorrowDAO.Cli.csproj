@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RootNamespace>DeployTomorrowDaoSuite</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,7 +18,7 @@
     <ItemGroup>
         <ProjectReference Include="..\TomorrowDAO.Pipelines.AnonymousVoteDeployment\TomorrowDAO.Pipelines.AnonymousVoteDeployment.csproj"/>
         <ProjectReference Include="..\TomorrowDAO.Pipelines.DevChainSetup\TomorrowDAO.Pipelines.DevChainSetup.csproj" />
-        <ProjectReference Include="..\TomorrowDAO.Pipelines.InitialDeployment\TomorrowDAO.Pipelines.InitialDeployment.csproj"/>
+        <ProjectReference Include="..\TomorrowDAO.Pipelines.V1Deployment\TomorrowDAO.Pipelines.V1Deployment.csproj" />
     </ItemGroup>
 
     <ItemGroup>

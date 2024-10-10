@@ -46,9 +46,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory.Tests
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{085993A1-1D1B-4D8D-B2ED-E1F942060969}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.InitialDeployment", "pipelines\TomorrowDAO.Pipelines.InitialDeployment\TomorrowDAO.Pipelines.InitialDeployment.csproj", "{6F8088E7-A204-4F2E-963A-84059A8E35F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.V1Deployment", "pipelines\TomorrowDAO.Pipelines.V1Deployment\TomorrowDAO.Pipelines.V1Deployment.csproj", "{6F8088E7-A204-4F2E-963A-84059A8E35F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployTomorrowDaoSuite", "pipelines\DeployTomorrowDaoSuite\DeployTomorrowDaoSuite.csproj", "{F6604723-F46A-45BB-97AA-C875B264D7C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Cli", "pipelines\TomorrowDAO.Cli\TomorrowDAO.Cli.csproj", "{F6604723-F46A-45BB-97AA-C875B264D7C3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.AnonymousVoteDeployment", "pipelines\TomorrowDAO.Pipelines.AnonymousVoteDeployment\TomorrowDAO.Pipelines.AnonymousVoteDeployment.csproj", "{C81CE1A9-7C68-4F6A-813D-447DB56C1D87}"
 EndProject

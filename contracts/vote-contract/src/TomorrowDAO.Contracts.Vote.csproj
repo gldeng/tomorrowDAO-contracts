@@ -23,5 +23,16 @@
         </PackageReference>
     </ItemGroup>
 
+<!--    <ItemGroup>-->
+<!--        <None Include="$(OutputPath)$(AssemblyName).dll.patched" Pack="true">-->
+<!--            <CopyToOutputDirectory>Always</CopyToOutputDirectory>-->
+<!--            <Link>$(AssemblyName).dll.patched</Link>-->
+<!--        </None>-->
+<!--    </ItemGroup>-->
+<!--    <Target Name="IncludePatchedDllInBuildOutputs" AfterTargets="Build">-->
+<!--        <ItemGroup>-->
+<!--            <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).dll.patched" />-->
+<!--        </ItemGroup>-->
+<!--    </Target>-->
 </Project>
     

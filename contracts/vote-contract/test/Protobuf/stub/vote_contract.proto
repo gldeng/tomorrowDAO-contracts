@@ -20,6 +20,7 @@ service VoteContract {
   }
   rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
   }
+  rpc RegisterCommitment (RegisterCommitmentInput) returns (google.protobuf.Empty) {}
   rpc Vote (VoteInput) returns (google.protobuf.Empty) {
   }
   rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
@@ -362,4 +363,20 @@ message MaxVotingPowersSet {
   aelf.Hash dao_id = 1;
   string token_symbol = 2;
   int64 max_voting_power = 3;
+}
+
+message RegisterCommitmentInput {
+  aelf.Hash voting_item_id = 1;
+  aelf.Hash commitment = 2;
+  int64 vote_amount = 3;
+}
+
+message Committed {
+  option (aelf.is_event) = true;
+
+  aelf.Hash dao_id = 1;
+  aelf.Hash proposal_id = 2;
+  aelf.Hash commitment = 3;
+  uint32 leaf_index = 4;
+  google.protobuf.Timestamp timestamp = 5;
 }

@@ -9,7 +9,6 @@ using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Standards.ACS0;
 using AElf.Types;
-using AnonymousVote;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -451,7 +450,6 @@ public class VoteContractTestBase : TestBase
 
     #region Anonymous Vote
 
-    internal AnonymousVoteContractContainer.AnonymousVoteContractStub AnonymousVoteContractStub { get; set; }
     internal AnonymousVoteAdmin.AnonymousVoteAdminContractContainer.AnonymousVoteAdminContractStub AnonymousVoteAdminContractStub
     {
         get;
@@ -492,9 +490,6 @@ public class VoteContractTestBase : TestBase
 
     protected async Task InitializeAnonymousVoteAsync()
     {
-        AnonymousVoteContractStub =
-            GetContractStub<AnonymousVoteContractContainer.AnonymousVoteContractStub>(VoteContractAddress,
-                DefaultAccount.KeyPair);
         AnonymousVoteAdminContractStub =
             GetContractStub<AnonymousVoteAdmin.AnonymousVoteAdminContractContainer.AnonymousVoteAdminContractStub>(
                 VoteContractAddress, DefaultAccount.KeyPair);

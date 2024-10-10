@@ -11,7 +11,6 @@ using AElf.CSharp.Core.Extension;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
-using AnonymousVote;
 using AnonymousVoteAdmin;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -169,15 +168,16 @@ public partial class VoteContractTest
             var commitment = ToHash(sample.Deposit.Commitment);
             var blockTime = BlockTimeProvider.GetBlockTime();
             var tx =
-                await this.AnonymousVoteContractStub.RegisterCommitment.SendAsync(new RegisterCommitmentInput()
+                await this.VoteContractStub.RegisterCommitment.SendAsync(new RegisterCommitmentInput()
                 {
                     VoteAmount = OneElf,
                     VotingItemId = GovernanceR1T1VProposalId,
                     Commitment = commitment,
                 });
 
-            var expectedCommit = new Commit()
+            var expectedCommit = new Committed()
             {
+                DaoId = DaoId,
                 ProposalId = GovernanceR1T1VProposalId,
                 Commitment = commitment,
                 LeafIndex = 0,
@@ -213,7 +213,6 @@ public partial class VoteContractTest
             votingResult.RejectCounts.ShouldBe(0);
             votingResult.AbstainCounts.ShouldBe(0);
             votingResult.TotalVotersCount.ShouldBe(1);
-            Console.WriteLine("abc");
         }
 
 

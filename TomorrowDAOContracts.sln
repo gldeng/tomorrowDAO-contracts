@@ -44,15 +44,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory", "co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MerkleTreeWithHistory.Tests", "contracts\merkletree\test\MerkleTreeWithHistory.Tests.csproj", "{0520015B-B157-42DC-B8FF-B8A572F136B4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deployment", "deployment", "{085993A1-1D1B-4D8D-B2ED-E1F942060969}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{085993A1-1D1B-4D8D-B2ED-E1F942060969}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.InitialDeployment", "TomorrowDAO.Pipelines.InitialDeployment\TomorrowDAO.Pipelines.InitialDeployment.csproj", "{6F8088E7-A204-4F2E-963A-84059A8E35F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.InitialDeployment", "pipelines\TomorrowDAO.Pipelines.InitialDeployment\TomorrowDAO.Pipelines.InitialDeployment.csproj", "{6F8088E7-A204-4F2E-963A-84059A8E35F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployTomorrowDaoSuite", "DeployTomorrowDaoSuite\DeployTomorrowDaoSuite.csproj", "{F6604723-F46A-45BB-97AA-C875B264D7C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeployTomorrowDaoSuite", "pipelines\DeployTomorrowDaoSuite\DeployTomorrowDaoSuite.csproj", "{F6604723-F46A-45BB-97AA-C875B264D7C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.AnonymousVoteDeployment", "TomorrowDAO.Pipelines.AnonymousVoteDeployment\TomorrowDAO.Pipelines.AnonymousVoteDeployment.csproj", "{C81CE1A9-7C68-4F6A-813D-447DB56C1D87}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.AnonymousVoteDeployment", "pipelines\TomorrowDAO.Pipelines.AnonymousVoteDeployment\TomorrowDAO.Pipelines.AnonymousVoteDeployment.csproj", "{C81CE1A9-7C68-4F6A-813D-447DB56C1D87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.DevChainSetup", "TomorrowDAO.Pipelines.DevChainSetup\TomorrowDAO.Pipelines.DevChainSetup.csproj", "{1386BBAF-8730-4859-9F84-C059D8780BAD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.DevChainSetup", "pipelines\TomorrowDAO.Pipelines.DevChainSetup\TomorrowDAO.Pipelines.DevChainSetup.csproj", "{1386BBAF-8730-4859-9F84-C059D8780BAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

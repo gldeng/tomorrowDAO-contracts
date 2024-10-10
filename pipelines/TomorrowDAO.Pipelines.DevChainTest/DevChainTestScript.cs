@@ -16,7 +16,7 @@ using GovernanceMechanism = TomorrowDAO.Contracts.Governance.GovernanceMechanism
 
 namespace TomorrowDAO.Pipelines.DevChainSetup;
 
-public class Pipeline : ScriptWithConfig<Config>
+public class DevChainTestScript : ScriptWithConfig<Config>
 {
     internal AnonymousVoteContractContainer.AnonymousVoteContractStub AnonymousVoteContractStub { get; private set; }
     internal VoteContractContainer.VoteContractStub VoteContractStub { get; private set; }

@@ -17,7 +17,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\TomorrowDAO.Pipelines.AnonymousVoteDeployment\TomorrowDAO.Pipelines.AnonymousVoteDeployment.csproj"/>
-        <ProjectReference Include="..\TomorrowDAO.Pipelines.DevChainSetup\TomorrowDAO.Pipelines.DevChainSetup.csproj" />
+        <ProjectReference Include="..\TomorrowDAO.Pipelines.DevChainTest\TomorrowDAO.Pipelines.DevChainTest.csproj" />
         <ProjectReference Include="..\TomorrowDAO.Pipelines.V1Deployment\TomorrowDAO.Pipelines.V1Deployment.csproj" />
     </ItemGroup>
 

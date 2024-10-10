@@ -11,31 +11,31 @@ using InitializeInput = TomorrowDAO.Contracts.Governance.InitializeInput;
 
 namespace TomorrowDAO.Pipelines.InitialDeployment;
 
-public class V1Deployment : Script
+public class V1DeploymentScript : Script
 {
     // TODO: Reference the assemblies instead of using the path
     public DeployContractScript DeployVote = new(
-        "../../../../contracts/vote-contract/src/bin/Debug/net8.0/TomorrowDAO.Contracts.Vote.dll.patched"
+        "../../../../../contracts/vote-contract/src/bin/Debug/net8.0/TomorrowDAO.Contracts.Vote.dll.patched"
     );
 
     public DeployContractScript DeployGovernance = new(
-        "../../../../contracts/governance-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Governance.dll.patched"
+        "../../../../../contracts/governance-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Governance.dll.patched"
     );
 
     public DeployContractScript DeployDao = new(
-        "../../../../contracts/dao-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.DAO.dll.patched"
+        "../../../../../contracts/dao-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.DAO.dll.patched"
     );
 
     public DeployContractScript DeployElection = new(
-        "../../../../contracts/election-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Election.dll.patched"
+        "../../../../../contracts/election-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Election.dll.patched"
     );
 
     public DeployContractScript DeployTreasury = new(
-        "../../../../contracts/treasury-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Treasury.dll.patched"
+        "../../../../../contracts/treasury-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Treasury.dll.patched"
     );
 
     public DeployContractScript DeployTimelock = new(
-        "../../../../contracts/timelock-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Timelock.dll.patched"
+        "../../../../../contracts/timelock-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Timelock.dll.patched"
     );
 
 
@@ -44,31 +44,33 @@ public class V1Deployment : Script
     internal DAOContractContainer.DAOContractStub DaoContractStub { get; private set; }
     internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; private set; }
     internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; private set; }
+    private int _numberOfContractsDeployed = 0;
 
     public override async Task RunAsync()
     {
         await DeployAllAsync();
         InitializeStubs();
-        await InitializeGovernanceAsync();
-        await InitializeDaoAsync();
-        await InitializeElectionAsync();
-        await InitializeVoteAsync();
+        if (_numberOfContractsDeployed > 0)
+        {
+            await InitializeGovernanceAsync();
+            await InitializeDaoAsync();
+            await InitializeElectionAsync();
+            await InitializeVoteAsync();
+        }
+        else
+        {
+            Logger.LogInformation("No new contracts deployed. Skipping initialization of contracts.");
+        }
     }
 
     private async Task DeployAllAsync()
     {
-        NextSalt = HashHelper.ComputeFrom("tmrdao.vote");
-        await DeployVote.RunAsync();
-        NextSalt = HashHelper.ComputeFrom("tmrdao.governance");
-        await DeployGovernance.RunAsync();
-        NextSalt = HashHelper.ComputeFrom("tmrdao.dao");
-        await DeployDao.RunAsync();
-        NextSalt = HashHelper.ComputeFrom("tmrdao.election");
-        await DeployElection.RunAsync();
-        NextSalt = HashHelper.ComputeFrom("tmrdao.treasury");
-        await DeployTreasury.RunAsync();
-        NextSalt = HashHelper.ComputeFrom("tmrdao.timelock");
-        await DeployTimelock.RunAsync();
+        await MaybeDoDeployAsync("tmrdao.vote", DeployVote);
+        await MaybeDoDeployAsync("tmrdao.governance", DeployGovernance);
+        await MaybeDoDeployAsync("tmrdao.dao", DeployDao);
+        await MaybeDoDeployAsync("tmrdao.election", DeployElection);
+        await MaybeDoDeployAsync("tmrdao.treasury", DeployTreasury);
+        await MaybeDoDeployAsync("tmrdao.timelock", DeployTimelock);
 
         Logger.LogInformation($"Deployed Governance at: {DeployGovernance.DeployedAddress}");
         Logger.LogInformation($"Deployed Dao        at: {DeployDao.DeployedAddress}");
@@ -143,5 +145,12 @@ public class V1Deployment : Script
             ElectionContractAddress = DeployElection.DeployedAddress
         });
         Logger.LogTrace("Initialized vote.");
+    }
+
+    private async Task MaybeDoDeployAsync(string id, DeployContractScript script)
+    {
+        NextSalt = HashHelper.ComputeFrom(id);
+        script.SkipIfAlreadyDeployed = true;
+        await script.RunAsync();
     }
 }

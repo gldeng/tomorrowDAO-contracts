@@ -52,7 +52,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Cli", "pipeline
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.AnonymousVoteDeployment", "pipelines\TomorrowDAO.Pipelines.AnonymousVoteDeployment\TomorrowDAO.Pipelines.AnonymousVoteDeployment.csproj", "{C81CE1A9-7C68-4F6A-813D-447DB56C1D87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.DevChainSetup", "pipelines\TomorrowDAO.Pipelines.DevChainSetup\TomorrowDAO.Pipelines.DevChainSetup.csproj", "{1386BBAF-8730-4859-9F84-C059D8780BAD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomorrowDAO.Pipelines.DevChainTest", "pipelines\TomorrowDAO.Pipelines.DevChainTest\TomorrowDAO.Pipelines.DevChainTest.csproj", "{1386BBAF-8730-4859-9F84-C059D8780BAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

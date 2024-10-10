@@ -39,11 +39,11 @@ public class Pipeline : Script
     );
 
 
-    public VoteContractContainer.VoteContractStub VoteContractStub { get; private set; }
-    public GovernanceContractContainer.GovernanceContractStub GovernanceContractStub { get; private set; }
-    public DAOContractContainer.DAOContractStub DaoContractStub { get; private set; }
-    public ElectionContractContainer.ElectionContractStub ElectionContractStub { get; private set; }
-    public TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; private set; }
+    internal VoteContractContainer.VoteContractStub VoteContractStub { get; private set; }
+    internal GovernanceContractContainer.GovernanceContractStub GovernanceContractStub { get; private set; }
+    internal DAOContractContainer.DAOContractStub DaoContractStub { get; private set; }
+    internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; private set; }
+    internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; private set; }
 
     public override async Task RunAsync()
     {

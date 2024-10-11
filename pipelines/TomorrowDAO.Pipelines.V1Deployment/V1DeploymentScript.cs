@@ -50,16 +50,44 @@ public class V1DeploymentScript : Script
     {
         await DeployAllAsync();
         InitializeStubs();
-        if (_numberOfContractsDeployed > 0)
+        try
         {
+            Logger.LogTrace("Initializing governance.");
             await InitializeGovernanceAsync();
+        }
+        catch
+        {
+            Logger.LogInformation("Governance already initialized");
+        }
+
+        try
+        {
+            Logger.LogTrace("Initializing dao.");
             await InitializeDaoAsync();
+        }
+        catch
+        {
+            Logger.LogInformation("Dao already initialized");
+        }
+
+        try
+        {
+            Logger.LogTrace("Initializing election.");
             await InitializeElectionAsync();
+        }
+        catch
+        {
+            Logger.LogInformation("Election already initialized");
+        }
+
+        try
+        {
+            Logger.LogTrace("Initializing vote.");
             await InitializeVoteAsync();
         }
-        else
+        catch
         {
-            Logger.LogInformation("No new contracts deployed. Skipping initialization of contracts.");
+            Logger.LogInformation("Vote already initialized");
         }
     }
 

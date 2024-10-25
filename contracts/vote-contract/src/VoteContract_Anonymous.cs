@@ -21,6 +21,8 @@ public partial class VoteContract
     
     private uint Commit(Hash proposalId, Hash commitment)
     {
+        Assert(!GetAnonymousVotingState().AlreadyCommitted[proposalId][Context.Sender], "Already committed.");
+        GetAnonymousVotingState().AlreadyCommitted[proposalId][Context.Sender] = true;
         Assert(!GetAnonymousVotingState().Commitments[proposalId][commitment], "Commitment already exists.");
         GetAnonymousVotingState().Commitments[proposalId][commitment] = true;
         var leafIndex =

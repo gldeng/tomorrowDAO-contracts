@@ -9,6 +9,9 @@ public class AnonymousVotingState : StructuredState
 {
     internal Groth16VerifierContainer.Groth16VerifierReferenceState Groth16VerifierContract { get; set; }
 
+    // proposal_id -> voter -> bool    
+    public MappedState<Hash, Address, bool> AlreadyCommitted { get; set; }
+    
     // proposal_id -> nullifier -> bool
     public MappedState<Hash, Hash, bool> Nullifiers { get; set; }
 

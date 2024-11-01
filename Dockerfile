@@ -24,12 +24,8 @@ done
 WORKDIR "/src/pipelines/TomorrowDAO.Cli"
 RUN dotnet build -c $BUILD_CONFIGURATION -o /app/build
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/contracts /app/contracts
-COPY --from=publish /app/publish .
+COPY --from=publish /app/build .
 ENTRYPOINT ["dotnet", "TomorrowDAO.Cli.dll"]

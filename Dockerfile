@@ -21,15 +21,15 @@ RUN for project in $PROJECTS; do \
 done
 
 
-WORKDIR "/src/pipelines/TomorrowDAO.cli"
-RUN dotnet build "TomorrowDAO.cli.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/pipelines/TomorrowDAO.Cli"
+RUN dotnet build -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "TomorrowDAO.cli.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/contracts /app/contracts
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TomorrowDAO.cli.dll"]
+ENTRYPOINT ["dotnet", "TomorrowDAO.Cli.dll"]

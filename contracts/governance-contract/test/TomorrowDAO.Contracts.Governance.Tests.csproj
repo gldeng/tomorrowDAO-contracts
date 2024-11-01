@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <RootNamespace>TomorrowDAO.Contracts.Governance</RootNamespace>
     </PropertyGroup>
 
@@ -54,6 +54,10 @@
         <ProjectReference Include="..\..\election-contract\src\TomorrowDAO.Contracts.Election.csproj" />
         <ProjectReference Include="..\..\treasury-contract\src\TomorrowDAO.Contracts.Treasury.csproj" />
         <ProjectReference Include="..\..\vote-contract\src\TomorrowDAO.Contracts.Vote.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="obj\Debug\" />
     </ItemGroup>
     
 </Project>

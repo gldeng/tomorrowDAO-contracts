@@ -89,33 +89,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\contracts\dao-contract\src\TomorrowDAO.Contracts.DAO.csproj">
-            <Private>true</Private>
-            <CopyLocal>true</CopyLocal>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contracts\election-contract\src\TomorrowDAO.Contracts.Election.csproj">
-            <Private>true</Private>
-            <CopyLocal>true</CopyLocal>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contracts\governance-contract\src\TomorrowDAO.Contracts.Governance.csproj">
-            <Private>true</Private>
-            <CopyLocal>true</CopyLocal>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contracts\timelock-contract\src\TomorrowDAO.Contracts.Timelock.csproj">
-            <Private>true</Private>
-            <CopyLocal>true</CopyLocal>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contracts\treasury-contract\src\TomorrowDAO.Contracts.Treasury.csproj">
-            <Private>true</Private>
-            <CopyLocal>true</CopyLocal>
-        </ProjectReference>
-        <ProjectReference Include="..\..\contracts\vote-contract\src\TomorrowDAO.Contracts.Vote.csproj">
-            <Private>true</Private>
-            <CopyLocal>true</CopyLocal>
-        </ProjectReference>
-    </ItemGroup>
-
-    <ItemGroup>
       <Folder Include="obj\" />
     </ItemGroup>
 

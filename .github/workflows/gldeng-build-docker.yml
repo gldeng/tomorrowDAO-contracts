@@ -1,4 +1,4 @@
-name: Build Test Node Docker Image
+name: Build Docker Image
 on:
   push:
     branches: ['gldeng']

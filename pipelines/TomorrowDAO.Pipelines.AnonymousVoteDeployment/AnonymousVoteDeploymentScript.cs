@@ -21,7 +21,7 @@ public class AnonymousVoteDeploymentScript : ScriptWithConfig<Config>
         Convert.FromBase64String(B64VerifierCode)
     );
 
-    public AnonymousVoteAdminContractContainer.AnonymousVoteAdminContractStub AnonymousVoteAdminContractStub
+    internal AnonymousVoteAdminContractContainer.AnonymousVoteAdminContractStub AnonymousVoteAdminContractStub
     {
         get;
         private set;

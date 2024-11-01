@@ -20,16 +20,4 @@
         <Compile Include="$(ObjPath)Protobuf/**/*.cs"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Protobuf Include="Protobuf\stub\anonymous_vote_admin.proto">
-        <Access>Public</Access>
-        <ProtoCompile>True</ProtoCompile>
-        <CompileOutputs>True</CompileOutputs>
-        <OutputDir>obj\Debug/net8.0/</OutputDir>
-        <Generator>MSBuild:Compile</Generator>
-        <ContractOutputOptions>stub</ContractOutputOptions>
-      </Protobuf>
-    </ItemGroup>
-
-
 </Project>

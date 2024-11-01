@@ -1,0 +1,35 @@
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+USER $APP_UID
+WORKDIR /app
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY . .
+
+ENV PROJECTS="dao-contract election-contract governance-contract merkletree timelock-contract treasury-contract vote-contract"
+
+SHELL ["/bin/bash", "-c"]
+
+RUN mkdir -p /app/contracts
+
+# Loop over each project path
+RUN for project in $PROJECTS; do \
+    cd "/src/contracts/$project/src" && \
+    dotnet build -c $BUILD_CONFIGURATION && \
+    cp bin/$BUILD_CONFIGURATION/net8.0/*.patched /app/contracts; \
+done
+
+
+WORKDIR "/src/pipelines/TomorrowDAO.cli"
+RUN dotnet build "TomorrowDAO.cli.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "TomorrowDAO.cli.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/contracts /app/contracts
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "TomorrowDAO.cli.dll"]

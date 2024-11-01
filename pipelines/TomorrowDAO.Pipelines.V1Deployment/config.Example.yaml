@@ -4,7 +4,3 @@ daoContractCodePath: "../../../../../contracts/dao-contract/src/bin/Debug/net8.0
 electionContractCodePath: "../../../../../contracts/election-contract/src/bin/Debug/net8.0/TomorrowDAO.Contracts.Election.dll.patched"
 treasuryContractCodePath: "../../../../../contracts/treasury-contract/src/bin/Debug/net8.0/TomorrowDAO.Contracts.Treasury.dll.patched"
 timelockContractCodePath: "../../../../../contracts/timelock-contract/src/bin/Debug/net8.0/TomorrowDAO.Contracts.Timelock.dll.patched"
-merkleTreeContractCodePath: "../../../../../contracts/merkletree/src/bin/Debug/net8.0/MerkleTreeWithHistory.dll.patched"
-voteContractAddress: NCi6nskU1A3QTNxcxgo1rnrrtkhVh56jXqj4m2T6uXs5hjsSF
-daoContractAddress: defdwNRez3U8WpdVE73p6xuiixeYYJ9hn9ZS5GMSpTHbJ2omt
-governanceContractAddress: j5c9dv4ird82fbcBiaHvBys4m3qZFaYnxPKUgDpkhc7nsbvaa

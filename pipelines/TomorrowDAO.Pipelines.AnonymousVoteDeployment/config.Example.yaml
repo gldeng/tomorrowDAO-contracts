@@ -1,1 +1,2 @@
 voteContractAddress: NCi6nskU1A3QTNxcxgo1rnrrtkhVh56jXqj4m2T6uXs5hjsSF
+merkleTreeContractCodePath: "../../../../../contracts/merkletree/src/bin/Debug/net8.0/MerkleTreeWithHistory.dll.patched"

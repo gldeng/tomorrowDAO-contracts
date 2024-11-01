@@ -9,9 +9,12 @@ namespace TomorrowDAO.Pipelines.AnonymousVoteDeployment;
 
 public class AnonymousVoteDeploymentScript : ScriptWithConfig<Config>
 {
-    public DeployContractScript DeployMerkleTree = new(
-        "../../../../../contracts/merkletree/src/bin/Debug/net8.0/MerkleTreeWithHistory.dll.patched"
-    );
+    public AnonymousVoteDeploymentScript()
+    {
+        DeployMerkleTree = new(Config.MerkleTreeContractCodePath);
+    }
+
+    public DeployContractScript DeployMerkleTree;
 
 
     public DeployContractScript DeployZkVerifier = new(

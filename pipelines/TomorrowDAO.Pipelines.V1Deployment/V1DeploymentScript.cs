@@ -11,32 +11,35 @@ using InitializeInput = TomorrowDAO.Contracts.Governance.InitializeInput;
 
 namespace TomorrowDAO.Pipelines.InitialDeployment;
 
-public class V1DeploymentScript : Script
+public class V1DeploymentScript : ScriptWithConfig<Config>
 {
+    public V1DeploymentScript()
+    {
+        DeployVote = new(Config.VoteContractCodePath);
+
+        DeployGovernance = new(Config.GovernanceContractCodePath);
+
+        DeployDao = new(Config.DaoContractCodePath);
+
+        DeployElection = new(Config.ElectionContractCodePath);
+
+        DeployTreasury = new(Config.TreasuryContractCodePath);
+
+        DeployTimelock = new(Config.TimelockContractCodePath);
+    }
+
     // TODO: Reference the assemblies instead of using the path
-    public DeployContractScript DeployVote = new(
-        "../../../../../contracts/vote-contract/src/bin/Debug/net8.0/TomorrowDAO.Contracts.Vote.dll.patched"
-    );
+    public DeployContractScript DeployVote;
 
-    public DeployContractScript DeployGovernance = new(
-        "../../../../../contracts/governance-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Governance.dll.patched"
-    );
+    public DeployContractScript DeployGovernance;
 
-    public DeployContractScript DeployDao = new(
-        "../../../../../contracts/dao-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.DAO.dll.patched"
-    );
+    public DeployContractScript DeployDao;
 
-    public DeployContractScript DeployElection = new(
-        "../../../../../contracts/election-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Election.dll.patched"
-    );
+    public DeployContractScript DeployElection;
 
-    public DeployContractScript DeployTreasury = new(
-        "../../../../../contracts/treasury-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Treasury.dll.patched"
-    );
+    public DeployContractScript DeployTreasury;
 
-    public DeployContractScript DeployTimelock = new(
-        "../../../../../contracts/timelock-contract/src/bin/Debug/net6.0/TomorrowDAO.Contracts.Timelock.dll.patched"
-    );
+    public DeployContractScript DeployTimelock;
 
 
     internal VoteContractContainer.VoteContractStub VoteContractStub { get; private set; }

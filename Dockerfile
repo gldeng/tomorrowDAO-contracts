@@ -28,4 +28,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/build .
 COPY --from=build /app/contracts /app/contracts
+USER root
 ENTRYPOINT ["dotnet", "TomorrowDAO.Cli.dll"]

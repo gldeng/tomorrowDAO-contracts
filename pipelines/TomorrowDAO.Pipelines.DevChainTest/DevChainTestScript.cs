@@ -134,6 +134,7 @@ public class DevChainTestScript : ScriptWithConfig<Config>
             var dAOCreatedLog = result.GetLogEvents<DAOCreated>().FirstOrDefault();
             daoId = dAOCreatedLog.DaoId;
         }
+        Logger.LogInformation($"dao is {daoId}");
 
 
         if (isNetworkDao)
@@ -201,9 +202,9 @@ public class DevChainTestScript : ScriptWithConfig<Config>
         {
             Metadata = new()
             {
-                Name = daoName,
+                Name = daoName + 1,
                 LogoUrl = "www.logo.com",
-                Description = "Dao Description",
+                Description = "Dao Description 1",
                 SocialMedia =
                 {
                     new Dictionary<string, string> { { "aa", "bb" } }

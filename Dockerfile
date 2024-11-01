@@ -27,4 +27,5 @@ RUN dotnet build -c $BUILD_CONFIGURATION -o /app/build
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/build .
+COPY --from=build /app/contracts /app/contracts
 ENTRYPOINT ["dotnet", "TomorrowDAO.Cli.dll"]
